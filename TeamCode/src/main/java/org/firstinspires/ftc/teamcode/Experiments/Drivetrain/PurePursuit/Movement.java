@@ -1,16 +1,12 @@
-package org.firstinspires.ftc.teamcode.Drivetrain.PurePursuit;
-
-import static org.firstinspires.ftc.teamcode.Drivetrain.PurePursuit.Utils.AngleWrap;
-import static org.firstinspires.ftc.teamcode.Drivetrain.PurePursuit.Utils.lineCircleIntersection;
-import static org.firstinspires.ftc.teamcode.Drivetrain.PurePursuit.Utils.nextPoint;
+package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.PurePursuit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.Drivetrain.Odometry;
-import org.firstinspires.ftc.teamcode.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Utils.PIDController;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.opencv.core.Point;
 
 import java.util.ArrayList;
@@ -47,7 +43,7 @@ public class Movement {
     public CurvePoint followCurve(ArrayList<CurvePoint> allPoints, double slowThreshold, double lastSpd, double endAngle) {
         CurvePoint lastPoint = allPoints.get(allPoints.size()-1);
 
-        CurvePoint nextPoint = nextPoint(new Point(odometry.getxPos(), odometry.getyPos()), allPoints);
+        CurvePoint nextPoint = Utils.nextPoint(new Point(odometry.getxPos(), odometry.getyPos()), allPoints);
 
         CurvePoint followMe = getFollowPointPath(allPoints, new Point(odometry.getxPos(), odometry.getyPos()),
                 nextPoint.followDist, nextPoint.followAngle); //change later
@@ -72,13 +68,13 @@ public class Movement {
             CurvePoint startLine = pathPoints.get(i);
             CurvePoint endLine = pathPoints.get(i + 1);
 
-            ArrayList<Point> intersections = lineCircleIntersection(robotLocation, followRadius, startLine.toPoint(), endLine.toPoint());
+            ArrayList<Point> intersections = Utils.lineCircleIntersection(robotLocation, followRadius, startLine.toPoint(), endLine.toPoint());
 
             double closestAngle = 1000000;
 
             for (Point thisIntersection : intersections) {
                 double angle = Math.atan2(thisIntersection.y - odometry.getyPos(), thisIntersection.x - odometry.getxPos());
-                double deltaAngle = Math.abs(AngleWrap(angle - odometry.getHeading() + preferredAngle));
+                double deltaAngle = Math.abs(Utils.AngleWrap(angle - odometry.getHeading() + preferredAngle));
 
                 if (deltaAngle < closestAngle) {
                     closestAngle = deltaAngle;
@@ -94,7 +90,7 @@ public class Movement {
 
         double absoluteAngleToTarget = Math.atan2(y-odometry.getyPos(), x-odometry.getxPos());
 
-        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (odometry.getHeading())); //- Math.toRadians(90)));
+        double relativeAngleToPoint = Utils.AngleWrap(absoluteAngleToTarget - (odometry.getHeading())); //- Math.toRadians(90)));
 
 
         double relativeXToPoint = Math.cos(relativeAngleToPoint) * distToTarget;

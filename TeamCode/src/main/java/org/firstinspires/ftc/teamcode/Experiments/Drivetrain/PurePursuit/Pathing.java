@@ -1,6 +1,4 @@
-package org.firstinspires.ftc.teamcode.Drivetrain.PurePursuit;
-
-import static org.firstinspires.ftc.teamcode.Drivetrain.PurePursuit.Utils.doubleArrayCopy;
+package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.PurePursuit;
 
 import org.opencv.core.Point;
 
@@ -43,7 +41,7 @@ public class Pathing {
         }
 
         //copy array
-        double[][] newPath = doubleArrayCopy(path);
+        double[][] newPath = Utils.doubleArrayCopy(path);
         double change = tolerance;
         while(change >= tolerance)
         {
