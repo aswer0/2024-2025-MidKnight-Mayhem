@@ -17,8 +17,10 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,27 +41,24 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public static Scalar blueUpperBound = new Scalar(160,255,255);
 
     public static double areaThreshold = 1000;
+    public static double centerLine = 320;
 
     AtomicReference<Bitmap> lastFrame = new AtomicReference<>(Bitmap.createBitmap(1,1, Bitmap.Config.RGB_565));
 
     public Alliance alliance;
     /** whether to filter  */
     public boolean filterYellow = true;
-    /** The direction of the nearest sample*/
 
-    public Direction nearestSampleDirection = Direction.left;
-    /**The distance (in pixels) of the nearest sample's center */
+    /**The distance (in pixels) of the nearest sample's center; negative means left, positive means right */
     public double nearestSampleDistance = 0;
+    /** If the contour is inside the center line */
+    public boolean insideContour = false;
 
     FtcDashboard dashboard;
 
     enum Alliance {
         red,
         blue
-    }
-    enum Direction {
-        left,
-        right
     }
     public SampleFinder(Alliance alliance) {
         this.alliance = alliance;
@@ -98,16 +97,44 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         filteredMat.copyTo(mat);
         filteredMat.release();
 
-        // TODO: start contouring and return LEFT or RIGHT and distance.
+        // Get Contours
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         Mat hiearchy = new Mat();
         Imgproc.findContours(mat, contours, hiearchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         hiearchy.release();
-        telemetryPacket.put("Contours", contours.size());
+
+
+        double nearestDistance = Double.POSITIVE_INFINITY;
+        insideContour = false;
         for(int i = 0; i < contours.size(); i++ ) {
+            // Process countours here
+
             if(Imgproc.contourArea(contours.get(i)) < areaThreshold) continue;
             Imgproc.drawContours(frame, contours, i, new Scalar(255,0,255), 3);
+            Moments moments = Imgproc.moments(contours.get(i));
+
+            // Get centroids of such contours and compute nearest distance of such contours
+            double cX = moments.m10/moments.m00;
+            double cY = moments.m01/moments.m00;
+            Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
+            if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)) nearestDistance = cX - centerLine;
+
+            // Check if centerline intersects the contour
+            Point[] points = contours.get(i).toArray();
+            boolean leftSideIntersects = false;
+            boolean rightSideIntersects = false;
+            for(int j = 0; j < points.length; j++) {
+                leftSideIntersects = leftSideIntersects || points[j].x - centerLine <= 0;
+                rightSideIntersects = rightSideIntersects || points[j].x - centerLine >= 0;
+
+                insideContour = insideContour || (leftSideIntersects && rightSideIntersects);
+                if(insideContour) break;
+            }
         }
+        Imgproc.drawMarker(frame, new Point(320,240), new Scalar(0,255,255));
+        telemetryPacket.put("Nearest Distance", nearestDistance);
+        telemetryPacket.put("Inside Contour", insideContour);
+        this.nearestSampleDistance = nearestDistance;
         // TODO: Measure appropriate center line
 
         dashboard.sendTelemetryPacket(telemetryPacket);
