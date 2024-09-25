@@ -11,7 +11,6 @@ import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
-import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.VisionProcessor;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -23,7 +22,6 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Config
@@ -79,7 +77,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         // filter for (red/blue) or yellow
         Mat filteredMat = new Mat();
         if(alliance == Alliance.red) {
-            // Filter from x to 180, or 0 to x because red wraps aroound
+            // Filter from x to 180, or 0 to x because red wraps around
             Mat temp = new Mat();
             Core.inRange(mat, redLowerBound, new Scalar(180, redUpperBound.val[1], redUpperBound.val[2]), temp);
             Core.inRange(mat, new Scalar(0, redLowerBound.val[1], redLowerBound.val[2]), redUpperBound, filteredMat);
@@ -99,15 +97,15 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
 
         // Get Contours
         ArrayList<MatOfPoint> contours = new ArrayList<>();
-        Mat hiearchy = new Mat();
-        Imgproc.findContours(mat, contours, hiearchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-        hiearchy.release();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        hierarchy.release();
 
 
         double nearestDistance = Double.POSITIVE_INFINITY;
         insideContour = false;
         for(int i = 0; i < contours.size(); i++ ) {
-            // Process countours here
+            // Process contours here
 
             if(Imgproc.contourArea(contours.get(i)) < areaThreshold) continue;
             Imgproc.drawContours(frame, contours, i, new Scalar(255,0,255), 3);
@@ -119,16 +117,16 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
             if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)) nearestDistance = cX - centerLine;
 
-            // Check if centerline intersects the contour
+            // Check if center line intersects the contour
             Point[] points = contours.get(i).toArray();
             boolean leftSideIntersects = false;
             boolean rightSideIntersects = false;
-            for(int j = 0; j < points.length; j++) {
-                leftSideIntersects = leftSideIntersects || points[j].x - centerLine <= 0;
-                rightSideIntersects = rightSideIntersects || points[j].x - centerLine >= 0;
+            for (Point point : points) {
+                leftSideIntersects = leftSideIntersects || point.x - centerLine <= 0;
+                rightSideIntersects = rightSideIntersects || point.x - centerLine >= 0;
 
                 insideContour = insideContour || (leftSideIntersects && rightSideIntersects);
-                if(insideContour) break;
+                if (insideContour) break;
             }
         }
         Imgproc.drawMarker(frame, new Point(320,240), new Scalar(0,255,255));
