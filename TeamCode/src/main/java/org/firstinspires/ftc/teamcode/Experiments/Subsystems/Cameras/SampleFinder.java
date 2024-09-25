@@ -38,7 +38,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public static Scalar blueLowerBound = new Scalar(100,90,90);
     public static Scalar blueUpperBound = new Scalar(160,255,255);
 
-    public static double areaThreshold = 1000;
+    public static double areaThreshold = 5000;
     public static double centerLine = 320;
 
     AtomicReference<Bitmap> lastFrame = new AtomicReference<>(Bitmap.createBitmap(1,1, Bitmap.Config.RGB_565));
