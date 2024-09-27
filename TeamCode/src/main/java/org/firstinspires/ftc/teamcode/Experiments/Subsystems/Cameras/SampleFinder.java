@@ -31,7 +31,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public static Scalar yellowUpperBound = new Scalar(30,255,255);
 
 
-    public static Scalar redLowerBound = new Scalar(170,100,50);// possibly split this
+    public static Scalar redLowerBound = new Scalar(170,100,50);
     public static Scalar redUpperBound = new Scalar(10,255,255);
 
 
@@ -43,6 +43,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
 
     AtomicReference<Bitmap> lastFrame = new AtomicReference<>(Bitmap.createBitmap(1,1, Bitmap.Config.RGB_565));
 
+    /** your alliance color (red/blue)*/
     public Alliance alliance;
     /** whether to filter  */
     public boolean filterYellow = true;
