@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import org.opencv.core.Point;
 
 public class BezierCurve {
-    //Declare Control Points p0, p1, p2 as x and y pairs
+    //Declare Control Points p0, p1, p2 as x and y pair
     Point p0;
     Point p1;
     Point p2;
