@@ -17,20 +17,13 @@ public class Path {
         }
     }
 
-    public double derivative(double t){
+    public Point derivative(double t){
         int i = (int)Math.floor(t);
         Point p0 = F.get(i).p0;
         Point p1 = F.get(i).p1;
         Point p2 = F.get(i).p2;
-        t -= i;
 
-        //derivative of quadratic bezier curve with respect to x
-        double dx = 2*(1-t)*(p1.x-p0.x) + 2*t*(p2.x-p1.x);
-        //derivative of quadratic bezier curve with respect to y
-        double dy = 2*(1-t)*(p1.y-p0.y) + 2*t*(p2.y-p1.y);
-
-        //final derivative change in x over change in y
-        return dy/dx;
+        return F.get(i).derivative(t-i);
     }
 
     //calculates Bezier curve
@@ -44,7 +37,9 @@ public class Path {
         return F.get(i).forward(t-i);
     }
 
-    public double arc_length_param(double d){
-        return 0.0;
+    public ArrayList<Double> arc_length_param(double d){
+        int i = (int)Math.floor(d);
+
+        return F.get(i).arc_length_param(d);
     }
 }
