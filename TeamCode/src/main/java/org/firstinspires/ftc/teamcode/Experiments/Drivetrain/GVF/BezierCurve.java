@@ -75,7 +75,7 @@ public class BezierCurve {
         double last_t = 0.0;
         even_t.add(0.0);
         while (last_t < 1) {
-            last_t += dist/length(this.derivative(last_t));
+            last_t += dist/length(derivative(last_t));
             even_t.add(last_t);
         }
         return even_t;
