@@ -33,6 +33,7 @@ public class Path {
         return dy/dx;
     }
 
+    //calculates Bezier curve
     public Point forward(double t){
         int i = (int)Math.floor(t);
 
