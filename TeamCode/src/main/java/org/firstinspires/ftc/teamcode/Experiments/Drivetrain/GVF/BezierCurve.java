@@ -30,24 +30,6 @@ public class BezierCurve {
         this.p2 = p2;
     }
 
-    // Basic math operations for Points
-    public static Point add_v(Point a, Point b) {
-        return new Point(a.x+b.x, a.y+b.y);
-    }
-
-    public static Point sub_v(Point a, Point b) {
-        return new Point(a.x-b.x, a.y-b.y);
-    }
-
-    public static double length(Point v) {
-        return Math.sqrt(v.x*v.x+v.y*v.y);
-    }
-
-    public static Point scale_v(Point v, double len) {
-        double scale_factor = len/length(v);
-        return new Point(v.x*scale_factor, v.y*scale_factor);
-    }
-
     public Point derivative(double t){
         //derivative of quadratic bezier curve with respect to x
         double dx = 2*(1-t)*(p1.x-p0.x) + 2*t*(p2.x-p1.x);
@@ -75,15 +57,15 @@ public class BezierCurve {
         double last_t = 0.0;
         even_t.add(0.0);
         while (last_t < 1) {
-            last_t += dist/length(derivative(last_t));
+            last_t += dist/Utils.length(derivative(last_t));
             even_t.add(last_t);
         }
         return even_t;
     }
 
     public double dDdt(Point p, double t) {
-        Point orth_v = sub_v(forward(t), p);
-        return orth_v.dot(derivative(t))/length(orth_v);
+        Point orth_v = Utils.sub_v(forward(t), p);
+        return orth_v.dot(derivative(t))/Utils.length(orth_v);
     }
 
     // Update the closest point using gradient descent
@@ -96,8 +78,8 @@ public class BezierCurve {
     // Gets the vector given a robot's position
     public Point get_v(Point p, double speed) {
         update_closest(p);
-        Point orth_v = sub_v(forward(closest_T), p);
-        Point tangent_v = scale_v(derivative(closest_T), tangent_weight);
-        return scale_v(add_v(orth_v, tangent_v), speed);
+        Point orth_v = Utils.sub_v(forward(closest_T), p);
+        Point tangent_v = Utils.scale_v(derivative(closest_T), tangent_weight);
+        return Utils.scale_v(Utils.add_v(orth_v, tangent_v), speed);
     }
 }
