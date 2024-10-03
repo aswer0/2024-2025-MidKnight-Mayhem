@@ -3,52 +3,67 @@ import org.opencv.core.Point;
 import java.util.ArrayList;
 
 public class BezierCurve {
-    //Declare Control Points p0, p1, p2 as x and y pair
-    Point p0;
-    Point p1;
-    Point p2;
+    // Declare control points as (x, y)
+    ArrayList<Point> P;
 
-    //Declare parametric parameter t
+    // Degree of curve
+    int K;
+
+    // Declare parametric parameter t
     double T;
 
-    //Declare current closest point on Bezier curve
+    // Declare current closest point on Bezier curve
     double closest_T;
     double epochs = 5;
     double rate = 0.1;
 
     // Weighs the tangent vector
     // The distance at which the robot corrects at 45 degrees
-    double tangent_weight = 2;
+    double tangent_weight = 5;
 
-    public BezierCurve(Point p0, Point p1, Point p2){
+    public BezierCurve(ArrayList<Point> P){
         // initialize parametric parameter as 0
         this.T = 0.0;
 
         // set all control points
-        this.p0 = p0;
-        this.p1 = p1;
-        this.p2 = p2;
-    }
-
-    public Point derivative(double t){
-        //derivative of quadratic bezier curve with respect to x
-        double dx = 2*(1-t)*(p1.x-p0.x) + 2*t*(p2.x-p1.x);
-        //derivative of quadratic bezier curve with respect to y
-        double dy = 2*(1-t)*(p1.y-p0.y) + 2*t*(p2.y-p1.y);
-
-        //final derivative change in x over change in y
-        return new Point(dx, dy);
+        this.P = P;
+        this.K = P.size()-1;
     }
 
     public Point forward(double t) {
         //set new parametric parameter
         this.T = t;
 
-        //calculate x and y of quadratic bezier curve as a parametric
-        double x = ((1 - t) * (1 - t)) * p0.x + 2 * (1 - t) * t * p1.x + (t * t) * p2.x;
-        double y = ((1 - t) * (1 - t)) * p0.y + 2 * (1 - t) * t * p1.y + (t * t) * p2.y;
-
+        //calculate x and y of the bezier curve as a parametric
+        double x = 0.0;
+        double y = 0.0;
+        int cur_comb = 1;
+        double coeff;
+        for (int i = 0; i <= P.size(); i++) {
+            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, i);
+            x += coeff*P.get(i).x;
+            y += coeff*P.get(i).y;
+            cur_comb *= K;
+            cur_comb /= i+1;
+        }
         return new Point(x, y);
+    }
+
+    public Point derivative(double t){
+        //calculate x and y of the bezier curve as a parametric
+        double dx = 0.0;
+        double dy = 0.0;
+        int cur_comb = 1;
+        double coeff;
+        for (int i = 0; i <= P.size()-1; i++) {
+            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, i);
+            dx += coeff*(P.get(i+1).x-P.get(i).x);
+            dy += coeff*(P.get(i+1).y-P.get(i).y);
+            cur_comb *= K;
+            cur_comb /= i+1;
+        }
+        //final derivative change in x over change in y
+        return new Point(dx, dy);
     }
 
     //generates evenly spaced t with specified spacing
