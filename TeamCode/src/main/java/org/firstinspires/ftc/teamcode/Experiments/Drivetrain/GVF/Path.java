@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import org.opencv.core.Point;
-
 import java.util.ArrayList;
 
 public class Path {
