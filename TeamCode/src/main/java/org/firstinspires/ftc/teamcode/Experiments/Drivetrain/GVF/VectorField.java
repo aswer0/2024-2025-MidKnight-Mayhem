@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.opencv.core.Point;
 
 public class VectorField {
@@ -10,23 +11,44 @@ public class VectorField {
     HardwareMap hardwareMap;
     Odometry odometry;
     Path path;
+    WheelControl drive;
 
-    public VectorField(HardwareMap h, Odometry o, Path p){
+    double D;
+    double speed;
+
+    public VectorField(HardwareMap h, Odometry o, Path p, double speed){
         this.hardwareMap = h;
         this.odometry = o;
         this.path = p;
+
+        this.D = 0.0;
+        this.speed = speed;
+        this.drive = new WheelControl(h, o);
+
     }
 
     public Point get_v(double x, double y){
-        return new Point(0, 0);
+        int bz = (int)Math.floor(this.D);
+        return this.path.F.get(bz).get_v(new Point(x, y), this.speed);
     }
 
-    public void calibrate(){
+    public Point calibrate(){
+        // Centripital force and adquate power
 
+        return new Point(1, 1);
     }
 
-    public void update(){
+    public void update(double target_angle){
+        Point p = this.get_v(odometry.getxPos(), odometry.getyPos());
+        double x = p.x;
+        double y = p.y;
 
+        Point c = this.calibrate();
+        double centripital_f = c.x;
+        double power = c.y;
+
+        this.drive.drive(y, x, centripital_f, target_angle, power);
+        this.D += this.speed;
     }
 
     public void set_path(Path path){
