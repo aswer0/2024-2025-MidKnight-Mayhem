@@ -16,14 +16,13 @@ public class VectorField {
     double D;
     double speed;
 
-    public VectorField(HardwareMap h, Odometry o, Path p, double speed){
-        this.hardwareMap = h;
+    public VectorField(WheelControl w, Odometry o, Path p, double speed){
+        this.drive = w;
         this.odometry = o;
         this.path = p;
 
         this.D = 0.0;
         this.speed = speed;
-        this.drive = new WheelControl(h, o);
 
     }
 
