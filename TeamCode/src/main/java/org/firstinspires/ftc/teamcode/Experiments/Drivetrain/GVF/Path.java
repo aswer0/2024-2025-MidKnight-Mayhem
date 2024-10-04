@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import org.opencv.core.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Path {
     ArrayList<BezierCurve> F;
@@ -11,16 +12,16 @@ public class Path {
         this.T = 0.0;
         this.close_T = 0.0;
         for (int i=0; i<cp.size(); i+=3){
-            BezierCurve bz = new BezierCurve(cp.get(i).get(0), cp.get(i).get(1), cp.get(i).get(2));
+            ArrayList<Point> bcp = new ArrayList<>(
+                    Arrays.asList(cp.get(i).get(0), cp.get(i).get(1), cp.get(i).get(2))
+            );
+            BezierCurve bz = new BezierCurve(bcp);
             F.add(bz);
         }
     }
 
     public Point derivative(double t){
         int i = (int)Math.floor(t);
-        Point p0 = F.get(i).p0;
-        Point p1 = F.get(i).p1;
-        Point p2 = F.get(i).p2;
 
         return F.get(i).derivative(t-i);
     }

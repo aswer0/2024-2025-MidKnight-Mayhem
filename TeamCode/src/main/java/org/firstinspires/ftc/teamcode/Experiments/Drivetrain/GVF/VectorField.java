@@ -33,7 +33,7 @@ public class VectorField {
     }
 
     public Point calibrate(){
-        // Centripital force and adquate power
+        // Centripetal force and adequate power
 
         return new Point(1, 1);
     }
@@ -44,10 +44,10 @@ public class VectorField {
         double y = p.y;
 
         Point c = this.calibrate();
-        double centripital_f = c.x;
+        double centripetal_f = c.x;
         double power = c.y;
 
-        this.drive.drive(y, x, centripital_f, target_angle, power);
+        this.drive.drive(y, x, centripetal_f, target_angle, power);
         this.D += this.speed;
     }
 
