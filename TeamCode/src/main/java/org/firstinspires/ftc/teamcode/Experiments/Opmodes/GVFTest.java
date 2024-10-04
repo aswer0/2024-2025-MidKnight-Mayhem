@@ -49,5 +49,9 @@ public class GVFTest extends OpMode {
     public void loop() {
         odometry.update();
         vf.update(45);
+
+        telemetry.addData("xPos", odometry.getxPos());
+        telemetry.addData("yPos", odometry.getyPos());
+        telemetry.addData("heading", Math.toDegrees(odometry.getHeading()));
     }
 }
