@@ -26,13 +26,13 @@ public class GVFTest extends OpMode {
     public void init() {
         Point[][] cp = {
                 {
-                    new Point(118.2, 16),
-                    new Point(70, 61.7),
-                    new Point(19, 61.7)
+                    new Point(121.7, 46),
+                    new Point(109.5, 6.7),
+                    new Point(17.8, 59.3)
                 },
         };
 
-        odometry = new Odometry(hardwareMap, 0, 0, 0, "BL", "FR", "FL");
+        odometry = new Odometry(hardwareMap, 0, 8, 36, "BL", "FR", "FL");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);

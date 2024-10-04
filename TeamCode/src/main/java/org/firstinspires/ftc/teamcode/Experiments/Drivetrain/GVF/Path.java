@@ -40,6 +40,7 @@ public class Path {
 
         // Updates the new curve closest_T might be on
         i = (int)Math.floor(closest_T);
+        if (i < 0 || i > n_bz) return;
         F[i].closest_T = closest_T-i;
     }
 
