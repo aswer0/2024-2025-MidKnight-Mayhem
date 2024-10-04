@@ -24,23 +24,28 @@ public class GVFTest extends OpMode {
 
     @Override
     public void init() {
-        Point[] cp = {
-                new Point(0, 0),
-                new Point(0, 0),
-                new Point(0, 0),
-                new Point(0, 0),
-                new Point(0, 0),
-                new Point(0, 0),
-                new Point(0, 0),
-                new Point(0, 0),
-                new Point(0, 0)
+        Point[][] cp = {
+                {
+                    new Point(0, 0),
+                    new Point(0, 0),
+                    new Point(0, 0)
+                },
+                {
+                    new Point(0, 0),
+                    new Point(0, 0),
+                    new Point(0, 0)
+                },
+                {
+                    new Point(0, 0),
+                    new Point(0, 0),
+                    new Point(0, 0)
+                }
         };
-        BezierCurve BC_one = new BezierCurve(cp);
 
         odometry = new Odometry(hardwareMap, 0, 0, 0, "BL", "FR", "FL");
         //wheelControl = new WheelControl(hardwareMap, odometry);
 
-        path = new Path(new BezierCurve[]{BC_one});
+        path = new Path(cp);
         vf = new VectorField(hardwareMap, odometry, path, 0.1);
 
     }
