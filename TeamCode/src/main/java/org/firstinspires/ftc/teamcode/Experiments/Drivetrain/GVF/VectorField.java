@@ -27,7 +27,7 @@ public class VectorField {
 
     public Point calibrate(){
         // centripetal force and adequate power
-        return new Point(1, 1);
+        return new Point(0.25, 0.25);
     }
 
     public void update(double target_angle){
