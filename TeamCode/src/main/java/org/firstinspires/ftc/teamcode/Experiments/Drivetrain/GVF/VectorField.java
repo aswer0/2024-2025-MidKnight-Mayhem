@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.opencv.core.Point;
 
 public class VectorField {
-    // vector field class
+    // Vector field class
     HardwareMap hardwareMap;
     Odometry odometry;
     Path path;
