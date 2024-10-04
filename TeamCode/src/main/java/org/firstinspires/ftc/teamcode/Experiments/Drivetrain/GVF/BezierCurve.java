@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class BezierCurve {
     // Declare control points as (x, y)
-    ArrayList<Point> P;
+    Point[] P;
 
     // Degree of curve
     int K;
@@ -20,13 +20,13 @@ public class BezierCurve {
     // The distance at which the robot corrects at 45 degrees
     double tangent_weight = 5;
 
-    public BezierCurve(ArrayList<Point> P){
+    public BezierCurve(Point[] P){
         // initialize parametric parameter as 0
         this.closest_T = 0.0;
 
         // set all control points
         this.P = P;
-        this.K = P.size()-1;
+        this.K = P.length-1;
     }
 
     public Point forward(double t) {
@@ -35,10 +35,10 @@ public class BezierCurve {
         double y = 0.0;
         int cur_comb = 1;
         double coeff;
-        for (int i = 0; i <= P.size(); i++) {
+        for (int i = 0; i <= K; i++) {
             coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, i);
-            x += coeff*P.get(i).x;
-            y += coeff*P.get(i).y;
+            x += coeff*P[i].x;
+            y += coeff*P[i].y;
             cur_comb *= K;
             cur_comb /= i+1;
         }
@@ -51,10 +51,10 @@ public class BezierCurve {
         double dy = 0.0;
         int cur_comb = 1;
         double coeff;
-        for (int i = 0; i <= P.size()-1; i++) {
+        for (int i = 0; i <= K-1; i++) {
             coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, i);
-            dx += coeff*(P.get(i+1).x-P.get(i).x);
-            dy += coeff*(P.get(i+1).y-P.get(i).y);
+            dx += coeff*(P[i+1].x-P[i].x);
+            dy += coeff*(P[i+1].y-P[i].y);
             cur_comb *= K;
             cur_comb /= i+1;
         }
@@ -82,15 +82,15 @@ public class BezierCurve {
         return Utils.scale_v(Utils.add_v(orth_v, tangent_v), speed);
     }
 
-//    // Generates evenly spaced t with specified spacing
-//    public ArrayList<Double> arc_length_param(double dist) {
-//        ArrayList<Double> even_t = new ArrayList<>();
-//        double last_t = 0.0;
-//        even_t.add(0.0);
-//        while (last_t < 1) {
-//            last_t += dist/Utils.length(derivative(last_t));
-//            even_t.add(last_t);
-//        }
-//        return even_t;
-//    }
+    // Generates evenly spaced t with specified spacing
+    public ArrayList<Double> arc_length_param(double dist) {
+        ArrayList<Double> even_t = new ArrayList<Double>();
+        double last_t = 0.0;
+        even_t.add(0.0);
+        while (last_t < 1) {
+            last_t += dist/Utils.length(derivative(last_t));
+            even_t.add(last_t);
+        }
+        return even_t;
+    }
 }

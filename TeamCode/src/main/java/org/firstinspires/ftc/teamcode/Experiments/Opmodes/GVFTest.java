@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BezierCurve;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
@@ -23,25 +24,24 @@ public class GVFTest extends OpMode {
 
     @Override
     public void init() {
-        ArrayList<Point> cp = new ArrayList<>(
-                Arrays.asList(
-                        new Point(0, 0),
-                        new Point(0, 0),
-                        new Point(0, 0),
-                        new Point(0, 0),
-                        new Point(0, 0),
-                        new Point(0, 0),
-                        new Point(0, 0),
-                        new Point(0, 0),
-                        new Point(0, 0)
-                )
-        );
+        Point[] cp = {
+                new Point(0, 0),
+                new Point(0, 0),
+                new Point(0, 0),
+                new Point(0, 0),
+                new Point(0, 0),
+                new Point(0, 0),
+                new Point(0, 0),
+                new Point(0, 0),
+                new Point(0, 0)
+        };
+        BezierCurve BC_one = new BezierCurve(cp);
 
         odometry = new Odometry(hardwareMap, 0, 0, 0, "BL", "FR", "FL");
-        wheelControl = new WheelControl(hardwareMap, odometry);
+        //wheelControl = new WheelControl(hardwareMap, odometry);
 
-        path = new Path(cp);
-        vf = new VectorField(wheelControl, odometry, path, 0.1);
+        path = new Path(new BezierCurve[]{BC_one});
+        vf = new VectorField(hardwareMap, odometry, path, 0.1);
 
     }
 

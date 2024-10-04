@@ -3,38 +3,35 @@ import org.opencv.core.Point;
 import java.util.ArrayList;
 
 public class Path {
-    ArrayList<BezierCurve> F;
+    BezierCurve[] F;
     double closest_T;
 
     // Path constructor
-    public Path(ArrayList<ArrayList<Point>> cp){
+    public Path(BezierCurve[] F){
         this.closest_T = 0.0;
-        for (int i = 0; i < cp.size(); i++){
-            BezierCurve bz = new BezierCurve(cp.get(i));
-            F.add(bz);
-        }
+        this.F = F;
     }
 
     //calculates Bezier curve
     public Point forward(double t){
         int i = (int)Math.floor(t);
-        return F.get(i).forward(t-i);
+        return F[i].forward(t-i);
     }
 
     public Point derivative(double t){
         int i = (int)Math.floor(t);
-        return F.get(i).derivative(t-i);
+        return F[i].derivative(t-i);
     }
 
     public void update_closest(Point p) {
         // Gets the closest point on the current curve to p
         int i = (int)Math.floor(closest_T);
-        F.get(i).update_closest(p);
-        closest_T = i+F.get(i).closest_T;
+        F[i].update_closest(p);
+        closest_T = i+F[i].closest_T;
 
         // Updates the new curve closest_T might be on
         i = (int)Math.floor(closest_T);
-        F.get(i).closest_T = closest_T-i;
+        F[i].closest_T = closest_T-i;
     }
 
     public Point get_v(Point p, double speed) {
@@ -43,11 +40,11 @@ public class Path {
 
         // Returns the final vector
         int i = (int)Math.floor(closest_T);
-        return F.get(i).get_v(p, speed);
+        return F[i].get_v(p, speed);
     }
 
-//    public ArrayList<Double> arc_length_param(double d){
-//        int i = (int)Math.floor(d);
-//        return F.get(i).arc_length_param(d);
-//    }
+    public ArrayList<Double> arc_length_param(double d){
+        int i = (int)Math.floor(d);
+        return F[i].arc_length_param(d);
+    }
 }
