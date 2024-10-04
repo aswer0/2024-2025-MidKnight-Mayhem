@@ -17,8 +17,8 @@ public class BezierCurve {
     double rate = 0.1;
 
     // Weighs the tangent vector
-    // The distance at which the robot corrects at 45 degrees
-    double tangent_weight = 5;
+    // How much the robot weighs correction
+    double correction_weight = 5;
 
     public BezierCurve(Point[] P){
         // initialize parametric parameter as 0
@@ -78,7 +78,7 @@ public class BezierCurve {
     // Gets the vector given a robot's position
     public Point get_v(Point p, double speed) {
         Point orth_v = Utils.sub_v(forward(closest_T), p);
-        Point tangent_v = Utils.scale_v(derivative(closest_T), tangent_weight);
+        Point tangent_v = Utils.scale_v(derivative(closest_T), 1/correction_weight);
         return Utils.scale_v(Utils.add_v(orth_v, tangent_v), speed);
     }
 
