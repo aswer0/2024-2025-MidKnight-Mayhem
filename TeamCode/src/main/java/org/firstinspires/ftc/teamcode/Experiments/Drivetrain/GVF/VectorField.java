@@ -32,7 +32,7 @@ public class VectorField {
 //    }
 
     public Point calibrate(){
-        // Centripetal force and adequate power
+        // centripetal force and adequate power
         return new Point(1, 1);
     }
 

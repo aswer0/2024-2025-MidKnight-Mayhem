@@ -6,6 +6,7 @@ public class Path {
     ArrayList<BezierCurve> F;
     double closest_T;
 
+    // Path constructor
     public Path(ArrayList<ArrayList<Point>> cp){
         this.closest_T = 0.0;
         for (int i = 0; i < cp.size(); i++){

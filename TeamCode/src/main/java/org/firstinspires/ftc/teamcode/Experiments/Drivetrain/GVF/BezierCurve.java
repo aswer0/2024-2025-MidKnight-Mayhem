@@ -58,7 +58,7 @@ public class BezierCurve {
             cur_comb *= K;
             cur_comb /= i+1;
         }
-        //final derivative change in x over change in y
+        // final derivative change in x over change in y
         return new Point(dx, dy);
     }
 
