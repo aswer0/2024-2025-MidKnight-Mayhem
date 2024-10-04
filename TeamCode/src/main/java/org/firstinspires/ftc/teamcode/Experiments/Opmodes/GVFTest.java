@@ -43,10 +43,10 @@ public class GVFTest extends OpMode {
         };
 
         odometry = new Odometry(hardwareMap, 0, 0, 0, "BL", "FR", "FL");
-        //wheelControl = new WheelControl(hardwareMap, odometry);
+        wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
-        vf = new VectorField(hardwareMap, odometry, path, 0.1);
+        vf = new VectorField(wheelControl, odometry, path, 0.1);
 
     }
 

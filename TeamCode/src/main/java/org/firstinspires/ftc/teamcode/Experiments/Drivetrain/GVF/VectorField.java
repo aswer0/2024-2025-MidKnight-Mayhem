@@ -8,7 +8,6 @@ import org.opencv.core.Point;
 
 public class VectorField {
     // Vector field class
-    HardwareMap hardwareMap;
     Odometry odometry;
     Path path;
     WheelControl drive;
@@ -16,20 +15,15 @@ public class VectorField {
     double D;
     double speed;
 
-    public VectorField(HardwareMap h, Odometry o, Path p, double speed){
-        this.hardwareMap = h;
+    public VectorField(WheelControl w, Odometry o, Path p, double speed){
         this.odometry = o;
         this.path = p;
 
         this.D = 0.0;
         this.speed = speed;
-        this.drive = new WheelControl(h, o);
+        this.drive = w;
 
     }
-
-//    public Point get_v(Point p){
-//        return this.path.get_v(p, this.speed);
-//    }
 
     public Point calibrate(){
         // centripetal force and adequate power
