@@ -13,6 +13,7 @@ public class Path {
         this.closest_T = 0.0;
         this.n_bz = cp.length;
 
+        //add piecewise bezier curve
         for (int i=0; i<this.n_bz; i++){
             BezierCurve bz = new BezierCurve(cp[i]);
             F.add(bz);
