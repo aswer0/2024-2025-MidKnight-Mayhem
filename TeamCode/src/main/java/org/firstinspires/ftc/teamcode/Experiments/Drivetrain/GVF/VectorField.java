@@ -27,27 +27,23 @@ public class VectorField {
 
     }
 
-    public Point get_v(double x, double y){
-        int bz = (int)Math.floor(this.D);
-        return this.path.F.get(bz).get_v(new Point(x, y), this.speed);
-    }
+//    public Point get_v(Point p){
+//        return this.path.get_v(p, this.speed);
+//    }
 
     public Point calibrate(){
-        // Centripital force and adquate power
-
+        // Centripetal force and adequate power
         return new Point(1, 1);
     }
 
     public void update(double target_angle){
-        Point p = this.get_v(odometry.getxPos(), odometry.getyPos());
-        double x = p.x;
-        double y = p.y;
+        Point v = path.get_v(new Point(odometry.getxPos(), odometry.getyPos()), speed);
 
         Point c = this.calibrate();
-        double centripital_f = c.x;
+        double centripetal_f = c.x;
         double power = c.y;
 
-        this.drive.drive(y, x, centripital_f, target_angle, power);
+        this.drive.drive(v.y, v.x, centripetal_f, target_angle, power);
         this.D += this.speed;
     }
 

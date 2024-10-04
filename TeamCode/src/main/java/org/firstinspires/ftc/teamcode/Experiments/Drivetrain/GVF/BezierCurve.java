@@ -9,11 +9,10 @@ public class BezierCurve {
     // Degree of curve
     int K;
 
-    // Declare parametric parameter t
-    double T;
-
     // Declare current closest point on Bezier curve
     double closest_T;
+
+    // Gradient descent hyperparameters for finding closest point
     double epochs = 5;
     double rate = 0.1;
 
@@ -23,7 +22,7 @@ public class BezierCurve {
 
     public BezierCurve(ArrayList<Point> P){
         // initialize parametric parameter as 0
-        this.T = 0.0;
+        this.closest_T = 0.0;
 
         // set all control points
         this.P = P;
@@ -31,9 +30,6 @@ public class BezierCurve {
     }
 
     public Point forward(double t) {
-        //set new parametric parameter
-        this.T = t;
-
         //calculate x and y of the bezier curve as a parametric
         double x = 0.0;
         double y = 0.0;
@@ -66,18 +62,7 @@ public class BezierCurve {
         return new Point(dx, dy);
     }
 
-    //generates evenly spaced t with specified spacing
-    public ArrayList<Double> arc_length_param(double dist) {
-        ArrayList<Double> even_t = new ArrayList<>();
-        double last_t = 0.0;
-        even_t.add(0.0);
-        while (last_t < 1) {
-            last_t += dist/Utils.length(derivative(last_t));
-            even_t.add(last_t);
-        }
-        return even_t;
-    }
-
+    // Derivative of the distance from point to curve
     public double dDdt(Point p, double t) {
         Point orth_v = Utils.sub_v(forward(t), p);
         return orth_v.dot(derivative(t))/Utils.length(orth_v);
@@ -92,9 +77,20 @@ public class BezierCurve {
 
     // Gets the vector given a robot's position
     public Point get_v(Point p, double speed) {
-        update_closest(p);
         Point orth_v = Utils.sub_v(forward(closest_T), p);
         Point tangent_v = Utils.scale_v(derivative(closest_T), tangent_weight);
         return Utils.scale_v(Utils.add_v(orth_v, tangent_v), speed);
     }
+
+//    // Generates evenly spaced t with specified spacing
+//    public ArrayList<Double> arc_length_param(double dist) {
+//        ArrayList<Double> even_t = new ArrayList<>();
+//        double last_t = 0.0;
+//        even_t.add(0.0);
+//        while (last_t < 1) {
+//            last_t += dist/Utils.length(derivative(last_t));
+//            even_t.add(last_t);
+//        }
+//        return even_t;
+//    }
 }

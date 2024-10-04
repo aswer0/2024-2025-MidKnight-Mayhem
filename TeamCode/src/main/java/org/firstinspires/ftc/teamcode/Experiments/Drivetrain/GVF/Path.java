@@ -4,41 +4,49 @@ import java.util.ArrayList;
 
 public class Path {
     ArrayList<BezierCurve> F;
-    double T;
-    double close_T;
+    double closest_T;
 
     public Path(ArrayList<ArrayList<Point>> cp){
-        this.T = 0.0;
-        this.close_T = 0.0;
-        for (int i=0; i<cp.size(); i+=3){
-            BezierCurve bz = new BezierCurve(cp.get(i).get(0), cp.get(i).get(1), cp.get(i).get(2));
+        this.closest_T = 0.0;
+        for (int i = 0; i < cp.size(); i++){
+            BezierCurve bz = new BezierCurve(cp.get(i));
             F.add(bz);
         }
-    }
-
-    public Point derivative(double t){
-        int i = (int)Math.floor(t);
-        Point p0 = F.get(i).p0;
-        Point p1 = F.get(i).p1;
-        Point p2 = F.get(i).p2;
-
-        return F.get(i).derivative(t-i);
     }
 
     //calculates Bezier curve
     public Point forward(double t){
         int i = (int)Math.floor(t);
-
-        //set new parametric parameter
-        this.T = t;
-
-        //calculate x and y of quadratic bezier curve as a parametric
         return F.get(i).forward(t-i);
     }
 
-    public ArrayList<Double> arc_length_param(double d){
-        int i = (int)Math.floor(d);
-
-        return F.get(i).arc_length_param(d);
+    public Point derivative(double t){
+        int i = (int)Math.floor(t);
+        return F.get(i).derivative(t-i);
     }
+
+    public void update_closest(Point p) {
+        // Gets the closest point on the current curve to p
+        int i = (int)Math.floor(closest_T);
+        F.get(i).update_closest(p);
+        closest_T = i+F.get(i).closest_T;
+
+        // Updates the new curve closest_T might be on
+        i = (int)Math.floor(closest_T);
+        F.get(i).closest_T = closest_T-i;
+    }
+
+    public Point get_v(Point p, double speed) {
+        // Updates the closest point on the curve
+        update_closest(p);
+
+        // Returns the final vector
+        int i = (int)Math.floor(closest_T);
+        return F.get(i).get_v(p, speed);
+    }
+
+//    public ArrayList<Double> arc_length_param(double d){
+//        int i = (int)Math.floor(d);
+//        return F.get(i).arc_length_param(d);
+//    }
 }
