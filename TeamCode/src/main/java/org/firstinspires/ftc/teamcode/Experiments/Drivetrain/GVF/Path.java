@@ -15,7 +15,7 @@ public class Path {
         ArrayList<BezierCurve> temp_F = new ArrayList<>();
         
         //add piecewise bezier curve
-        for (int i=0; i<this.n_bz; i++){
+        for (int i = 0; i < this.n_bz; i++){
             temp_F.add(new BezierCurve(cp[i]));
         }
         this.F = (BezierCurve[]) temp_F.toArray();
@@ -40,7 +40,8 @@ public class Path {
 
         // Updates the new curve closest_T might be on
         i = (int)Math.floor(closest_T);
-        if (i < 0 || i > n_bz) return;
+        if (i < 0) i = 0;
+        if (i >= this.n_bz) i = n_bz-1;
         F[i].closest_T = closest_T-i;
     }
 
