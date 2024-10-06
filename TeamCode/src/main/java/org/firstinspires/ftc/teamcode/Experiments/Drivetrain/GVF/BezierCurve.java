@@ -39,7 +39,7 @@ public class BezierCurve {
             coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, i);
             x += coeff*P[i].x;
             y += coeff*P[i].y;
-            cur_comb *= K;
+            cur_comb *= (K-i);
             cur_comb /= i+1;
         }
         return new Point(x, y);
@@ -55,7 +55,7 @@ public class BezierCurve {
             coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, i);
             dx += coeff*(P[i+1].x-P[i].x);
             dy += coeff*(P[i+1].y-P[i].y);
-            cur_comb *= K;
+            cur_comb *= (K-i);
             cur_comb /= i+1;
         }
         // final derivative change in x over change in y
