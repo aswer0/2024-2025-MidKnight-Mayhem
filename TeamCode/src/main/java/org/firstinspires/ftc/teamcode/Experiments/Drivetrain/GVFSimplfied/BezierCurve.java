@@ -5,6 +5,7 @@ import org.opencv.core.Point;
 
 import java.util.ArrayList;
 
+
 public class BezierCurve {
     Point p0;
     Point p1;

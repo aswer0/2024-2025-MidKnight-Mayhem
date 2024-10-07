@@ -18,7 +18,7 @@ public class Path {
         for (int i = 0; i < this.n_bz; i++){
             temp_F.add(new BezierCurve(cp[i]));
         }
-        this.F = (BezierCurve[]) temp_F.toArray();
+        this.F = temp_F.toArray(new BezierCurve[temp_F.size()]);
     }             
   
     //calculates Bezier curve
