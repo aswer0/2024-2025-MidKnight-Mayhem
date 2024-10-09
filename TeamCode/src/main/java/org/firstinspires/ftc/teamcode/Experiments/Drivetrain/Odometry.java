@@ -38,7 +38,6 @@ public class Odometry {
 
     ElapsedTime imuTimer = new ElapsedTime();
 
-
     public Odometry(HardwareMap hardwareMap, double heading, double x, double y, String left, String right, String front) {
         leftEncoder = hardwareMap.get(DcMotorEx.class, left);
         rightEncoder = hardwareMap.get(DcMotorEx.class, right);

@@ -27,17 +27,17 @@ public class VectorField {
 
     public Point calibrate(){
         // centripetal force and adequate power
-        return new Point(0.25, 0.25);
+        return new Point(0.35, 3.2);
     }
 
-    public void update(double target_angle){
+    public void update(){
         Point v = path.get_v(new Point(odometry.getxPos(), odometry.getyPos()), speed);
 
         Point c = this.calibrate();
         double centripetal_f = c.x;
         double power = c.y;
 
-        this.drive.drive(v.y, v.x, centripetal_f, target_angle, power);
+        //this.drive.drive(v.y, v.x, centripetal_f, target_angle, power);
         this.D += this.speed;
     }
 

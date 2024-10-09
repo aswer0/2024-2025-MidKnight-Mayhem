@@ -35,7 +35,7 @@ public class TestDrive extends OpMode {
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 0, 10.75, 30.25, "BL", "FR", "FL");
+        odometry = new Odometry(hardwareMap, 0, 0, 0, "BL", "FR", "FL");
         drive = new WheelControl(hardwareMap, odometry);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
@@ -109,6 +109,6 @@ public class TestDrive extends OpMode {
 
         telemetry.addData("xPos", odometry.getxPos());
         telemetry.addData("yPos", odometry.getyPos());
-        telemetry.addData("heading", Math.toDegrees(odometry.getHeading()));
+        telemetry.addData("heading", odometry.getHeading());
     }
 }

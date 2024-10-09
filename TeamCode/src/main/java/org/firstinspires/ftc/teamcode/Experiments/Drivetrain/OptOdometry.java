@@ -1,0 +1,64 @@
+package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
+
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+public class OptOdometry {
+    private double heading;
+    private double xPos;
+    private double yPos;
+
+    private static double SENSOR_OFFSET_X = 0;
+    private static double SENSOR_OFFSET_Y = 0;
+    private static double SENSOR_OFFSET_H = 0;
+
+    private static double LINEAR_SCALAR = 1;
+    private static double ANGULAR_SCALAR = 1;
+
+    SparkFunOTOS otos;
+
+    public OptOdometry(HardwareMap hardwareMap, double h, double x, double y, String oto){
+        otos = hardwareMap.get(SparkFunOTOS.class, oto);
+        this.xPos = x;
+        this.yPos = y;
+        this.heading = h;
+
+        otos.setLinearUnit(DistanceUnit.INCH);
+        otos.setAngularUnit(AngleUnit.DEGREES);
+        otos.setLinearScalar(LINEAR_SCALAR);
+        otos.setAngularScalar(ANGULAR_SCALAR);
+
+        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(SENSOR_OFFSET_X, SENSOR_OFFSET_Y, SENSOR_OFFSET_H);
+        otos.setOffset(offset);
+
+        otos.calibrateImu();
+        otos.resetTracking();
+    }
+
+    public double getxPos() {
+        return this.xPos;
+    }
+
+    public double getyPos() {
+        return this.yPos;
+    }
+
+    public double getHeading() {
+        return this.heading;
+    }
+
+    public void update(){
+        SparkFunOTOS.Pose2D pos = this.otos.getPosition();
+        this.xPos = pos.x;
+        this.yPos = -pos.y;
+        this.heading = pos.h;
+    }
+
+    public void setPos(double x, double y){
+        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
+        this.otos.setPosition(currentPosition);
+    }
+}
