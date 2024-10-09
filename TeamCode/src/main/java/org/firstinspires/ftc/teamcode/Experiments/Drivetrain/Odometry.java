@@ -35,6 +35,7 @@ public class Odometry {
     private double dTheta;
 
     private IMU imu;
+    public OptOdometry opt;
 
     ElapsedTime imuTimer = new ElapsedTime();
 
@@ -62,6 +63,10 @@ public class Odometry {
 
         imu.resetYaw();
         imuTimer.reset();
+    }
+
+    public Odometry(HardwareMap hardwareMap, double heading, double x, double y, String otos){
+        opt = new OptOdometry(hardwareMap, heading, x, y, otos);
     }
 
     public double getxPos() {

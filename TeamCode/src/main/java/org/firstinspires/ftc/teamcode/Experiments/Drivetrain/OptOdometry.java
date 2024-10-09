@@ -38,15 +38,15 @@ public class OptOdometry {
         otos.resetTracking();
     }
 
-    public double getxPos() {
+    public double get_x() {
         return this.xPos;
     }
 
-    public double getyPos() {
+    public double get_y() {
         return this.yPos;
     }
 
-    public double getHeading() {
+    public double get_heading() {
         return this.heading;
     }
 
@@ -61,4 +61,20 @@ public class OptOdometry {
         SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
         this.otos.setPosition(currentPosition);
     }
+
+    public void calibrate_imu(){
+        this.otos.calibrateImu();
+    }
+
+    public void calibrate_tracking(){
+        this.otos.resetTracking();
+    }
+
+    public double get_linear_scalar(){
+        return LINEAR_SCALAR;
+    }
+    public double get_angular_scalar(){
+        return ANGULAR_SCALAR;
+    }
+
 }
