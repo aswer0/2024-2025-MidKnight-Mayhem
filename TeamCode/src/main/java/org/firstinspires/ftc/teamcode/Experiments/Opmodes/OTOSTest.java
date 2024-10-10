@@ -50,7 +50,7 @@ public class OTOSTest extends OpMode {
         if (gamepad1.x) drive.FL.setPower(0.5);
         if (gamepad1.y) drive.FR.setPower(0.5);
 
-        odometry.update();
+        odometry.opt.update();
         drive.drive(-gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x), 0, powerLevel);
 
         telemetry.addData("power level", powerLevel);
