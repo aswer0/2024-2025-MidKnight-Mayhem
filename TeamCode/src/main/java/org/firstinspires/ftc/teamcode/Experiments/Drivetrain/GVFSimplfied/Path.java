@@ -26,14 +26,14 @@ public class Path {
         this.speed = speed;
         this.D = 0.0;
 
-        ArrayList<Double> temp_even_t = bz.arc_length_param(speed);
-        even_t = temp_even_t.toArray(new Double[temp_even_t.size()]);
+        //ArrayList<Double> temp_even_t = bz.arc_length_param(speed);
+        //even_t = temp_even_t.toArray(new Double[temp_even_t.size()]);
 
         heading.setConstants(1, 0, 1);
     }
 
     public void follow_path(double target_angle){
-        Point d = this.bz.derivative(this.get_d_at_t());
+        Point d = this.bz.derivative(this.bz.d_to_t(this.D));
         double x = d.x;
         double y = d.y;
         double error = heading.calculate(this.odometry.opt.get_heading() ,target_angle);
