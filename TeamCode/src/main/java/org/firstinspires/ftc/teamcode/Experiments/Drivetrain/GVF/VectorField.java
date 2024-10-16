@@ -29,6 +29,7 @@ public class VectorField {
                        double max_speed,
                        double min_speed,
                        double max_turn_speed,
+                       double rad_to_power,
                        double corr_weight) {
         this.odometry = o;
         this.path = p;
