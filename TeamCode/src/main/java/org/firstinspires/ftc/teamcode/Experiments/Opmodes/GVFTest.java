@@ -26,9 +26,9 @@ public class GVFTest extends OpMode {
     public void init() {
         Point[][] cp = {
                 {
-                    new Point(121.7, 46),
-                    new Point(109.5, 6.7),
-                    new Point(17.8, 59.3)
+                    new Point(10, 40),
+                    new Point(114, -15),
+                    new Point(130, 70)
                 },
         };
 
@@ -36,7 +36,7 @@ public class GVFTest extends OpMode {
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
-        vf = new VectorField(wheelControl, odometry, path,0.5,0.2, 0.5, 50, 0.1);
+        vf = new VectorField(wheelControl, odometry, path,0.1,0.03, 0.5, 50, 0.1);
     }
 
     @Override

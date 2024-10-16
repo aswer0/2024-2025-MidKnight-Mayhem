@@ -16,7 +16,7 @@ public class VectorField {
     double max_speed;
     double min_speed;
     double max_turn_speed;
-    double rad_to_power;
+    double angle_to_power;
     double corr_weight;
 
     // Backend variables
@@ -84,7 +84,7 @@ public class VectorField {
         double turn_speed = odometry.getHeading()-target_angle;
         if (turn_speed < -Math.PI) turn_speed += Math.PI*2;
         if (turn_speed > Math.PI) turn_speed -= Math.PI*2;
-        turn_speed /= rad_to_power;
+        turn_speed /= angle_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
         speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
