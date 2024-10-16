@@ -19,7 +19,7 @@ public class PIDFController {
         double adjustment = coefficients.p * error +
                 coefficients.i * iSum +
                 coefficients.d * (error - lastError)/(nowSeconds - lastSeconds) +
-                coefficients.f;
+                (Math.signum(error) == -1 ? coefficients.f : 0);
         iSum += (nowSeconds - lastSeconds) * error;
 
         lastSeconds = nowSeconds;
