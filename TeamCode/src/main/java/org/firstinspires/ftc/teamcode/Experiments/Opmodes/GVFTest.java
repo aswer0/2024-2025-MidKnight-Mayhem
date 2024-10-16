@@ -42,7 +42,7 @@ public class GVFTest extends OpMode {
     @Override
     public void loop() {
         odometry.update();
-        vf.move(50);
+        vf.move();
 
         telemetry.addData("xPos", odometry.getxPos());
         telemetry.addData("yPos", odometry.getyPos());
