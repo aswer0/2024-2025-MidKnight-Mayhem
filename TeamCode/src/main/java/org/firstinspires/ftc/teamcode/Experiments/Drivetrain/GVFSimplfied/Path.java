@@ -29,17 +29,19 @@ public class Path {
         //ArrayList<Double> temp_even_t = bz.arc_length_param(speed);
         //even_t = temp_even_t.toArray(new Double[temp_even_t.size()]);
 
-        heading.setConstants(1, 0, 1);
+        heading = new PIDController(1.0, 0.0, 1.0);
     }
 
-    public void follow_path(double target_angle){
-        Point d = this.bz.derivative(this.bz.d_to_t(this.D));
-        double x = d.x;
-        double y = d.y;
+    public double follow_path(double target_angle){
+        Point d = this.bz.derivative(this.D);
+        double dx = d.x;
+        double dy = d.y;
         double error = heading.calculate(this.odometry.opt.get_heading() ,target_angle);
 
-        wheelControl.drive(y, x, error, 0, 0.25);
+        wheelControl.drive(dy, dx, 0, 0, 0.4);
         this.D += this.speed;
+
+        return target_angle;
     }
 
     public double get_d_at_t(){
@@ -47,5 +49,11 @@ public class Path {
         return this.even_t[index];
     }
 
+    public double get_d(){
+        return this.D;
+    }
 
+    public void stop(){
+        this.wheelControl.drive(0, 0, 0, 0, 0);
+    }
 }

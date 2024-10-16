@@ -15,7 +15,7 @@ public class OptOdometry {
     private static double SENSOR_OFFSET_Y = 5.709;
     private static double SENSOR_OFFSET_H = 0;
 
-    private static double LINEAR_SCALAR = 1.103305566576815;
+    private static double LINEAR_SCALAR = 1.014503821596663;
     private static double ANGULAR_SCALAR = 0.9875;
 
     SparkFunOTOS otos;
