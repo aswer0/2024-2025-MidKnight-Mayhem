@@ -56,6 +56,6 @@ public class Path {
 
     public int dDdt_sign(Point p, double t) {
         int i = get_bz(t);
-        return (int)F[i].dDdt_sign(p,t-i);
+        return F[i].dDdt_sign(p,t-i);
     }
 }
