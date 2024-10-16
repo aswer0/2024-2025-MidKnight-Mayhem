@@ -55,10 +55,8 @@ public class OptOdometry {
         this.xPos = pos.x;
         this.yPos = -pos.y;
 
-        if (this.heading < 180){
-            this.heading = pos.h;
-        }
-        else{
+        this.heading = pos.h;
+        if (this.heading < 0){
             this.heading = pos.h+360;
         }
     }
