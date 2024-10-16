@@ -29,8 +29,7 @@ public class VectorField {
                        double max_speed,
                        double min_speed,
                        double max_turn_speed,
-                       double corr_weight,
-                       Path path) {
+                       double corr_weight) {
         this.odometry = o;
         this.path = p;
         this.drive = w;
@@ -75,5 +74,17 @@ public class VectorField {
         Point orth = Utils.sub_v(get_closest(), get_pos());
         Point tangent = Utils.scale_v(path.derivative(D), 1/corr_weight);
         return Utils.angle_v(Utils.add_v(orth, tangent));
+    }
+
+    public void move(double rad_to_power) {
+        double target_angle = angle_to_path();
+        double turn_speed = odometry.getHeading()-target_angle;
+        if (turn_speed < -Math.PI) turn_speed += Math.PI*2;
+        if (turn_speed > Math.PI) turn_speed -= Math.PI*2;
+        turn_speed /= rad_to_power;
+        if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
+        if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
+        double move_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
+        drive.drive(1, 0, turn_speed, 0, move_speed);
     }
 }
