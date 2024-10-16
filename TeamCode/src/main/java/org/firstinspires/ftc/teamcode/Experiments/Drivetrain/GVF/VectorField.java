@@ -88,7 +88,7 @@ public class VectorField {
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
         speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
-        drive.drive(1, 0, turn_speed, 0, move_speed);
+        drive.drive(1, 0, turn_speed, 0, speed);
         velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
     }
 }
