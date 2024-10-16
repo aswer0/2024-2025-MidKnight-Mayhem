@@ -55,10 +55,10 @@ public class WheelControl {
         double newX = right*Math.cos(angle) - forward*Math.sin(angle);
         double newY = right*Math.sin(angle) + forward*Math.cos(angle);
 
-        double BLPower = newY - newX + rotate;
-        double BRPower = newY + newX - rotate;
-        double FLPower = newY + newX + rotate;
-        double FRPower = newY - newX - rotate;
+        double BLPower = newY + newX + rotate;
+        double BRPower = newY - newX - rotate;
+        double FLPower = newY - newX + rotate;
+        double FRPower = newY + newX - rotate;
         //setPowers(BLPower, BRPower, FLPower, FRPower, power);
 
         double max = 1; // max motor power
