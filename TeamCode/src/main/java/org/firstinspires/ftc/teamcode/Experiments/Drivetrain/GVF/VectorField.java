@@ -20,7 +20,7 @@ public class VectorField {
 
     // Backend variables
     double D;
-    Point v = new Point(0, 0);
+    Point velocity = new Point(0, 0);
     double speed;
 
     public VectorField(WheelControl w,
@@ -56,7 +56,7 @@ public class VectorField {
                                double rate) {
         Point pos = Utils.add_v(get_pos(), Utils.mul_v(this.v, look_ahead));
         double path_len = path.F[path.get_bz(D)].est_arclen;
-        double update = rate*max_speed/path_len;
+        double update = rate*speed/path_len;
 
         int init_sign = path.dDdt_sign(pos, D);
         int iters = 0;
@@ -85,7 +85,8 @@ public class VectorField {
         turn_speed /= rad_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
-        double move_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
+        speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
         drive.drive(1, 0, turn_speed, 0, move_speed);
+        velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
     }
 }
