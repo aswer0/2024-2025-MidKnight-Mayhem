@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+// todo Implement PID & update
 public class Lift {
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;

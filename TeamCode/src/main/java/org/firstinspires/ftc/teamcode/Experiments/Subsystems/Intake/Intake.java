@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+// todo Check if ready to transfer and intake.
 public class Intake {
     public CRServo intakeMotor;
 
