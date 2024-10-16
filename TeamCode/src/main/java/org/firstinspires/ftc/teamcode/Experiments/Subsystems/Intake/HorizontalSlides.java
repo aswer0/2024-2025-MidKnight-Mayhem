@@ -5,11 +5,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 
-// todo PID
+import java.util.concurrent.CompletableFuture;
+
 public class HorizontalSlides {
     public DcMotorEx horizontalSlidesMotor;
     public PIDController pidController = new PIDController(0.001, 0, 0.001);
-    enum State {
+    private enum State {
         userControlled,
         runToPosition
     }
@@ -33,7 +34,8 @@ public class HorizontalSlides {
     public void update() {
         if (state == State.runToPosition) {
             horizontalSlidesMotor.setPower(pidController.calculate(horizontalSlidesMotor.getCurrentPosition(), position));
-            // Power should already be set for setPower
+            // Brake if already in position
+
         }
     }
 
