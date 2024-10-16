@@ -16,6 +16,7 @@ public class VectorField {
     double max_speed;
     double min_speed;
     double max_turn_speed;
+    double rad_to_power;
     double corr_weight;
 
     // Backend variables
@@ -38,6 +39,7 @@ public class VectorField {
         this.max_speed = max_speed;
         this.min_speed = min_speed;
         this.max_turn_speed = max_turn_speed;
+        this.rad_to_power = rad_to_power;
         this.corr_weight = corr_weight;
     }
 
@@ -54,7 +56,7 @@ public class VectorField {
                                double max_rough_iters,
                                double tune_iters,
                                double rate) {
-        Point pos = Utils.add_v(get_pos(), Utils.mul_v(this.v, look_ahead));
+        Point pos = Utils.add_v(get_pos(), Utils.mul_v(velocity, look_ahead));
         double path_len = path.F[path.get_bz(D)].est_arclen;
         double update = rate*speed/path_len;
 
@@ -77,7 +79,7 @@ public class VectorField {
         return Utils.angle_v(Utils.add_v(orth, tangent));
     }
 
-    public void move(double rad_to_power) {
+    public void move() {
         double target_angle = angle_to_path();
         double turn_speed = odometry.getHeading()-target_angle;
         if (turn_speed < -Math.PI) turn_speed += Math.PI*2;
