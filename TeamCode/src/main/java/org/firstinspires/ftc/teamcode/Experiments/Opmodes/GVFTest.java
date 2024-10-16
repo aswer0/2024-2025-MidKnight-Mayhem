@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BezierCurve;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.OptOdometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.opencv.core.Point;
 
@@ -26,17 +26,17 @@ public class GVFTest extends OpMode {
     public void init() {
         Point[][] cp = {
                 {
-                    new Point(121.7, 46),
-                    new Point(109.5, 6.7),
-                    new Point(17.8, 59.3)
+                    new Point(10, 40),
+                    new Point(114, -15),
+                    new Point(130, 70)
                 },
         };
 
-        odometry = new Odometry(hardwareMap, 0, 8, 36, "BL", "FR", "FL");
+        odometry = new OptOdometry(hardwareMap, 0, 8, 36, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
-        vf = new VectorField(wheelControl, odometry, path,0.5,0.2, 0.5, 50, 0.1);
+        vf = new VectorField(wheelControl, odometry, path,0.1,0.03, 0.5, 50, 0.1);
     }
 
     @Override
