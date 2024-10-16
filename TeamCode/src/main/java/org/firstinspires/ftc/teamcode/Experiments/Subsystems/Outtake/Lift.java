@@ -5,10 +5,28 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFCoefficients;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFControllerTest;
+
 // todo Implement PID & update
 public class Lift {
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
+
+
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.02,0,-0.001,0.1);
+
+    public PIDFController leftMotorController = new PIDFController(coefficients);;
+    public PIDFController rightMotorController = new PIDFController(coefficients);;
+
+    private enum State {
+        userControlled,
+        runToPosition
+    }
+    private double position = 0;
+    private State state = State.userControlled;
 
     public Lift (HardwareMap hardwareMap) {
         this.leftSlide = hardwareMap.get(DcMotorEx.class,"SlideRight"); //The one with the encoder
@@ -29,6 +47,25 @@ public class Lift {
         }else{
             this.leftSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             this.rightSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
+    }
+    public void setPosition(double position, boolean changeState) {
+        if(changeState) state = State.runToPosition;
+        this.position = position;
+    }
+    public void setPosition(double position) {
+        setPosition(position, true);
+    }
+    public void setPower(double power) {
+        state = State.userControlled;
+        rightSlide.setPower(power);
+        leftSlide.setPower(power);
+    }
+    public void update() {
+        if (state == State.runToPosition) {
+            leftSlide.setPower(leftMotorController.update(leftSlide.getCurrentPosition() - position));
+            rightSlide.setPower(rightMotorController.update(rightSlide.getCurrentPosition() - position));
+            // Power should already be set for setPower
         }
     }
 

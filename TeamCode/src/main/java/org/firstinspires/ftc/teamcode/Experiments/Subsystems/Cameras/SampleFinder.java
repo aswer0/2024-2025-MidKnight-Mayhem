@@ -55,7 +55,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
 
     FtcDashboard dashboard;
 
-    enum Alliance {
+    public enum Alliance {
         red,
         blue
     }
