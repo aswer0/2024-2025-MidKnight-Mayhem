@@ -134,7 +134,6 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         telemetryPacket.put("Nearest Distance", nearestDistance);
         telemetryPacket.put("Inside Contour", insideContour);
         this.nearestSampleDistance = nearestDistance;
-        // TODO: Measure appropriate center line
 
         dashboard.sendTelemetryPacket(telemetryPacket);
 
