@@ -7,42 +7,73 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.opencv.core.Point;
 
 public class VectorField {
-    // Vector field class
+    // Robot controls
     Odometry odometry;
-    Path path;
     WheelControl drive;
+    Path path;
 
+    // Robot tuning
+    double max_speed;
+    double min_speed;
+    double max_turn_speed;
+    double corr_weight;
+
+    // Backend variables
     double D;
+    Point v = new Point(0, 0);
     double speed;
 
-    public VectorField(WheelControl w, Odometry o, Path p, double speed){
+    public VectorField(WheelControl w,
+                       Odometry o,
+                       Path p,
+                       double max_speed,
+                       double min_speed,
+                       double max_turn_speed,
+                       double corr_weight,
+                       Path path) {
         this.odometry = o;
         this.path = p;
-
-        this.D = 0.0;
-        this.speed = speed;
         this.drive = w;
 
+        this.max_speed = max_speed;
+        this.min_speed = min_speed;
+        this.max_turn_speed = max_turn_speed;
+        this.corr_weight = corr_weight;
     }
 
-    public Point calibrate(){
-        // centripetal force and adequate power
-        return new Point(0.35, 3.2);
+    public Point get_closest() {
+        return path.forward(D);
     }
 
-    public void update(){
-        Point v = path.get_v(new Point(odometry.getxPos(), odometry.getyPos()), speed);
-
-        Point c = this.calibrate();
-        double centripetal_f = c.x;
-        double power = c.y;
-
-        //this.drive.drive(v.y, v.x, centripetal_f, target_angle, power);
-        this.D += this.speed;
+    public Point get_pos() {
+        return new Point(odometry.getxPos(), odometry.getyPos());
     }
 
-    public void set_path(Path path){
-        this.path = path;
+    // Updates closest point on curve using binary search
+    public void update_closest(double look_ahead,
+                               double max_rough_iters,
+                               double tune_iters,
+                               double rate) {
+        Point pos = Utils.add_v(get_pos(), Utils.mul_v(this.v, look_ahead));
+        double path_len = path.F[path.get_bz(D)].est_arclen;
+        double update = rate*max_speed/path_len;
+
+        int init_sign = path.dDdt_sign(pos, D);
+        int iters = 0;
+        while (path.dDdt_sign(pos, D) == init_sign && iters++ < max_rough_iters) {
+            D -= init_sign*update;
+        }
+        for (int i = 0; i < tune_iters; i++) {
+            if (path.dDdt_sign(pos, D) > 0) D -= update;
+            else D += update;
+            update /= 2;
+        }
     }
 
+    public double angle_to_path() {
+        update_closest(0, 50, 5, 1);
+        Point orth = Utils.sub_v(get_closest(), get_pos());
+        Point tangent = Utils.scale_v(path.derivative(D), 1/corr_weight);
+        return Utils.angle_v(Utils.add_v(orth, tangent));
+    }
 }

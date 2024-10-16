@@ -5,57 +5,57 @@ import java.util.Arrays;
 
 public class Path {
     BezierCurve[] F;
-    double closest_T;
     int n_bz;
+    double est_arclen;
 
-    // Path constructor
+    // Path constructor with Bezier curves
+    public Path(BezierCurve[] F){
+        this.F = F;
+        this.n_bz = F.length;
+        this.est_arclen = est_arclen();
+    }
+
+    // Path constructor with control points
     public Path(Point[][] cp){
-        this.closest_T = 0.0;
         this.n_bz = cp.length;
-        ArrayList<BezierCurve> temp_F = new ArrayList<>();
-        
+
         //add piecewise bezier curve
+        ArrayList<BezierCurve> temp_F = new ArrayList<BezierCurve>();
         for (int i = 0; i < this.n_bz; i++){
             temp_F.add(new BezierCurve(cp[i]));
         }
-        this.F = temp_F.toArray(new BezierCurve[temp_F.size()]);
-    }             
-  
+        this.F = (BezierCurve[]) temp_F.toArray();
+        this.est_arclen = est_arclen();
+    }
+
+    public int get_bz(double t) {
+        int bz = (int)Math.floor(t);
+        if (bz >= n_bz) bz = n_bz-1;
+        if (bz < 0) bz = 0;
+        return bz;
+    }
+
+    public double est_arclen() {
+       double len = 0;
+       for (int i = 0; i < n_bz; i++) {
+           len += F[i].est_arclen;
+       }
+       return len;
+    }
+
     //calculates Bezier curve
     public Point forward(double t){
-        int i = (int)Math.floor(t);
+        int i = get_bz(t);
         return F[i].forward(t-i);
     }
 
-    public Point derivative(double t){
-        int i = (int)Math.floor(t);
+    public Point derivative(double t) {
+        int i = get_bz(t);
         return F[i].derivative(t-i);
     }
 
-    public void update_closest(Point p) {
-        // Gets the closest point on the current curve to p
-        int i = (int)Math.floor(closest_T);
-        F[i].update_closest(p);
-        closest_T = i+F[i].closest_T;
-
-        // Updates the new curve closest_T might be on
-        i = (int)Math.floor(closest_T);
-        if (i < 0) i = 0;
-        if (i >= this.n_bz) i = n_bz-1;
-        F[i].closest_T = closest_T-i;
-    }
-
-    public Point get_v(Point p, double speed) {
-        // Updates the closest point on the curve
-        update_closest(p);
-
-        // Returns the final vector
-        int i = (int)Math.floor(closest_T);
-        return F[i].get_v(p, speed);
-    }
-
-    public ArrayList<Double> arc_length_param(double d){
-        int i = (int)Math.floor(d);
-        return F[i].arc_length_param(d);
+    public int dDdt_sign(Point p, double t) {
+        int i = get_bz(t);
+        return (int)F[i].dDdt_sign(p,t-i);
     }
 }
