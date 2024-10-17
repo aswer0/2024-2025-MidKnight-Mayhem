@@ -19,7 +19,6 @@ public class IntakeLogic {
     public void update(boolean possessingObject) {
         horizontalSlides.update();
         intake.update(possessingObject);
-        // TODO auto-transfer
         switch(state) {
             case userControlled:
                 if(intake.hasObject) state = State.retractIntake;
