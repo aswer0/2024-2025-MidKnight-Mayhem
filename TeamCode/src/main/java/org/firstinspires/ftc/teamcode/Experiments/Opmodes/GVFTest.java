@@ -36,15 +36,19 @@ public class GVFTest extends OpMode {
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
-        vf = new VectorField(wheelControl, odometry, path,0.1,0.03, 0.5, 50, 0.1);
+        vf = new VectorField(wheelControl, odometry, path, 0.5,0.3, 10, 50, 0.1);
     }
 
     @Override
     public void loop() {
-        odometry.update();
+        odometry.opt.update();
         vf.move();
         telemetry.addData("xPos", odometry.opt.get_x());
         telemetry.addData("yPos", odometry.opt.get_y());
         telemetry.addData("heading", Math.toDegrees(odometry.opt.get_heading()));
+        telemetry.addData("angle_to_path", vf.angle_to_path());
+        telemetry.addData("vf_xPos", vf.odometry.opt.get_x());
+        telemetry.addData("turn_speed", vf.turn_speed);
+        telemetry.addData("speed", vf.speed);
     }
 }
