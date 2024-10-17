@@ -26,16 +26,16 @@ public class GVFSimplifiedTest extends OpMode{
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
+        odometry = new Odometry(hardwareMap, 90, 0, 0, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         Point[] cp = {
                 new Point(0, 0),
-                new Point(-66.6, 71.7),
-                new Point(-10.5, 132)
+                new Point(76.3, 75.4),
+                new Point(132, 12.6)
         };
 
-        path = new Path(cp, wheelControl, odometry, 0.001, 0.001);
+        path = new Path(cp, wheelControl, odometry, telemetry, 0.001, 0.001);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class GVFSimplifiedTest extends OpMode{
         currentGamepad2.copy(gamepad2);
 
         if (0.0 <= path.get_d() && path.get_d() <= 1.0){
-            a = path.follow_path();
+            a = path.follow_path(0.4);
         }
         else{
             path.stop();

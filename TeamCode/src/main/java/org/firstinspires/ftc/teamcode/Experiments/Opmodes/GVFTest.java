@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BezierCurve;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.OptOdometry;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.opencv.core.Point;
 
@@ -32,7 +32,7 @@ public class GVFTest extends OpMode {
                 },
         };
 
-        odometry = new OptOdometry(hardwareMap, 0, 8, 36, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 8, 36, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
@@ -43,9 +43,8 @@ public class GVFTest extends OpMode {
     public void loop() {
         odometry.update();
         vf.move();
-
-        telemetry.addData("xPos", odometry.getxPos());
-        telemetry.addData("yPos", odometry.getyPos());
-        telemetry.addData("heading", Math.toDegrees(odometry.getHeading()));
+        telemetry.addData("xPos", odometry.opt.get_x());
+        telemetry.addData("yPos", odometry.opt.get_y());
+        telemetry.addData("heading", Math.toDegrees(odometry.opt.get_heading()));
     }
 }
