@@ -24,9 +24,15 @@ public class Intake {
         intakeSensor = hardwareMap.get(RevColorSensorV3.class,"intakeSensor");
     }
 
-    public void update(boolean possessingObject) {
-        boolean shouldSpin = intaking && possessingObject;
+    public void update(boolean posessingObject) {
         hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 0.06;
+        // TODO: Alliance detection
+        if(posessingObject) {
+            intakeMotor.setPower(-1);
+        } else if(intaking && !hasObject) {
+            intakeMotor.setPower(1);
+        } else {
+            intakeMotor.setPower(0);
+        }
     }
-
 }

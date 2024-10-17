@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 public class Path {
     WheelControl wheelControl;
     Odometry odometry;
+    Telemetry telemetry;
     BezierCurve bz;
 
     double D;
@@ -20,9 +22,10 @@ public class Path {
     PIDController x_pos;
     PIDController y_pos;
 
-    public Path(Point[] cp, WheelControl w, Odometry odometry, double speed, double init_p){
+    public Path(Point[] cp, WheelControl w, Odometry odometry, Telemetry telemetry, double speed, double init_p){
         this.wheelControl = w;
         this.odometry = odometry;
+        this.telemetry = telemetry;
         this.bz = new BezierCurve(cp);
 
         this.speed = speed;
@@ -36,7 +39,7 @@ public class Path {
         y_pos = new PIDController(1.0, 0.0, 1.0);
     }
 
-    public double follow_path(){
+    public double follow_path(double power){
         Point d = this.bz.derivative(this.D);
         Point t = this.bz.forward(this.D);
 
@@ -44,15 +47,15 @@ public class Path {
         double dy = d.y;
 
         double target_angle = Math.toDegrees(Math.atan2(dy, dx));
-        if (target_angle < 0) {
-            target_angle += 360;
-        }
+
+        telemetry.addData("target x", t.x);
+        telemetry.addData("target y", t.y);
 
         double x_error = x_pos.calculate(this.odometry.opt.get_x(), t.y);
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), t.x);
         double head_error = heading.calculate(this.odometry.opt.get_heading() ,target_angle);
 
-        wheelControl.drive(y_error, x_error, head_error, 0, 0.4);
+        wheelControl.drive(y_error, x_error, head_error, odometry.opt.get_heading(), power);
         this.D += this.speed;
 
         return target_angle;

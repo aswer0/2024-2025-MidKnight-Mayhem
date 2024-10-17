@@ -22,9 +22,8 @@ public class OTOSTest extends OpMode {
 
     @Override
     public void init(){
-        odometry = new Odometry(hardwareMap, 0, 0, -90, "OTOS");
+        odometry = new Odometry(hardwareMap, 90, 0, 0, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
-
     }
 
     @Override

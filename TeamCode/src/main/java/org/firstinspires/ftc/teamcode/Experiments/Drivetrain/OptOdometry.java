@@ -13,7 +13,7 @@ public class OptOdometry {
 
     private static double SENSOR_OFFSET_X = 2.296;
     private static double SENSOR_OFFSET_Y = -5.709;
-    private static double SENSOR_OFFSET_H = 0;
+    private static double SENSOR_OFFSET_H = 90;
 
     private static double LINEAR_SCALAR = 1.014503821596663;
     private static double ANGULAR_SCALAR = 0.9875;
@@ -56,9 +56,6 @@ public class OptOdometry {
         this.yPos = pos.y;
 
         this.heading = pos.h;
-        if (this.heading < 0){
-            this.heading = pos.h+360;
-        }
     }
 
     public void setPos(double x, double y){
