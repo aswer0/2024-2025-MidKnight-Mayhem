@@ -15,13 +15,16 @@ public class Manipulator {
 
     ElapsedTime timer;
 
+
+
     public Manipulator(HardwareMap hardwareMap) {
-        this.pitch1 = hardwareMap.get(Servo.class, "pitch1");
-        this.pitch2 = hardwareMap.get(Servo.class, "pitch2");
+        this.pitch1 = hardwareMap.get(Servo.class, "armPitch");
+        this.pitch2 = hardwareMap.get(Servo.class, "bucketPitch");
         this.flap = hardwareMap.get(Servo.class, "flap");
 
         outtakeSensor = hardwareMap.get(DistanceSensor.class, "outtakeSensor");
 
         timer = new ElapsedTime();
     }
+
 }
