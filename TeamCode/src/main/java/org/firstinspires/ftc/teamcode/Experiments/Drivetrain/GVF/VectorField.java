@@ -20,7 +20,7 @@ public class VectorField {
     double corr_weight;
 
     // Backend variables
-    double D;
+    public double D;
     Point velocity = new Point(0, 0);
     public double speed;
     public double turn_speed;
