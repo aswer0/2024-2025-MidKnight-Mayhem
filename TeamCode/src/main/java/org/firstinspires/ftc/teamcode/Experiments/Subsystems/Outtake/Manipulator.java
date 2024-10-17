@@ -1,30 +1,49 @@
 package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake;
 
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-// todo claw and pid
 public class Manipulator {
-    public Servo pitch1;
-    public Servo pitch2;
+    public Servo armPitch;
+    public Servo bucketPitch;
     public Servo flap;
+    public Servo claw;
 
-    public DistanceSensor outtakeSensor;
+    public DistanceSensor outtakeDistanceSensor;
+    public RevColorSensorV3 clawColorSensor;
+
+    int redValue, greenValue, blueValue;
 
     ElapsedTime timer;
 
-
-
     public Manipulator(HardwareMap hardwareMap) {
-        this.pitch1 = hardwareMap.get(Servo.class, "armPitch");
-        this.pitch2 = hardwareMap.get(Servo.class, "bucketPitch");
+        this.armPitch = hardwareMap.get(Servo.class, "armPitch");
+        this.bucketPitch = hardwareMap.get(Servo.class, "bucketPitch");
         this.flap = hardwareMap.get(Servo.class, "flap");
+        this.claw = hardwareMap.get(Servo.class, "claw");
 
-        outtakeSensor = hardwareMap.get(DistanceSensor.class, "outtakeSensor");
+        outtakeDistanceSensor = hardwareMap.get(DistanceSensor.class, "outtakeDistanceSensor");
+        clawColorSensor = hardwareMap.get(RevColorSensorV3.class, "clawColorSensor");
 
         timer = new ElapsedTime();
+    }
+
+    public void openClaw() {
+        claw.setPosition(0.35);
+    }
+    public void closeClaw() {
+        claw.setPosition(0.6);
+    }
+
+    public boolean doAutoClaw() {
+        redValue = clawColorSensor.red();
+        greenValue = clawColorSensor.green();
+        blueValue = clawColorSensor.blue();
+
+        return false; //placeholder
     }
 
 }

@@ -32,8 +32,8 @@ public class ClawTest extends OpMode {
         if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) claw.setPosition(claw.getPosition()-0.05);
         if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) claw.setPosition(claw.getPosition()+0.05);
 
-        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) claw.setPosition(0);
-        if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) claw.setPosition(0.35);
+        if (currentGamepad1.cross && !previousGamepad1.cross) claw.setPosition(0.35);
+        if (currentGamepad1.circle && !previousGamepad1.circle) claw.setPosition(0.6);
 
         telemetry.addData("clawPos", claw.getPosition());
     }

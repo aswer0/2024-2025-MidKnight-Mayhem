@@ -20,12 +20,12 @@ public class IntakeTest extends OpMode {
     }
 
     public void loop(){
-        double y_pos = gamepad1.left_stick_y;
+        double y_pos1 = gamepad1.left_stick_y;
+        double y_pos2 = gamepad1.right_stick_y;
 
-        servo1.setPower(y_pos);
-        servo2.setPower(-y_pos);
+        servo1.setPower(y_pos1);
+        servo2.setPower(-y_pos1);
 
-        telemetry.addData("y position joystick", y_pos);
     }
 
 }
