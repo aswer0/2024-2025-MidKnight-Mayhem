@@ -76,7 +76,7 @@ public class VectorField {
     public double angle_to_path() {
         update_closest(0, 50, 5, 1);
         Point orth = Utils.sub_v(get_closest(), get_pos());
-        Point orth = Utils.scale_v(Utils.mul_v(orth, orth), corr_weight);
+        orth = Utils.scale_v(Utils.mul_v(orth, orth), corr_weight);
         Point tangent = Utils.scale_v(path.derivative(D), 1);
         return Utils.angle_v(Utils.add_v(orth, tangent));
     }
