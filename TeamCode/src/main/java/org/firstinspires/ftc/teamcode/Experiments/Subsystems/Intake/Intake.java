@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-// todo Check if ready to transfer and intake.
+
 public class Intake {
     public CRServo intakeMotor;
 
@@ -25,7 +25,7 @@ public class Intake {
     }
 
     public void update(boolean posessingObject) {
-        hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 0.06;
+        hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 0.1;
         // TODO: Alliance detection
         if(posessingObject) {
             intakeMotor.setPower(-1);
