@@ -15,48 +15,50 @@ public class Path {
     BezierCurve bz;
 
     double D;
-    double speed;
+    double increment;
     Double[] even_t;
 
     PIDController heading;
     PIDController x_pos;
     PIDController y_pos;
 
-    public Path(Point[] cp, WheelControl w, Odometry odometry, Telemetry telemetry, double speed, double init_p){
+    public Path(Point[] cp, WheelControl w, Odometry odometry, Telemetry telemetry, double increment){
         this.wheelControl = w;
         this.odometry = odometry;
         this.telemetry = telemetry;
         this.bz = new BezierCurve(cp);
 
-        this.speed = speed;
-        this.D = init_p;
+        this.increment = increment;
+        this.D = 0.0;
 
-        //ArrayList<Double> temp_even_t = bz.arc_length_param(speed);
+        //ArrayList<Double> temp_even_t = bz.arc_length_param(increment);
         //even_t = temp_even_t.toArray(new Double[temp_even_t.size()]);
 
-        heading = new PIDController(1.0, 0.0, 1.0);
-        x_pos = new PIDController(1.0, 0.0, 1.0);
-        y_pos = new PIDController(1.0, 0.0, 1.0);
+        heading = new PIDController(0.05, 0.0, 0.0001);
+        x_pos = new PIDController(0.022, 0.0, 0);
+        y_pos = new PIDController(0.022, 0.0, 0);
     }
 
     public double follow_path(double power){
         Point d = this.bz.derivative(this.D);
-        Point t = this.bz.forward(this.D);
+        double target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
 
-        double dx = d.x;
-        double dy = d.y;
+        this.pid_to_point(d, target_angle);
 
-        double target_angle = Math.toDegrees(Math.atan2(dy, dx));
+        this.D += this.increment;
 
-        telemetry.addData("target x", t.x);
-        telemetry.addData("target y", t.y);
+        return target_angle;
+    }
+    public double pid_to_point(Point p, double target_angle){
+        double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
+        double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
+        double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
 
-        double x_error = x_pos.calculate(this.odometry.opt.get_x(), t.y);
-        double y_error = y_pos.calculate(this.odometry.opt.get_y(), t.x);
-        double head_error = heading.calculate(this.odometry.opt.get_heading() ,target_angle);
+        telemetry.addData("Error x", x_error);
+        telemetry.addData("Error y", y_error);
+        telemetry.addData("Error head", head_error);
 
-        wheelControl.drive(y_error, x_error, head_error, odometry.opt.get_heading(), power);
-        this.D += this.speed;
+        wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), 0.4);
 
         return target_angle;
     }
