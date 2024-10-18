@@ -30,32 +30,30 @@ public class GVFSimplifiedTest extends OpMode{
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         Point[] cp = {
-                new Point(0, 0),
-                new Point(76.3, 75.4),
+                new Point(5, 5),
+                new Point(70, 50),
                 new Point(132, 12.6)
         };
 
-        path = new Path(cp, wheelControl, odometry, telemetry, 0.001, 0.001);
+        path = new Path(cp, wheelControl, odometry, telemetry, 0.001);
     }
 
     @Override
     public void loop() {
+        odometry.opt.update();
+
         previousGamepad1.copy(currentGamepad1);
         previousGamepad2.copy(currentGamepad2);
 
         currentGamepad1.copy(gamepad1);
         currentGamepad2.copy(gamepad2);
 
-        if (0.0 <= path.get_d() && path.get_d() <= 1.0){
-            a = path.follow_path(0.4);
-        }
-        else{
-            path.stop();
-        }
+        path.follow_path(0.4);
 
-        telemetry.addData("D value", path.get_d());
-        telemetry.addData("angle", a);
-        telemetry.addData("odometry heading", odometry.opt.get_heading());
+        telemetry.addData("X position", odometry.opt.get_x());
+        telemetry.addData("Y position", odometry.opt.get_y());
+        telemetry.addData("Heading", odometry.opt.get_heading());
+        telemetry.addData("target angle", a);
         telemetry.update();
     }
 }

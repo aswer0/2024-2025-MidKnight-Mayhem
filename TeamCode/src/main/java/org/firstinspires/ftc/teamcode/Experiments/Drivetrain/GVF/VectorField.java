@@ -8,7 +8,7 @@ import org.opencv.core.Point;
 
 public class VectorField {
     // Robot controls
-    Odometry odometry;
+    public Odometry odometry;
     WheelControl drive;
     Path path;
 
@@ -20,9 +20,10 @@ public class VectorField {
     double corr_weight;
 
     // Backend variables
-    double D;
+    public double D;
     Point velocity = new Point(0, 0);
-    double speed;
+    public double speed;
+    public double turn_speed;
 
     public VectorField(WheelControl w,
                        Odometry o,
@@ -30,7 +31,7 @@ public class VectorField {
                        double max_speed,
                        double min_speed,
                        double max_turn_speed,
-                       double rad_to_power,
+                       double angle_to_power,
                        double corr_weight) {
         this.odometry = o;
         this.path = p;
@@ -39,7 +40,7 @@ public class VectorField {
         this.max_speed = max_speed;
         this.min_speed = min_speed;
         this.max_turn_speed = max_turn_speed;
-        this.rad_to_power = rad_to_power;
+        this.angle_to_power = angle_to_power;
         this.corr_weight = corr_weight;
     }
 
@@ -48,7 +49,7 @@ public class VectorField {
     }
 
     public Point get_pos() {
-        return new Point(odometry.getxPos(), odometry.getyPos());
+        return new Point(odometry.opt.get_x(), odometry.opt.get_y());
     }
 
     // Updates closest point on curve using binary search
@@ -81,13 +82,14 @@ public class VectorField {
 
     public void move() {
         double target_angle = angle_to_path();
-        double turn_speed = odometry.getHeading()-target_angle;
-        if (turn_speed < -Math.PI) turn_speed += Math.PI*2;
-        if (turn_speed > Math.PI) turn_speed -= Math.PI*2;
+        turn_speed = odometry.opt.get_heading()-Math.toDegrees(target_angle);
+        if (turn_speed < -180) turn_speed += 360;
+        if (turn_speed > 180) turn_speed -= 360;
         turn_speed /= angle_to_power;
-        if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
-        if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
-        speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
+        //if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
+        //if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
+        speed = 0.3;
+        //speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
         velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
         drive.drive(1, 0, turn_speed, 0, speed);
     }
