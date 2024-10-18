@@ -31,8 +31,8 @@ public class GVFSimplifiedTest extends OpMode{
 
         Point[] cp = {
                 new Point(5, 5),
-                new Point(70, 50),
-                new Point(132, 12.6)
+                new Point(70, 40),
+                new Point(120, 12.6)
         };
 
         path = new Path(cp, wheelControl, odometry, telemetry, 0.001);

@@ -81,15 +81,18 @@ public class VectorField {
     }
 
     public void move() {
+        if (D > 0.9) {
+            drive.drive(0, 0, 0, 0, 0);
+            return;
+        }
         double target_angle = angle_to_path();
         turn_speed = odometry.opt.get_heading()-Math.toDegrees(target_angle);
         if (turn_speed < -180) turn_speed += 360;
         if (turn_speed > 180) turn_speed -= 360;
         turn_speed /= angle_to_power;
-        //if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
-        //if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
-        speed = 0.3;
-        //speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
+        if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
+        if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
+        speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
         velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
         drive.drive(1, 0, turn_speed, 0, speed);
     }
