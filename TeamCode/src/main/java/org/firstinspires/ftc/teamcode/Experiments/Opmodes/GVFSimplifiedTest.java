@@ -48,7 +48,7 @@ public class GVFSimplifiedTest extends OpMode{
         currentGamepad1.copy(gamepad1);
         currentGamepad2.copy(gamepad2);
 
-        path.follow_path(0.4);
+        path.update(0.4);
 
         telemetry.addData("X position", odometry.opt.get_x());
         telemetry.addData("Y position", odometry.opt.get_y());

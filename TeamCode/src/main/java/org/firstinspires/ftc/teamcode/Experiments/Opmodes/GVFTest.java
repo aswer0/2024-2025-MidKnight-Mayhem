@@ -28,7 +28,7 @@ public class GVFTest extends OpMode {
                 {
                         new Point(5, 5),
                         new Point(70, 40),
-                        new Point(120, 12.6)
+                        new Point(116, 7)
                 },
         };
 
