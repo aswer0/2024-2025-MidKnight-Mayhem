@@ -39,11 +39,12 @@ public class Path {
         y_pos = new PIDController(0.022, 0.0, 0);
     }
 
-    public double follow_path(double power){
+    public double update(double power){
         Point d = this.bz.derivative(this.D);
+        Point p = this.bz.forward(this.D);
         double target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
 
-        this.pid_to_point(d, target_angle);
+        this.pid_to_point(p, target_angle);
 
         this.D += this.increment;
 
@@ -61,6 +62,15 @@ public class Path {
         wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), 0.4);
 
         return target_angle;
+    }
+    public void follow_path(double power){
+        if (0.0 <= this.D && this.D <= 1.0){
+            this.update(power);
+
+        }
+        else{
+            this.stop();
+        }
     }
 
     public double get_d_at_t(){
