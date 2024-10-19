@@ -24,7 +24,7 @@ public class FinalSingleTeleOp extends OpMode {
 
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
-    State previousState;
+    State previousState = new State(0,0,0,false, false, false, false, false, 0,0, false, false);
 
     @Override
     public void init() {
