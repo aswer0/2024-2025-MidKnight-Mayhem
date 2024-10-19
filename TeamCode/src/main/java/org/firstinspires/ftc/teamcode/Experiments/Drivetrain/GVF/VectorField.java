@@ -81,7 +81,9 @@ public class VectorField {
 
     public void move() {
         update_closest(0, 50, 5, 1);
-        if (D == path.n_bz/* && Utils.length(Utils.sub_v(get_pos(), get_closest())) < 100*/) return;
+        if (D == path.n_bz && Utils.length(Utils.sub_v(get_pos(), get_closest())) < 5) {
+            drive.drive(0, 0, 0, 0, 0); return;
+        }
         double target_angle = angle_to_path();
         turn_speed = odometry.opt.get_heading()-Math.toDegrees(target_angle);
         if (turn_speed < -180) turn_speed += 360;
@@ -94,3 +96,4 @@ public class VectorField {
         drive.drive(1, 0, turn_speed, 0, speed);
     }
 }
+

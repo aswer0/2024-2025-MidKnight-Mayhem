@@ -26,9 +26,11 @@ public class GVFTest extends OpMode {
     public void init() {
         Point[][] cp = {
                 {
-                        new Point(5, 5),
-                        new Point(70, 40),
-                        new Point(116, 7)
+                        new Point(6.4, 7.4),
+                        new Point(142.3, 10.5),
+                        new Point(145, 45),
+                        new Point(120, 140),
+                        new Point(12.4, 110.4)
                 },
         };
 
@@ -53,3 +55,4 @@ public class GVFTest extends OpMode {
         telemetry.addData("D", vf.D);
     }
 }
+
