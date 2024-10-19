@@ -40,6 +40,7 @@ public class FinalSingleTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        // TODO toggleOuttake/ toggleIntake, beginHang
         // Updates
         odometry.update();
         lift.update();
