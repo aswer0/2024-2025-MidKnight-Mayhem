@@ -46,7 +46,9 @@ public class Path {
 
         this.pid_to_point(p, target_angle);
 
-        this.D += this.increment;
+        if (0.0 <= this.D && this.D <= 1.0) {
+            this.D += this.increment;
+        }
 
         return target_angle;
     }
@@ -62,15 +64,6 @@ public class Path {
         wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), 0.4);
 
         return target_angle;
-    }
-    public void follow_path(double power){
-        if (0.0 <= this.D && this.D <= 1.0){
-            this.update(power);
-
-        }
-        else{
-            this.stop();
-        }
     }
 
     public double get_d_at_t(){

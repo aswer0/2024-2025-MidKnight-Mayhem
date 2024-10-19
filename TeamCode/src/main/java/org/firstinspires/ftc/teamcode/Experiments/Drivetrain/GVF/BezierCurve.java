@@ -35,7 +35,7 @@ public class BezierCurve {
         int cur_comb = 1;
         double coeff;
         for (int i = 0; i <= K; i++) {
-            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, i);
+            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, K-i);
             x += coeff*P[i].x;
             y += coeff*P[i].y;
             cur_comb *= (K-i);
@@ -52,7 +52,7 @@ public class BezierCurve {
         double coeff;
         int new_k = K-1;
         for (int i = 0; i <= new_k; i++) {
-            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, i);
+            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, new_k-i);
             dx += coeff*(P[i+1].x-P[i].x);
             dy += coeff*(P[i+1].y-P[i].y);
             cur_comb *= (new_k-i);
