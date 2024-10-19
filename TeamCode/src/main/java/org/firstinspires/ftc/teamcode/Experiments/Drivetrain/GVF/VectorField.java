@@ -75,17 +75,15 @@ public class VectorField {
     }
 
     public double angle_to_path() {
-        update_closest(0, 50, 5, 1);
-        Point orth = Utils.sub_v(get_closest(), get_pos());
-        orth = Utils.scale_v(Utils.mul_v(orth, Utils.length(orth)), corr_weight);
-        Point tangent = Utils.scale_v(path.derivative(D), 1);
-        return Utils.angle_v(Utils.add_v(orth, tangent));
+        Point follow = path.forward(Math.min(D+0.05, path.n_bz));
+        return Utils.angle_v(Utils.sub_v(follow, get_pos()));
     }
 
     public void move() {
+        update_closest(0, 50, 5, 1);
+        if (D == path.n_bz && Utils.length(Utils.sub_v(get_pos(), get_closest())) < 20) return;
         double target_angle = angle_to_path();
         turn_speed = odometry.opt.get_heading()-Math.toDegrees(target_angle);
-        if (Utils.length(Utils.sub_v(get_pos(), get_closest())) < 10 && D == path.n_bz) return;
         if (turn_speed < -180) turn_speed += 360;
         if (turn_speed > 180) turn_speed -= 360;
         turn_speed /= angle_to_power;
