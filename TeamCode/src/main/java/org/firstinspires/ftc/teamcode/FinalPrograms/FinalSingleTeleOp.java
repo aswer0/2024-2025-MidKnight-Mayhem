@@ -90,23 +90,23 @@ public class FinalSingleTeleOp extends OpMode {
 }
 
 class State {
-    public double driveX; // = gamepad1.right_stick_x;;
-    public double driveY; // = gamepad1.right_stick_y;
-    public double rotate; // = gamepad1.left_stick_x;
+    public double driveX;
+    public double driveY;
+    public double rotate;
     // Preset Outtake slides
-    public boolean toLowChamber; // = gamepad2.a;
-    public boolean toHighChamber; // = gamepad2.b;
-    public boolean toLowBasket; // = gamepad2.x;
-    public boolean toHighBasket; // = gamepad2.y;
+    public boolean toLowChamber;
+    public boolean toHighChamber;
+    public boolean toLowBasket;
+    public boolean toHighBasket;
     // Outtake stuff
-    public boolean toggleOuttake; // = gamepad2.left_bumper || gamepad2.right_bumper; // will either be claw or bucket based on context
+    public boolean toggleOuttake; // will either be claw or bucket based on context
     // Slides custom input; claw is automatically controlled
-    public double outtakeSlidesInput; // = (gamepad2.dpad_up ? 1 : 0)  - (gamepad2.dpad_down ? 1 : 0); // Done so they act in one direction if one is pressed, but cancel each other out
-    public double intakeSlidesInput; // = (gamepad1.dpad_up ? 1 : 0)  - (gamepad1.dpad_down ? 1 : 0);
+    public double outtakeSlidesInput; // Done so they act in one direction if one is pressed, but cancel each other out
+    public double intakeSlidesInput;
     // Intake
-    public boolean toggleIntake; // = gamepad1.a; // Toggle intake spin. Automatically extends if it is not. Its transfer process is automatic.
+    public boolean toggleIntake; // Toggle intake spin. Automatically extends if it is not. Its transfer process is automatic.
     // Hang
-    public boolean startHang; // = gamepad1.b; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
+    public boolean startHang; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
     public State(double driveX, double driveY, double rotate, boolean toLowChamber, boolean toHighChamber, boolean toLowBasket, boolean toHighBucket, boolean toggleOuttake, double outtakeSlidesInput, double intakeSlidesInput, boolean toggleIntake, boolean startHang) {
         this.driveX = driveX;
         this.driveY = driveY;
