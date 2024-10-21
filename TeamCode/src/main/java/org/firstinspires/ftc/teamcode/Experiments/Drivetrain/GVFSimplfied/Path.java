@@ -24,6 +24,8 @@ public class Path {
     double D;
     double speed;
     double threshold;
+    double end_angle;
+    double power;
     Double[] even_t;
 
     PIDController heading;
@@ -32,7 +34,9 @@ public class Path {
 
     public Path(Point[] cp, WheelControl w, Odometry odometry, Telemetry telemetry, 
                 double speed, 
-                double threshold)
+                double threshold,
+                double end_angle,
+                double power)
     {
         this.wheelControl = w;
         this.odometry = odometry;
@@ -41,6 +45,8 @@ public class Path {
 
         this.speed = speed;
         this.threshold = threshold;
+        this.end_angle = end_angle;
+        this.power = power;
         this.D = 0.0;
 
         //ArrayList<Double> temp_even_t = bz.arc_length_param(speed);
@@ -51,7 +57,7 @@ public class Path {
         y_pos = new PIDController(yp, yi, yd);
     }
 
-    public double update(double power){
+    public void update(){
         Point d = this.bz.derivative(this.D);
         Point p = this.bz.forward(this.D);
         double target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
@@ -64,17 +70,27 @@ public class Path {
                 this.D += this.speed;
             }
         }
+        if (this.D >= 1){
+            double head_error = heading.calculate(this.odometry.opt.get_heading(), end_angle);
+            wheelControl.drive(0, 0, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
+        }
 
-        return dist;
     }
-    public double pid_to_point(Point p, double target_angle){
+    public void pid_to_point(Point p, double target_angle){
         double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
         double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
 
-        wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), 0.4);
+        wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
+    }
+    public void retrace(){
 
-        return target_angle;
+    }
+    public void set_new_path(Point[] cp){
+        this.bz = new BezierCurve(cp);
+    }
+    public void set_d(double d){
+        this.D = d;
     }
 
     public double get_d_at_t(){
