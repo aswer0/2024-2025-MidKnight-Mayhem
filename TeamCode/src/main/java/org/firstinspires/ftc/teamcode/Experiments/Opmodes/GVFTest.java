@@ -26,9 +26,11 @@ public class GVFTest extends OpMode {
     public void init() {
         Point[][] cp = {
                 {
-                        new Point(5, 5),
-                        new Point(70, 40),
-                        new Point(116, 7)
+                        new Point(6.4, 7.4),
+                        new Point(142.3, 10.5),
+                        new Point(164.6, 45),
+                        new Point(120, 153),
+                        new Point(12.4, 126.4)
                 },
         };
 
@@ -46,7 +48,6 @@ public class GVFTest extends OpMode {
         telemetry.addData("xPos", odometry.opt.get_x());
         telemetry.addData("yPos", odometry.opt.get_y());
         telemetry.addData("heading", Math.toDegrees(odometry.opt.get_heading()));
-        telemetry.addData("angle_to_path", vf.angle_to_path());
         telemetry.addData("vf_xPos", vf.odometry.opt.get_x());
         telemetry.addData("turn_speed", vf.turn_speed);
         telemetry.addData("speed", vf.speed);

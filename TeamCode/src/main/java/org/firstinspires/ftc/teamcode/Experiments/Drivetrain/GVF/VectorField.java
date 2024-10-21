@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.opencv.core.Point;
 
 public class VectorField {
@@ -25,6 +26,14 @@ public class VectorField {
     public double speed;
     public double turn_speed;
 
+    // PID at end of path
+    double xp = 0.022, xi = 0, xd = 0;
+    double yp = 0.022, yi = 0, yd = 0;
+    double hp = 0.011, hi = 0, hd = 0.0001;
+    PIDController x_PID;
+    PIDController y_PID;
+    PIDController heading_PID;
+
     public VectorField(WheelControl w,
                        Odometry o,
                        Path p,
@@ -42,6 +51,15 @@ public class VectorField {
         this.max_turn_speed = max_turn_speed;
         this.angle_to_power = angle_to_power;
         this.corr_weight = corr_weight;
+
+        drive.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        drive.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        drive.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        x_PID = new PIDController(xp, xi, xd);
+        y_PID = new PIDController(yp, yi, yd);
+        heading_PID = new PIDController(hp, hi, hd);
     }
 
     public Point get_closest() {
@@ -75,15 +93,27 @@ public class VectorField {
     }
 
     public double angle_to_path() {
-        Point follow = path.forward(Math.min(D+0.05, path.n_bz));
-        return Utils.angle_v(Utils.sub_v(follow, get_pos()));
+        update_closest(0, 50, 5, 1);
+        Point orth = Utils.sub_v(get_closest(), get_pos());
+        orth = Utils.scale_v(Utils.mul_v(orth), corr_weight*Utils.length(orth));
+        Point tangent = Utils.scale_v(path.derivative(D), 1);
+        return Utils.angle_v(Utils.add_v(orth, tangent));
+    }
+
+    public void pid_to_point(Point p, double target_angle){
+        double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
+        double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
+        double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
+        double heading = Math.toRadians(odometry.opt.get_heading());
+        drive.drive(x_error, -y_error, -head_error, -heading, 0.4);
     }
 
     public void move() {
-        update_closest(0, 50, 5, 1);
-        if (D == path.n_bz/* && Utils.length(Utils.sub_v(get_pos(), get_closest())) < 100*/) return;
         double target_angle = angle_to_path();
         turn_speed = odometry.opt.get_heading()-Math.toDegrees(target_angle);
+        if (Utils.length(Utils.sub_v(get_pos(), get_closest())) < 10 && D == path.n_bz) {
+            pid_to_point(path.forward(D), -Math.PI/4);
+        }
         if (turn_speed < -180) turn_speed += 360;
         if (turn_speed > 180) turn_speed -= 360;
         turn_speed /= angle_to_power;
