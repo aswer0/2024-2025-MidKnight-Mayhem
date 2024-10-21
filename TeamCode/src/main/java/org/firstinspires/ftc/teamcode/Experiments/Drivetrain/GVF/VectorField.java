@@ -19,6 +19,9 @@ public class VectorField {
     double angle_to_power;
     double corr_weight;
 
+    // End decel: speed decrease per distance
+    double end_decel = 0.01;
+
     // Backend variables
     public double D;
     Point velocity = new Point(0, 0);
@@ -145,13 +148,15 @@ public class VectorField {
     // Move with GVF and PID at the end
     public void move() {
         double target_angle = angle_to_path();
-        if (Utils.length(Utils.sub_v(get_pos(), get_closest())) < 15 && D == path.n_bz) {
+        if (Utils.dist(get_pos(), get_closest()) < 15 && D == path.n_bz) {
             pid_to_point(path.forward(D), -45); return;
         }
         turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
-        speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
+        double drive_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
+        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.forward(path.n_bz)));
+        speed = Math.min(drive_speed, end_speed);
         velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
         drive.drive(1, 0, -turn_speed, 0, speed);
     }

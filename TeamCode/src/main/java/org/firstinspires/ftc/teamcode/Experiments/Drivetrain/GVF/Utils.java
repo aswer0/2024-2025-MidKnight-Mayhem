@@ -30,6 +30,10 @@ public class Utils {
         return Math.sqrt(v.x*v.x+v.y*v.y);
     }
 
+    public static double dist(Point a, Point b) {
+        return Utils.length(Utils.sub_v(a, b));
+    }
+
     public static Point scale_v(Point v, double len) {
         double scale_factor = len/length(v);
         return new Point(v.x*scale_factor, v.y*scale_factor);
