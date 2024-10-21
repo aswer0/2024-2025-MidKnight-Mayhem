@@ -148,14 +148,19 @@ public class VectorField {
     // Move with GVF and PID at the end
     public void move() {
         double target_angle = angle_to_path();
-        if (Utils.dist(get_pos(), get_closest()) < 15 && D == path.n_bz) {
+        // PID when you get close enough
+        if (Utils.dist(get_pos(), get_closest()) < 3 && D == path.n_bz) {
             pid_to_point(path.forward(D), -45); return;
         }
         turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
+
+        // Take into account end decceleration
         double drive_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
         double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.forward(path.n_bz)));
+
+        // Drive according to calculations
         speed = Math.min(drive_speed, end_speed);
         velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
         drive.drive(1, 0, -turn_speed, 0, speed);

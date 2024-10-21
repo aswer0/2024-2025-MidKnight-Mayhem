@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import org.opencv.core.Point;
 
+// Point utils
 public class Utils {
     public static Point add_v(Point a, Point b) {
         return new Point(a.x+b.x, a.y+b.y);

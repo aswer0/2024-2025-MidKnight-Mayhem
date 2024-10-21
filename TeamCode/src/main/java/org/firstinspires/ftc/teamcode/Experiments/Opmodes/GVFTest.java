@@ -20,6 +20,7 @@ public class GVFTest extends OpMode {
 
     @Override
     public void init() {
+        // Bezier control points
         Point[][] cp = {
                 {
                         new Point(5, 5),
