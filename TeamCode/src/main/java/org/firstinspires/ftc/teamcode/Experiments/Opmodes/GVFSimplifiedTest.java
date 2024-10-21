@@ -35,7 +35,7 @@ public class GVFSimplifiedTest extends OpMode{
                 new Point(120, 12.6)
         };
 
-        path = new Path(cp, wheelControl, odometry, telemetry, 0.001);
+        path = new Path(cp, wheelControl, odometry, telemetry, 0.005, 15);
     }
 
     @Override
@@ -48,12 +48,13 @@ public class GVFSimplifiedTest extends OpMode{
         currentGamepad1.copy(gamepad1);
         currentGamepad2.copy(gamepad2);
 
-        path.update(0.4);
+        path.update(0.65);
 
         telemetry.addData("X position", odometry.opt.get_x());
         telemetry.addData("Y position", odometry.opt.get_y());
         telemetry.addData("Heading", odometry.opt.get_heading());
-        telemetry.addData("target angle", a);
+        telemetry.addData("Distance threshold", a);
+        telemetry.addData("D value", path.get_d());
         telemetry.update();
     }
 }

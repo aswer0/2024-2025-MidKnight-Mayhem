@@ -24,17 +24,36 @@ public class BezierCurve {
 
     public Point forward(double t) {
         //calculate x and y of the bezier curve as a parametric
-        double x = ((1-t)*(1-t))*P[0].x + 2*(1-t)*t*P[1].x + (t*t)*P[2].x;
-        double y = ((1-t)*(1-t))*P[0].y + 2*(1-t)*t*P[1].y + (t*t)*P[2].y;
+        double x = 0.0;
+        double y = 0.0;
+        int cur_comb = 1;
+        double coeff;
+        for (int i = 0; i <= K; i++) {
+            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, K-i);
+            x += coeff*P[i].x;
+            y += coeff*P[i].y;
+            cur_comb *= (K-i);
+            cur_comb /= i+1;
+        }
 
         return new Point(x, y);
     }
 
     public Point derivative(double t){
         //calculate x and y of the bezier curve as a parametric
-        double dx = 2*(1-t)*(P[1].x-P[0].x) + 2*t*(P[2].x-P[1].x);
-        double dy = 2*(1-t)*(P[1].y-P[0].y) + 2*t*(P[2].y-P[1].y);
-
+        double dx = 0.0;
+        double dy = 0.0;
+        int cur_comb = 1;
+        double coeff;
+        int new_k = K-1;
+        for (int i = 0; i <= new_k; i++) {
+            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, new_k-i);
+            dx += coeff*(P[i+1].x-P[i].x);
+            dy += coeff*(P[i+1].y-P[i].y);
+            cur_comb *= (new_k-i);
+            cur_comb /= i+1;
+        }
+        // final derivative change in x over change in y
         return new Point(dx, dy);
     }
 
