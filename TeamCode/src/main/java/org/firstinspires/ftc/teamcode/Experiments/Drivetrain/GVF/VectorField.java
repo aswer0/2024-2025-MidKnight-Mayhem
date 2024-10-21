@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
@@ -95,15 +94,15 @@ public class VectorField {
     public double angle_to_path() {
         update_closest(0, 50, 5, 1);
         Point orth = Utils.sub_v(get_closest(), get_pos());
-        orth = Utils.scale_v(Utils.mul_v(orth), corr_weight*Utils.length(orth));
+        orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
         Point tangent = Utils.scale_v(path.derivative(D), 1);
         return Utils.angle_v(Utils.add_v(orth, tangent));
     }
 
     public void pid_to_point(Point p, double target_angle){
-        double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
-        double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
-        double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
+        double x_error = x_PID.calculate(this.odometry.opt.get_x(), p.x);
+        double y_error = y_PID.calculate(this.odometry.opt.get_y(), p.y);
+        double head_error = heading_PID.calculate(this.odometry.opt.get_heading(), target_angle);
         double heading = Math.toRadians(odometry.opt.get_heading());
         drive.drive(x_error, -y_error, -head_error, -heading, 0.4);
     }
