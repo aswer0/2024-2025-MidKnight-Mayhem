@@ -33,6 +33,7 @@ public class VectorField {
     PIDController y_PID;
     PIDController heading_PID;
 
+    // Constructor
     public VectorField(WheelControl w,
                        Odometry o,
                        Path p,
@@ -41,32 +42,53 @@ public class VectorField {
                        double max_turn_speed,
                        double angle_to_power,
                        double corr_weight) {
+        // Set robot IO
         this.odometry = o;
         this.path = p;
         this.drive = w;
 
+        // Hyperparameters
         this.max_speed = max_speed;
         this.min_speed = min_speed;
         this.max_turn_speed = max_turn_speed;
         this.angle_to_power = angle_to_power;
         this.corr_weight = corr_weight;
 
+        // Zero power behavior: brake
         drive.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         drive.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         drive.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        // PID variables at end of path
         x_PID = new PIDController(xp, xi, xd);
         y_PID = new PIDController(yp, yi, yd);
         heading_PID = new PIDController(hp, hi, hd);
     }
 
+    // Gets closest point on path to robot
     public Point get_closest() {
         return path.forward(D);
     }
 
+    // x position of robot
+    public double get_x() {
+        return odometry.opt.get_x();
+    }
+
+    // y position of robot
+    public double get_y() {
+        return odometry.opt.get_y();
+    }
+
+    // Heading of robot
+    public double get_heading() {
+        return odometry.opt.get_heading();
+    }
+
+    // Gets position of robot
     public Point get_pos() {
-        return new Point(odometry.opt.get_x(), odometry.opt.get_y());
+        return new Point(get_x(), get_y());
     }
 
     // Updates closest point on curve using binary search
@@ -78,11 +100,14 @@ public class VectorField {
         double path_len = path.F[path.get_bz(D)].est_arclen;
         double update = rate*speed/path_len;
 
+        // Get rough estimate
         int init_sign = path.dDdt_sign(pos, D);
         int iters = 0;
         while (path.dDdt_sign(pos, D) == init_sign && iters++ < max_rough_iters) {
             D -= init_sign*update;
         }
+
+        // Binary search to tune closest
         for (int i = 0; i < tune_iters; i++) {
             if (path.dDdt_sign(pos, D) > 0) D -= update;
             else D += update;
@@ -91,6 +116,16 @@ public class VectorField {
         if (D > path.n_bz) D = path.n_bz;
     }
 
+    // Get turn angle
+    public double turn_angle(double current, double target) {
+        double turn_angle = target-current;
+        if (turn_angle < -180) turn_angle += 360;
+        if (turn_angle > 180) turn_angle -= 360;
+        return turn_angle;
+    }
+
+
+    // Robot's angle to path
     public double angle_to_path() {
         update_closest(0, 50, 5, 1);
         Point orth = Utils.sub_v(get_closest(), get_pos());
@@ -99,27 +134,25 @@ public class VectorField {
         return Utils.angle_v(Utils.add_v(orth, tangent));
     }
 
-    public void pid_to_point(Point p, double target_angle){
-        double x_error = x_PID.calculate(this.odometry.opt.get_x(), p.x);
-        double y_error = y_PID.calculate(this.odometry.opt.get_y(), p.y);
-        double head_error = heading_PID.calculate(this.odometry.opt.get_heading(), target_angle);
-        double heading = Math.toRadians(odometry.opt.get_heading());
-        drive.drive(x_error, -y_error, -head_error, -heading, 0.4);
+    // PID to a point given coordinates and heading
+    public void pid_to_point(Point p, double target_angle) {
+        double x_error = x_PID.calculate(get_x(), p.x);
+        double y_error = y_PID.calculate(get_y(), p.y);
+        double head_error = heading_PID.calculate(get_heading(), target_angle);
+        drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), 0.4);
     }
 
+    // Move with GVF and PID at the end
     public void move() {
         double target_angle = angle_to_path();
-        turn_speed = odometry.opt.get_heading()-Math.toDegrees(target_angle);
-        if (Utils.length(Utils.sub_v(get_pos(), get_closest())) < 10 && D == path.n_bz) {
-            pid_to_point(path.forward(D), -Math.PI/4);
+        if (Utils.length(Utils.sub_v(get_pos(), get_closest())) < 15 && D == path.n_bz) {
+            pid_to_point(path.forward(D), -45); return;
         }
-        if (turn_speed < -180) turn_speed += 360;
-        if (turn_speed > 180) turn_speed -= 360;
-        turn_speed /= angle_to_power;
+        turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
         speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
         velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
-        drive.drive(1, 0, turn_speed, 0, speed);
+        drive.drive(1, 0, -turn_speed, 0, speed);
     }
 }

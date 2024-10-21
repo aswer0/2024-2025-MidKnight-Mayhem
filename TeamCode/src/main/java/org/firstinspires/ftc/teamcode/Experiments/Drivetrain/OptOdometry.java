@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
 
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -54,8 +53,7 @@ public class OptOdometry {
         SparkFunOTOS.Pose2D pos = this.otos.getPosition();
         this.xPos = pos.x;
         this.yPos = pos.y;
-
-        this.heading = pos.h;
+        this.heading = pos.h % 360;
     }
 
     public void setPos(double x, double y){

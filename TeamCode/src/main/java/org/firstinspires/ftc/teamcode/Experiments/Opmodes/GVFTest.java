@@ -22,11 +22,9 @@ public class GVFTest extends OpMode {
     public void init() {
         Point[][] cp = {
                 {
-                        new Point(6.4, 7.4),
-                        new Point(142.3, 10.5),
-                        new Point(164.6, 45),
-                        new Point(120, 153),
-                        new Point(12.4, 126.4)
+                        new Point(5, 5),
+                        new Point(70, 40),
+                        new Point(120, 12.6)
                 },
         };
 
