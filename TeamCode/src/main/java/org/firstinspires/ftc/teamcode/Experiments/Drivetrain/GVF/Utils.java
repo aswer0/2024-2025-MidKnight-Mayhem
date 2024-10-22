@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import org.opencv.core.Point;
 
+// Point utils
 public class Utils {
     public static Point add_v(Point a, Point b) {
         return new Point(a.x+b.x, a.y+b.y);
@@ -28,6 +29,10 @@ public class Utils {
 
     public static double length(Point v) {
         return Math.sqrt(v.x*v.x+v.y*v.y);
+    }
+
+    public static double dist(Point a, Point b) {
+        return Utils.length(Utils.sub_v(a, b));
     }
 
     public static Point scale_v(Point v, double len) {

@@ -20,11 +20,12 @@ public class GVFTest extends OpMode {
 
     @Override
     public void init() {
+        // Bezier control points
         Point[][] cp = {
                 {
                         new Point(5, 5),
                         new Point(70, 40),
-                        new Point(120, 12.6)
+                        new Point(116, 7)
                 },
         };
 
@@ -32,7 +33,7 @@ public class GVFTest extends OpMode {
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
-        vf = new VectorField(wheelControl, odometry, path, 0.7,0.5, 20, 20, 0.1);
+        vf = new VectorField(wheelControl, odometry, path, 0.5,0.3, 20, 20, 0.1);
     }
 
     @Override
