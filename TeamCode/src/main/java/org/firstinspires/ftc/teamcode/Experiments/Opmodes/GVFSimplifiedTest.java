@@ -20,19 +20,18 @@ public class GVFSimplifiedTest extends OpMode{
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 90, 0, 0, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         Point[] cp = {
-                new Point(7, 80.3),
-                new Point(9, 86.1),
-                new Point(22.8, 109.5),
-                new Point(45.6, 88),
-                new Point(45.6, 112.3)
+                new Point(0, 72),
+                new Point(20, 90),
+                new Point(16.4, 113.6),
+                new Point(35, 100),
         };
 
 
-        path = new Path(cp, wheelControl, odometry, telemetry, 0.005, 15, 90, 0.5);
+        path = new Path(cp, wheelControl, odometry, telemetry, 0.005, 15, -90, 0.5);
     }
 
     @Override
