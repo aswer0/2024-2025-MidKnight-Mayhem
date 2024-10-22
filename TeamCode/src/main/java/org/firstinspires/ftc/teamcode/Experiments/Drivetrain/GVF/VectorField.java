@@ -20,7 +20,7 @@ public class VectorField {
     double corr_weight;
 
     // End decel: speed decrease per distance
-    double end_decel = 0.01;
+    double end_decel = 0.003;
 
     // Backend variables
     public double D;
@@ -149,7 +149,7 @@ public class VectorField {
     public void move() {
         double target_angle = angle_to_path();
         // PID when you get close enough
-        if (Utils.dist(get_pos(), get_closest()) < 3 && D == path.n_bz) {
+        if (Utils.dist(get_pos(), get_closest()) < 10 && D >= path.n_bz-0.1) {
             pid_to_point(path.forward(D), -45); return;
         }
         turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;

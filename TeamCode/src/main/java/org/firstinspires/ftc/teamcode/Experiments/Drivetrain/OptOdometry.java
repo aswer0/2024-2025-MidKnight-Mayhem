@@ -35,6 +35,7 @@ public class OptOdometry {
 
         otos.calibrateImu();
         otos.resetTracking();
+        otos.setPosition(new SparkFunOTOS.Pose2D(this.xPos, this.yPos, this.heading));
     }
 
     public double get_x() {
