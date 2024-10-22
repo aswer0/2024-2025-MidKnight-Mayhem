@@ -60,7 +60,14 @@ public class Path {
     public void update(){
         Point d = this.bz.derivative(this.D);
         Point p = this.bz.forward(this.D);
-        double target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
+
+        double target_angle;
+        if (this.D >= 1){
+            target_angle = this.end_angle;
+        }
+        else{
+            target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
+        }
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
 
         this.pid_to_point(p, target_angle);
@@ -69,10 +76,6 @@ public class Path {
             if (dist < threshold) {
                 this.D += this.speed;
             }
-        }
-        if (this.D >= 1){
-            double head_error = heading.calculate(this.odometry.opt.get_heading(), end_angle);
-            wheelControl.drive(0, 0, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
         }
 
     }
