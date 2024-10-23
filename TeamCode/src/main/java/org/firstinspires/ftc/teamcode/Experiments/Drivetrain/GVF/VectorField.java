@@ -27,7 +27,7 @@ public class VectorField {
     double end_heading;
 
     // End decel: speed decrease per distance
-    double end_decel = 0.003;
+    double end_decel = 0.005;
 
     // Backend variables
     public double D;
@@ -144,8 +144,8 @@ public class VectorField {
 
     // PID to a point given coordinates and heading
     public void pid_to_point(Point p, double target_angle, double power) {
-        double x_error = x_PID.calculate(get_x(), p.x);
-        double y_error = y_PID.calculate(get_y(), p.y);
+        double x_error = x_PID.calculate(get_x(), p.x)*1000;
+        double y_error = y_PID.calculate(get_y(), p.y)*1000;
         double head_error = heading_PID.calculate(get_heading(), target_angle);
         drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);
         /*double x_error = get_x()-p.x;

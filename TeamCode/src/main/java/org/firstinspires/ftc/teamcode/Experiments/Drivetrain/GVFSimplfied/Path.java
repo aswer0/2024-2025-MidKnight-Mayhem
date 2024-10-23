@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Path {
     public static double xp = 0.1, xi = 0, xd = 0.001;
     public static double yp = 0.1, yi = 0, yd = 0.001;
-    public static double hp = 0.075, hi = 0, hd = 0.00005;
+    public static double hp = 0.04, hi = 0, hd = 0.0001;
 
     WheelControl wheelControl;
     Odometry odometry;
@@ -62,33 +62,44 @@ public class Path {
         Point p = this.bz.forward(this.D);
 
         double target_angle;
-        if (this.D >= 0.8){
+        if (this.D >= 0.97){
             target_angle = this.end_angle;
-            if (Math.abs(target_angle-odometry.opt.get_heading()) <= 0.5){
-                this.stop();
-            }
         }
         else{
             target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
-            if (Math.abs(target_angle-odometry.opt.get_heading()) <= 0.5){
-                this.stop();
-            }
         }
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
 
         this.pid_to_point(p, target_angle);
 
-        if (0.0 <= this.D && this.D <= 1.0) {
+        if (0.0 <= this.D && this.D <= 1) {
             if (dist < threshold) {
                 this.D += this.speed;
             }
         }
 
     }
+    public void update(double target_angle){
+        Point p = this.bz.forward(this.D);
+        double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
+
+        this.pid_to_point(p, target_angle);
+
+        if (0.0 <= this.D && this.D <= 1) {
+            if (dist < threshold) {
+                this.D += this.speed;
+            }
+        }
+
+    }
+
     public void pid_to_point(Point p, double target_angle){
         double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
         double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
+        if (Math.abs(target_angle-odometry.opt.get_heading()) <= 1){
+            head_error = 0;
+        }
 
         wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
     }

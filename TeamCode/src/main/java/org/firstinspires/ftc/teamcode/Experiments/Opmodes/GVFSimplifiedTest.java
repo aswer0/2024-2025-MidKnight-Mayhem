@@ -27,18 +27,18 @@ public class GVFSimplifiedTest extends OpMode{
                 new Point(0, 72),
                 new Point(20, 90),
                 new Point(16.4, 113.6),
-                new Point(38, 100),
+                new Point(41, 100),
         };
 
 
-        path = new Path(cp, wheelControl, odometry, telemetry, 0.005, 15, -90, 0.5);
+        path = new Path(cp, wheelControl, odometry, telemetry, 0.005, 5, -90, 0.5);
     }
 
     @Override
     public void loop() {
         odometry.opt.update();
 
-        path.update();
+        path.update(90);
 
         telemetry.addData("X position", odometry.opt.get_x());
         telemetry.addData("Y position", odometry.opt.get_y());
