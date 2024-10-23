@@ -1,5 +1,5 @@
 /*package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
-
+//
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.ExperimentalDrive;
@@ -315,7 +315,7 @@ public class VectorField {
     public void move() {
         double target_angle = angle_to_path();
         if (D >= path.n_bz-0.1 && Utils.length(Utils.sub_v(get_pos(), get_closest())) < 15) {
-            pid_to_point(path.forward(D), -45);
+            pid_to_point(path.forward(D), -90);
             return;
         }
         turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle)) / angle_to_power;
