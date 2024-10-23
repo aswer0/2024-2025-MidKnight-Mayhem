@@ -27,7 +27,7 @@ public class GVFSimplifiedTest extends OpMode{
                 new Point(0, 72),
                 new Point(20, 90),
                 new Point(16.4, 113.6),
-                new Point(35, 100),
+                new Point(38, 100),
         };
 
 

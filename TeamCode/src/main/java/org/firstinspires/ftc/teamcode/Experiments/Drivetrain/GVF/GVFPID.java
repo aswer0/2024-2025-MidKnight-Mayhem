@@ -21,7 +21,7 @@ public class GVFPID {
     double end_heading;
 
     // Backend variables
-    public double D;
+    public double D = 0.0;
     Point velocity = new Point(0, 0);
     public double speed;
     public double turn_speed;

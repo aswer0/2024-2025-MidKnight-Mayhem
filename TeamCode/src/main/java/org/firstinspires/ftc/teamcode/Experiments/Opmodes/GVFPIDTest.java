@@ -38,11 +38,11 @@ public class GVFPIDTest extends OpMode {
                 }
         };
 
-        odometry = new Odometry(hardwareMap, 0, 8, 7, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
-        vf = new GVFPID(wheelControl, odometry, path, 0.7,0.5, -45);
+        vf = new GVFPID(wheelControl, odometry, path, 0.7,0.5, -90);
     }
 
     @Override

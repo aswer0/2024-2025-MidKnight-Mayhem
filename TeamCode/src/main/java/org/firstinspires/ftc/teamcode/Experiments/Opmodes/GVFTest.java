@@ -13,6 +13,9 @@ import org.opencv.core.Point;
 @Config
 @TeleOp
 public class GVFTest extends OpMode {
+    public static double target_x = 40;
+    public static  double target_y = 105;
+
     Odometry odometry;
     Path path;
     VectorField vf;
@@ -30,17 +33,17 @@ public class GVFTest extends OpMode {
                 }
         };
 
-        odometry = new Odometry(hardwareMap, 0, 8, 7, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
-        vf = new VectorField(wheelControl, odometry, path, 0.7,0.5, 20, 20, 0.1);
+        vf = new VectorField(wheelControl, odometry, path, 0.7,0.3, 20, 0.1, -90);
     }
 
     @Override
     public void loop() {
         odometry.opt.update();
-        vf.move();
+        vf.pid_to_point(new Point(target_x, target_y), -90, 0.4);
         telemetry.addData("xPos", odometry.opt.get_x());
         telemetry.addData("yPos", odometry.opt.get_y());
         telemetry.addData("heading", Math.toDegrees(odometry.opt.get_heading()));

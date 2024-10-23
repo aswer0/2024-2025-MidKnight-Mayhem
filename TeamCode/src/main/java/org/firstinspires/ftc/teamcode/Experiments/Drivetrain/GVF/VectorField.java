@@ -1,12 +1,18 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.opencv.core.Point;
 
+@Config
 public class VectorField {
+    public static double xp = 0.05, xi = 0, xd = 0;
+    public static double yp = 0.05, yi = 0, yd = 0;
+    public static double hp = 0.011, hi = 0, hd = 0.0001;
+
     // Robot controls
     public Odometry odometry;
     WheelControl drive;
@@ -16,8 +22,9 @@ public class VectorField {
     double max_speed;
     double min_speed;
     double max_turn_speed;
-    double angle_to_power;
+    double angle_to_power = 20;
     double corr_weight;
+    double end_heading;
 
     // End decel: speed decrease per distance
     double end_decel = 0.003;
@@ -29,9 +36,6 @@ public class VectorField {
     public double turn_speed;
 
     // PID at end of path
-    double xp = 0.022, xi = 0, xd = 0;
-    double yp = 0.022, yi = 0, yd = 0;
-    double hp = 0.011, hi = 0, hd = 0.0001;
     PIDController x_PID;
     PIDController y_PID;
     PIDController heading_PID;
@@ -43,8 +47,8 @@ public class VectorField {
                        double max_speed,
                        double min_speed,
                        double max_turn_speed,
-                       double angle_to_power,
-                       double corr_weight) {
+                       double corr_weight,
+                       double end_heading) {
         // Set robot IO
         this.odometry = o;
         this.path = p;
@@ -56,6 +60,7 @@ public class VectorField {
         this.max_turn_speed = max_turn_speed;
         this.angle_to_power = angle_to_power;
         this.corr_weight = corr_weight;
+        this.end_heading = end_heading;
 
         // Zero power behavior: brake
         drive.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -138,27 +143,33 @@ public class VectorField {
     }
 
     // PID to a point given coordinates and heading
-    public void pid_to_point(Point p, double target_angle) {
+    public void pid_to_point(Point p, double target_angle, double power) {
         double x_error = x_PID.calculate(get_x(), p.x);
         double y_error = y_PID.calculate(get_y(), p.y);
         double head_error = heading_PID.calculate(get_heading(), target_angle);
-        drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), 0.4);
+        drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);
+        /*double x_error = get_x()-p.x;
+        double y_error = get_y()-p.y;
+        double head_error = (get_heading()-target_angle)/angle_to_power;
+        drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);*/
     }
 
     // Move with GVF and PID at the end
     public void move() {
-        double target_angle = angle_to_path();
+        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.forward(path.n_bz)));
+        //pid_to_point(path.forward(path.n_bz), end_heading, end_speed);
         // PID when you get close enough
-        if (Utils.dist(get_pos(), get_closest()) < 10 && D >= path.n_bz-0.1) {
-            pid_to_point(path.forward(D), -45); return;
+        if (Utils.dist(get_pos(), get_closest()) < 10) {
+            pid_to_point(path.forward(path.n_bz), end_heading, end_speed); return;
         }
+
+        double target_angle = angle_to_path();
         turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
 
         // Take into account end decceleration
         double drive_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
-        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.forward(path.n_bz)));
 
         // Drive according to calculations
         speed = Math.min(drive_speed, end_speed);

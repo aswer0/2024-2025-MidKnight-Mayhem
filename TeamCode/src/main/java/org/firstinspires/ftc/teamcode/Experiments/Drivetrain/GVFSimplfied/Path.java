@@ -62,11 +62,17 @@ public class Path {
         Point p = this.bz.forward(this.D);
 
         double target_angle;
-        if (this.D >= 1){
+        if (this.D >= 0.8){
             target_angle = this.end_angle;
+            if (Math.abs(target_angle-odometry.opt.get_heading()) <= 0.5){
+                this.stop();
+            }
         }
         else{
             target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
+            if (Math.abs(target_angle-odometry.opt.get_heading()) <= 0.5){
+                this.stop();
+            }
         }
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
 
