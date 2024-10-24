@@ -75,6 +75,9 @@ public class FinalSingleTeleOp extends OpMode {
         } else if (!previousState.toHighChamber && currentState.toHighChamber) {
             lift.setPosition(100);
         }
+        if(!previousState.toggleOuttake && previousState.toggleOuttake) {
+
+        }
         // Custom outtake input
         // TODO set a multiplier and config dead-zones
         if(currentState.outtakeSlidesInput > 0.1) {
