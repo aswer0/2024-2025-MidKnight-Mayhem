@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Path {
     public static double xp = 0.1, xi = 0, xd = 0.001;
     public static double yp = 0.1, yi = 0, yd = 0.001;
-    public static double hp = 0.04, hi = 0, hd = 0.0001;
+    public static double hp = 0.011, hi = 0, hd = 0.0001;
 
     WheelControl wheelControl;
     Odometry odometry;
@@ -57,12 +57,12 @@ public class Path {
         y_pos = new PIDController(yp, yi, yd);
     }
 
-    public void update(){
+    public void update(boolean use_end_angle){
         Point d = this.bz.derivative(this.D);
         Point p = this.bz.forward(this.D);
 
         double target_angle;
-//        if (this.D >= 1){
+//        if (this.D >= 1 && use_end_angle){
 //            target_angle = this.end_angle;
 //        }
 //        else{
@@ -70,7 +70,7 @@ public class Path {
         //}
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
 
-        this.pid_to_point(p, target_angle);
+        this.pid_to_point(p, target_angle, true);
 
         if (0.0 <= this.D && this.D <= 1) {
             if (dist < threshold) {
@@ -80,10 +80,18 @@ public class Path {
 
     }
     public void update(double target_angle){
+        Point d = this.bz.derivative(this.D);
         Point p = this.bz.forward(this.D);
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
 
-        this.pid_to_point(p, target_angle);
+        if (this.D <= 0.15){
+            target_angle = converge(this.D, target_angle, target_angle-5);
+            this.pid_to_point(p, target_angle, true);
+        }
+        else{
+            this.pid_to_point(p, target_angle, false);
+        }
+
 
         if (0.0 <= this.D && this.D <= 1) {
             if (dist < threshold) {
@@ -93,7 +101,7 @@ public class Path {
 
     }
 
-    public void pid_to_point(Point p, double target_angle){
+    public void pid_to_point(Point p, double target_angle, boolean use_angle){
         double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
         double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
@@ -101,7 +109,12 @@ public class Path {
             head_error = 0;
         }
 
-        wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
+        if (use_angle){
+            wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
+        }
+        else{
+            wheelControl.drive(x_error, -y_error, 0, 0, this.power);
+        }
     }
     public void retrace(){
 
@@ -124,6 +137,10 @@ public class Path {
     
     public double get_dist(Point p1, Point p2){
         return Math.sqrt((p2.x-p1.x)*(p2.x-p1.x) + (p2.y-p1.y)*(p2.y-p1.y));
+    }
+    public double converge(double t, double v_max, double v_min){
+        double A = v_min-v_max;
+        return A * (t-1) * (t-1) + v_max;
     }
 
     public void stop(){
