@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-public class WheelControl {
+public class ExperimentalDrive {
     public DcMotorEx BR;
     public DcMotorEx BL;
     public DcMotorEx FR;
@@ -15,7 +15,7 @@ public class WheelControl {
     Odometry odometry;
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
-    public WheelControl(HardwareMap hardwareMap, Odometry odometry) {
+    public ExperimentalDrive(HardwareMap hardwareMap, Odometry odometry) {
         this.BR = hardwareMap.get(DcMotorEx.class, "BR");
         this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         this.FR = hardwareMap.get(DcMotorEx.class, "FR");
@@ -52,6 +52,12 @@ public class WheelControl {
      * @param angle   The angle for where to rotate the thing. Get from odometry. (field oriented)
      */
     public void drive(double forward, double right, double rotate, double angle, double power) {
+        double max = 1; // max motor power
+        max = Math.max(forward, max);
+        max = Math.max(right, max);
+        forward /= max;
+        right /= max;
+
         double newX = right*Math.cos(angle) - forward*Math.sin(angle);
         double newY = right*Math.sin(angle) + forward*Math.cos(angle);
 
@@ -61,26 +67,27 @@ public class WheelControl {
         double FRPower = newY + newX - rotate;
         //setPowers(BLPower, BRPower, FLPower, FRPower, power);
 
-        double max = 1;
+        max = 1;
         max = Math.max(BLPower, max);
         max = Math.max(BRPower, max);
         max = Math.max(FLPower, max);
         max = Math.max(FRPower, max); // Detect the motor with the most power
+
         if (!(BLPower==0)) {
-            this.BL.setPower(power * (BLPower/max) + 0.06*BLPower/Math.abs(BLPower));
+            this.BL.setPower(power * (BLPower/max)/* + 0.06*BLPower/Math.abs(BLPower)*/);
         } else {
             this.BL.setPower(0);
         }
         if (!(BRPower==0)) {
-            this.BR.setPower(power * (BRPower/max) + 0.06*BRPower/Math.abs(BRPower));
+            this.BR.setPower(power * (BRPower/max)/* + 0.06*BRPower/Math.abs(BRPower)*/);
         } else {
             this.BR.setPower(0);
         }if (!(FLPower==0)) {
-            this.FL.setPower(power * (FLPower/max) + 0.06*FLPower/Math.abs(FLPower));
+            this.FL.setPower(power * (FLPower/max)/* + 0.06*FLPower/Math.abs(FLPower)*/);
         } else {
             this.FL.setPower(0);
         }if (!(FRPower==0)) {
-            this.FR.setPower(power * (FRPower/max) + 0.06*FRPower/Math.abs(FRPower));
+            this.FR.setPower(power * (FRPower/max)/* + 0.06*FRPower/Math.abs(FRPower)*/);
         } else {
             this.FR.setPower(0);
         }
