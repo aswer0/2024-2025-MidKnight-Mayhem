@@ -7,6 +7,7 @@ public class Path {
     BezierCurve[] F;
     int n_bz;
     double est_arclen;
+    Point final_point;
 
     // Path constructor with Bezier curves
     public Path(BezierCurve[] F){
@@ -18,6 +19,7 @@ public class Path {
     // Path constructor with control points
     public Path(Point[][] cp){
         this.n_bz = cp.length;
+        this.final_point = forward(n_bz);
 
         //add piecewise bezier curve
         ArrayList<BezierCurve> temp_F = new ArrayList<BezierCurve>();
