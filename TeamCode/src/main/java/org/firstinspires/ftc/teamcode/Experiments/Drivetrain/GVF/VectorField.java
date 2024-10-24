@@ -129,30 +129,32 @@ public class VectorField {
     }
 
     // PID to a point given coordinates and heading
-    public void pid_to_point(Point p, double target_angle) {
-        double x_error = x_PID.calculate(get_x(), p.x);
-        double y_error = y_PID.calculate(get_y(), p.y);
+    public void pid_to_point(Point p, double target_angle, double power) {
+        double x_error = x_PID.calculate(get_x(), p.x)*1000;
+        double y_error = y_PID.calculate(get_y(), p.y)*1000;
         double head_error = heading_PID.calculate(get_heading(), target_angle);
-        drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), 0.4);
+        drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);
     }
 
     // Move with GVF and PID at the end
     public void move() {
-        double target_angle = angle_to_path();
+        // Get speed with curves and end decel
+        double drive_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
+        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.forward(path.n_bz)));
+        speed = Math.min(drive_speed, end_speed);
+
         // PID when you get close enough
         if (Utils.dist(get_pos(), path.final_point) < 10) {
-            pid_to_point(path.final_point, end_heading); return;
+            pid_to_point(path.final_point, end_heading, speed); return;
         }
+
+        // Turning
+        double target_angle = angle_to_path();
         turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
 
-        // Take into account end decceleration
-        double drive_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
-        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.forward(path.n_bz)));
-
         // Drive according to calculations
-        speed = Math.min(drive_speed, end_speed);
         velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
         drive.drive(1, 0, -turn_speed, 0, speed);
     }
