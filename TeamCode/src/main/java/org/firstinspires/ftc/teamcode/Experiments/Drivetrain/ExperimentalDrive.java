@@ -74,20 +74,20 @@ public class ExperimentalDrive {
         max = Math.max(FRPower, max); // Detect the motor with the most power
 
         if (!(BLPower==0)) {
-            this.BL.setPower(power * (BLPower/max)/* + 0.06*BLPower/Math.abs(BLPower)*/);
+            this.BL.setPower(power * (BLPower/max) + 0.06*BLPower/Math.abs(BLPower));
         } else {
             this.BL.setPower(0);
         }
         if (!(BRPower==0)) {
-            this.BR.setPower(power * (BRPower/max)/* + 0.06*BRPower/Math.abs(BRPower)*/);
+            this.BR.setPower(power * (BRPower/max) + 0.06*BRPower/Math.abs(BRPower));
         } else {
             this.BR.setPower(0);
         }if (!(FLPower==0)) {
-            this.FL.setPower(power * (FLPower/max)/* + 0.06*FLPower/Math.abs(FLPower)*/);
+            this.FL.setPower(power * (FLPower/max) + 0.06*FLPower/Math.abs(FLPower));
         } else {
             this.FL.setPower(0);
         }if (!(FRPower==0)) {
-            this.FR.setPower(power * (FRPower/max)/* + 0.06*FRPower/Math.abs(FRPower)*/);
+            this.FR.setPower(power * (FRPower/max) + 0.06*FRPower/Math.abs(FRPower));
         } else {
             this.FR.setPower(0);
         }

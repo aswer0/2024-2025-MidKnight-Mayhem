@@ -53,5 +53,6 @@ public class GVFTest extends OpMode {
         telemetry.addData("turn_speed", vf.turn_speed);
         telemetry.addData("speed", vf.speed);
         telemetry.addData("D", vf.D);
+        telemetry.addData("PID", vf.PID);
     }
 }

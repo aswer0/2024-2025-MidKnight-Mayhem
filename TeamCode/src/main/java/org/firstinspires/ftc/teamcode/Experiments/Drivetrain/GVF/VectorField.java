@@ -28,6 +28,7 @@ public class VectorField {
     Point velocity = new Point(0, 0);
     public double speed;
     public double turn_speed;
+    public boolean PID = false;
 
     // PID at end of path
     double xp = 0.022, xi = 0, xd = 0;
@@ -140,14 +141,15 @@ public class VectorField {
     public void move() {
         // Get speed with curves and end decel
         double drive_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
-        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.forward(path.n_bz)));
+        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.final_point));
         speed = Math.min(drive_speed, end_speed);
 
         // PID when you get close enough
         if (Utils.dist(get_pos(), path.final_point) < 10) {
+            PID = true;
             pid_to_point(path.final_point, end_heading, speed); return;
         }
-
+        PID = false;
         // Turning
         double target_angle = angle_to_path();
         turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;
