@@ -33,7 +33,7 @@ public class VectorField {
     // PID at end of path
     double xp = 0.022, xi = 0, xd = 0;
     double yp = 0.022, yi = 0, yd = 0;
-    double hp = 0.011, hi = 0, hd = 0.0001;
+    double hp = 0.002, hi = 0, hd = 0.0001;
     PIDController x_PID;
     PIDController y_PID;
     PIDController heading_PID;
@@ -133,11 +133,7 @@ public class VectorField {
     public void pid_to_point(Point p, double target_angle, double power) {
         double x_error = p.x-get_x();
         double y_error = p.y-get_y();
-        speed = Math.min(Utils.dist(get_pos(), p)/100, power);
-        speed = Math.max(speed, 0.2);
-        power = speed;
-        //double head_error = 0;
-        double head_error = heading_PID.shiver me calculate(get_heading(), target_angle)/speed;
+        double head_error = heading_PID.calculate(get_heading(), target_angle)/power;
         drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);
     }
 
@@ -146,10 +142,10 @@ public class VectorField {
         // Get speed with curves and end decel
         double drive_speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
         double end_speed = end_decel*Utils.dist(get_pos(), path.final_point);
-        speed = Math.min(drive_speed, end_speed);
+        speed = Math.max(Math.min(drive_speed, end_speed), 0.2);
 
         // PID when you get close enough
-        if (Utils.dist(get_pos(), path.final_point) < 20) {
+        if (Utils.dist(get_pos(), path.final_point) < 5) {
             PID = true;
             pid_to_point(path.final_point, end_heading, speed); return;
         }
