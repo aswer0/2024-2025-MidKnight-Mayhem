@@ -53,6 +53,7 @@ public class ExperimentalDrive {
      */
     public void drive(double forward, double right, double rotate, double angle, double power) {
         power = Math.max(power, 0.1);
+        rotate = Math.max(rotate, 1);
 
         double max = 1; // max motor power
         max = Math.max(forward, max);
@@ -63,10 +64,10 @@ public class ExperimentalDrive {
         double newX = right*Math.cos(angle) - forward*Math.sin(angle);
         double newY = right*Math.sin(angle) + forward*Math.cos(angle);
 
-        double BLPower = newY + newX + rotate;
-        double BRPower = newY - newX - rotate;
-        double FLPower = newY - newX + rotate;
-        double FRPower = newY + newX - rotate;
+        double BLPower = (newY+newX)*power + rotate;
+        double BRPower = (newY-newX)*power - rotate;
+        double FLPower = (newY-newX)*power + rotate;
+        double FRPower = (newY+newX)*power - rotate;
         //setPowers(BLPower, BRPower, FLPower, FRPower, power);
 
         max = 1;
@@ -76,20 +77,20 @@ public class ExperimentalDrive {
         max = Math.max(FRPower, max); // Detect the motor with the most power
 
         if (!(BLPower==0)) {
-            this.BL.setPower(power * (BLPower/max));
+            this.BL.setPower(BLPower/max);
         } else {
             this.BL.setPower(0);
         }
         if (!(BRPower==0)) {
-            this.BR.setPower(power * (BRPower/max));
+            this.BR.setPower(BRPower/max);
         } else {
             this.BR.setPower(0);
         }if (!(FLPower==0)) {
-            this.FL.setPower(power * (FLPower/max));
+            this.FL.setPower(FLPower/max);
         } else {
             this.FL.setPower(0);
         }if (!(FRPower==0)) {
-            this.FR.setPower(power * (FRPower/max));
+            this.FR.setPower(FRPower/max);
         } else {
             this.FR.setPower(0);
         }

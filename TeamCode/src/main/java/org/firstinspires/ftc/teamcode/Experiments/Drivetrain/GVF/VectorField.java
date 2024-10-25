@@ -33,7 +33,7 @@ public class VectorField {
     // PID at end of path.
     double xp = 0.022, xi = 0, xd = 0;
     double yp = 0.022, yi = 0, yd = 0;
-    double hp = 0.002, hi = 0, hd = 0.0001;
+    double hp = 0.005, hi = 0, hd = 0.0001;
     PIDController x_PID;
     PIDController y_PID;
     PIDController heading_PID;
@@ -125,15 +125,16 @@ public class VectorField {
         update_closest(0, 50, 5, 1);
         Point orth = Utils.sub_v(get_closest(), get_pos());
         orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
-        Point tangent = Utils.scale_v(path.derivative(D), 1);
+        Point tangent = Utils.scale_v(path.derivative (D), 1);
         return Utils.angle_v(Utils.add_v(orth, tangent));
     }
 
+
     // PID to a point given coordinates and heading
     public void pid_to_point(Point p, double target_angle, double power) {
-        double x_error = p.x-get_x();
-        double y_error = p.y-get_y();
-        double head_error = heading_PID.calculate(get_heading(), target_angle)/power;
+        double x_error = x_PID.calculate(get_x(), p.x);
+        double y_error = x_PID.calculate(get_y(), p.y);
+        double head_error = heading_PID.calculate(get_heading(), target_angle);
         drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);
     }
 
@@ -145,7 +146,7 @@ public class VectorField {
         speed = Math.max(Math.min(drive_speed, end_speed), 0.2);
 
         // PID when you get close enough
-        if (Utils.dist(get_pos(), path.final_point) < 5) {
+        if (Utils.dist(get_pos(), path.final_point) < 10) {
             PID = true;
             pid_to_point(path.final_point, end_heading, speed); return;
         }
