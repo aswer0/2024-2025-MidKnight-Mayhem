@@ -30,7 +30,7 @@ public class VectorField {
     public double turn_speed;
     public boolean PID = false;
 
-    // PID at end of path
+    // PID at end of path.
     double xp = 0.022, xi = 0, xd = 0;
     double yp = 0.022, yi = 0, yd = 0;
     double hp = 0.002, hi = 0, hd = 0.0001;
