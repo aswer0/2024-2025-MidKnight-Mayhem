@@ -20,7 +20,7 @@ public class VectorField {
     double corr_weight = 0.1;
 
     // End decel: speed decrease per distance
-    double end_decel = 0.005;
+    double end_decel = 0.02;
     double end_heading;
 
     // Backend variables
@@ -131,21 +131,25 @@ public class VectorField {
 
     // PID to a point given coordinates and heading
     public void pid_to_point(Point p, double target_angle, double power) {
-        double x_error = x_PID.calculate(get_x(), p.x)*1000;
-        double y_error = y_PID.calculate(get_y(), p.y)*1000;
-        double head_error = heading_PID.calculate(get_heading(), target_angle);
+        double x_error = p.x-get_x();
+        double y_error = p.y-get_y();
+        speed = Math.min(Utils.dist(get_pos(), p)/100, power);
+        speed = Math.max(speed, 0.2);
+        power = speed;
+        //double head_error = 0;
+        double head_error = heading_PID.shiver me calculate(get_heading(), target_angle)/speed;
         drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);
     }
 
     // Move with GVF and PID at the end
     public void move() {
         // Get speed with curves and end decel
-        double drive_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
-        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.final_point));
+        double drive_speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
+        double end_speed = end_decel*Utils.dist(get_pos(), path.final_point);
         speed = Math.min(drive_speed, end_speed);
 
         // PID when you get close enough
-        if (Utils.dist(get_pos(), path.final_point) < 10) {
+        if (Utils.dist(get_pos(), path.final_point) < 20) {
             PID = true;
             pid_to_point(path.final_point, end_heading, speed); return;
         }

@@ -44,8 +44,8 @@ public class GVFTest extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
-        vf.move();
-        //vf.pid_to_point(new Point(target_x, target_y), -90, 0.4);
+        //vf.move();
+        vf.pid_to_point(new Point(35, 100), -90, 0.4);
         telemetry.addData("xPos", odometry.opt.get_x());
         telemetry.addData("yPos", odometry.opt.get_y());
         telemetry.addData("heading", Math.toDegrees(odometry.opt.get_heading()));
