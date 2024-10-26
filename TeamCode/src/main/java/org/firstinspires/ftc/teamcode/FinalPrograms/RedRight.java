@@ -31,7 +31,7 @@ public class RedRight extends OpMode {
 
         odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        path = new Path(hang_path, wheelControl, odometry, telemetry, 0.01, 12, -90, 0.7);
+        path = new Path(hang_path, wheelControl, odometry, telemetry, 0.01, 12, -90, 0.55);
     }
 
     @Override
