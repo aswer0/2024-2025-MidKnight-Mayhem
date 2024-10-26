@@ -20,7 +20,7 @@ public class VectorField {
     double corr_weight = 0.1;
 
     // End decel: speed decrease per distance
-    double end_decel = 0.02;
+    double end_decel = 0.05;
     double end_heading;
 
     // Backend variables
@@ -31,9 +31,9 @@ public class VectorField {
     public boolean PID = false;
 
     // PID at end of path.
-    double xp = 0.05, xi = 0, xd = 0;
-    double yp = 0.05, yi = 0, yd = 0;
-    double hp = 0.005, hi = 0, hd = 0.0001;
+    double xp = 0.1, xi = 0, xd = 0;
+    double yp = 0.1, yi = 0, yd = 0;
+    double hp = 0.02, hi = 0, hd = 0.0001;
     PIDController x_PID;
     PIDController y_PID;
     PIDController heading_PID;
@@ -143,12 +143,12 @@ public class VectorField {
         // Get speed with curves and end decel
         double drive_speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
         double end_speed = end_decel*Utils.dist(get_pos(), path.final_point);
-        speed = Math.max(Math.min(drive_speed, end_speed), 0.2);
+        speed = Math.min(drive_speed, end_speed);
 
         // PID when you get close enough
-        if (Utils.dist(get_pos(), path.final_point) < 10) {
+        if (Utils.dist(get_pos(), path.final_point) < 20) {
             PID = true;
-            pid_to_point(path.final_point, end_heading, speed); return;
+            pid_to_point(path.final_point, end_heading, 0.4); return;
         }
         PID = false;
         // Turning

@@ -8,7 +8,6 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.ExperimentalDrive;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.opencv.core.Point;
 
 @Config
@@ -29,8 +28,8 @@ public class GVFTest extends OpMode {
                 {
                         new Point(0, 72),
                         new Point(20, 90),
-                        new Point(16.4, 113.6),
-                        new Point(35, 100),
+                        new Point(16.4, 123.6),
+                        new Point(40, 115),
                 }
         };
 
@@ -44,8 +43,8 @@ public class GVFTest extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
-        //vf.move();
-        vf.pid_to_point(new Point(35, 100), -90, 0.4);
+        vf.move();
+        //vf.pid_to_point(new Point(35, 100), -90, 0.4);
         telemetry.addData("xPos", odometry.opt.get_x());
         telemetry.addData("yPos", odometry.opt.get_y());
         telemetry.addData("heading", Math.toDegrees(odometry.opt.get_heading()));
