@@ -31,8 +31,8 @@ public class VectorField {
     public boolean PID = false;
 
     // PID at end of path.
-    double xp = 0.022, xi = 0, xd = 0;
-    double yp = 0.022, yi = 0, yd = 0;
+    double xp = 0.05, xi = 0, xd = 0;
+    double yp = 0.05, yi = 0, yd = 0;
     double hp = 0.005, hi = 0, hd = 0.0001;
     PIDController x_PID;
     PIDController y_PID;
@@ -134,8 +134,8 @@ public class VectorField {
     public void pid_to_point(Point p, double target_angle, double power) {
         double x_error = x_PID.calculate(get_x(), p.x);
         double y_error = x_PID.calculate(get_y(), p.y);
-        double head_error = heading_PID.calculate(get_heading(), target_angle);
-        drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);
+        turn_speed = heading_PID.calculate(get_heading(), target_angle);
+        drive.drive(x_error, -y_error, -turn_speed, -Math.toRadians(get_heading()), power);
     }
 
     // Move with GVF and PID at the end
