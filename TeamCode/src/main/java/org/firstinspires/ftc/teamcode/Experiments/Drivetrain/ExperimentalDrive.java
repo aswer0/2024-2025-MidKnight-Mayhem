@@ -53,7 +53,7 @@ public class ExperimentalDrive {
      */
     public void drive(double forward, double right, double rotate, double angle, double power) {
         power = Math.max(power, 0.1);
-        rotate = Math.max(rotate, 1);
+        rotate = Math.min(rotate, 1);
 
         double max = 1; // max motor power
         max = Math.max(forward, max);

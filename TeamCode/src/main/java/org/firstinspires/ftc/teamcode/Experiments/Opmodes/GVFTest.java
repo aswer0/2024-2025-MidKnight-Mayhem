@@ -20,7 +20,7 @@ public class GVFTest extends OpMode {
     Odometry odometry;
     Path path;
     VectorField vf;
-    ExperimentalDrive wheelControl;
+    WheelControl wheelControl;
 
     @Override
     public void init() {
@@ -35,7 +35,7 @@ public class GVFTest extends OpMode {
         };
 
         odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
-        wheelControl = new ExperimentalDrive(hardwareMap, odometry);
+        wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
         vf = new VectorField(wheelControl, odometry, path, -90);

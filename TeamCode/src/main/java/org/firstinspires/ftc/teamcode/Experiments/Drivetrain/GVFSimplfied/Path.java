@@ -57,40 +57,26 @@ public class Path {
         y_pos = new PIDController(yp, yi, yd);
     }
 
-    public void update(boolean use_end_angle, boolean retrace){
-        int retracing = retrace ? 1 : 0;
-
+    public void update(boolean use_end_angle){
         Point d = this.bz.derivative(this.D);
         Point p = this.bz.forward(this.D);
         double target_angle;
 
-        if (this.D <= Math.abs(0.78-retracing) && use_end_angle){
-            target_angle = converge(retracing-this.D, this.end_angle, 0);
+        if (this.D >= 0.78 && use_end_angle){
+            target_angle = converge(this.D, this.end_angle, 0);
         }
         else{
             target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
         }
 
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
+        telemetry.addData("distance", dist);
 
         this.pid_to_point(p, target_angle);
-        telemetry.addData("target x", p.x);
-        telemetry.addData("target y", p.y);
-        telemetry.addData("Threshold", this.threshold);
-        telemetry.addData("Distance", dist);
 
-        if (!retrace){
-            if (0.0 <= this.D && this.D <= 1) {
-                if (dist < threshold) {
-                    this.D += this.speed;
-                }
-            }
-        }
-        else{
-            if (0.0 <= this.D && this.D <= 1) {
-                if (dist < threshold) {
-                    this.D = 1-this.speed-this.D;
-                }
+        if (0.0 <= this.D && this.D <= 1) {
+            if (dist < threshold) {
+                this.D += this.speed;
             }
         }
 
@@ -143,6 +129,18 @@ public class Path {
     
     public double get_dist(Point p1, Point p2){
         return Math.sqrt((p2.x-p1.x)*(p2.x-p1.x) + (p2.y-p1.y)*(p2.y-p1.y));
+    }
+    public boolean at_point(Point p, double collision_dist){
+        return get_dist(
+                new Point(odometry.opt.get_x(), odometry.opt.get_y()),
+                p
+        ) <= collision_dist;
+    }
+    public boolean at_point(double collision_dist){
+        return get_dist(
+                new Point(odometry.opt.get_x(), odometry.opt.get_y()),
+                new Point(this.bz.P[this.bz.K].x, this.bz.P[this.bz.K].y)
+        ) <= collision_dist;
     }
     public double converge(double t, double v_max, double v_min){
         double A = v_min-v_max;
