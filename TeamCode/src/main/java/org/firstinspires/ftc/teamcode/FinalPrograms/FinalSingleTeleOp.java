@@ -62,18 +62,18 @@ public class FinalSingleTeleOp extends OpMode {
         intakeSlides.update();
         intake.update();
         // The user controlled part
-        State currentState = new State(gamepad1.right_stick_x,
-                gamepad1.right_stick_y,
-                gamepad1.left_stick_x,
-                gamepad2.a,
-                gamepad2.b,
-                gamepad2.x,
-                gamepad2.y,
-                gamepad2.left_bumper || gamepad2.right_bumper,
-                (gamepad2.dpad_up ? 1 : 0)  - (gamepad2.dpad_down ? 1 : 0),
-                (gamepad1.dpad_up ? 1 : 0)  - (gamepad1.dpad_down ? 1 : 0),
-                gamepad1.a,
-                gamepad1.b);
+        State currentState = new State(gamepad1.right_stick_x, // drive X
+                gamepad1.right_stick_y, // Drive Y
+                gamepad1.left_stick_x, // Drive Y
+                gamepad2.a, // toLowChamber
+                gamepad2.b, // high chamber
+                gamepad2.x, // low basket
+                gamepad2.y, // high basket
+                gamepad2.left_bumper || gamepad2.right_bumper, // toggle outtake
+                (gamepad2.dpad_up ? 1 : 0)  - (gamepad2.dpad_down ? 1 : 0), // outtake slides
+                (gamepad1.dpad_up ? 1 : 0)  - (gamepad1.dpad_down ? 1 : 0), // intake slides
+                gamepad1.a, // toggle intake
+                gamepad1.b); // start hang
         // Drive
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
