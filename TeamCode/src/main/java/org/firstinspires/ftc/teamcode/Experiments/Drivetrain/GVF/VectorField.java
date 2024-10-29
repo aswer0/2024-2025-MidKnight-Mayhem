@@ -2,14 +2,14 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.ExperimentalDrive;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.opencv.core.Point;
-//
+
 public class VectorField {
     // Robot controls
     public Odometry odometry;
-    ExperimentalDrive drive;
+    WheelControl drive;
     Path path;
 
     // Robot tuning
@@ -18,6 +18,8 @@ public class VectorField {
     double max_turn_speed = 20;
     double angle_to_power = 20;
     double corr_weight = 0.1;
+
+    //
 
     // End decel: speed decrease per distance
     double end_decel = 0.05;
@@ -39,7 +41,7 @@ public class VectorField {
     PIDController heading_PID;
 
     // Constructor
-    public VectorField(ExperimentalDrive w,
+    public VectorField(WheelControl w,
                        Odometry o,
                        Path p,
                        double end_heading) {
@@ -121,12 +123,12 @@ public class VectorField {
 
 
     // Robot's angle to path
-    public double angle_to_path() {
+    public Point move_vector(double speed) {
         update_closest(0, 50, 5, 1);
         Point orth = Utils.sub_v(get_closest(), get_pos());
         orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
         Point tangent = Utils.scale_v(path.derivative (D), 1);
-        return Utils.angle_v(Utils.add_v(orth, tangent));
+        return Utils.scale_v(Utils.add_v(orth, tangent), speed);
     }
 
 
@@ -151,14 +153,15 @@ public class VectorField {
             pid_to_point(path.final_point, end_heading, 0.4); return;
         }
         PID = false;
+        
         // Turning
-        double target_angle = angle_to_path();
-        turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;
+        velocity = move_vector(speed);
+        double target_angle = Utils.angle_v(path.derivative(D));
+        turn_speed = turn_angle(get_heading(), target_angle)/angle_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
 
         // Drive according to calculations
-        velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
-        drive.drive(1, 0, -turn_speed, 0, speed);
+        drive.drive(velocity.x, -velocity.y, -turn_speed, -Math.toRadians(get_heading()), speed);
     }
 }
