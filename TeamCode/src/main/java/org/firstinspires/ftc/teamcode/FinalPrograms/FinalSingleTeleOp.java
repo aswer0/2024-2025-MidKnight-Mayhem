@@ -81,70 +81,77 @@ public class FinalSingleTeleOp extends OpMode {
         drive.drive(-gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x), 0, drivePower);
 
         // Outtake presets
-        // TODO set appropriate presets
+        // TODO set outtake presets
         if(!previousState.toLowBasket && currentState.toLowBasket) {
             outtakeSlides.setPosition(100);
         } else if(!previousState.toHighBasket && currentState.toHighBasket) {
             outtakeSlides.setPosition(100);
         } else if (!previousState.toLowChamber && currentState.toLowChamber) {
             outtakeSlides.setPosition(100);
-
         } else if (!previousState.toHighChamber && currentState.toHighChamber) {
             outtakeSlides.setPosition(100);
         }
 
-        if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO autograb and bucket logic
+        if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
             if (clawOpen) {
-                manipulator.openClaw();
-            } else {
                 manipulator.closeClaw();
+            } else {
+                manipulator.openClaw();
+                outtakeSlides.setPosition(0);
             }
             clawOpen = !clawOpen;
         }
         // Custom outtake input
-        // TODO set a multiplier
         if(currentState.outtakeSlidesInput > 0.1) {
             outtakeSlides.setPower(currentState.outtakeSlidesInput*0.5);
         }
-
-        switch(intakeState) {
-            case inactive:
-                intakeSlides.setPosition(0);
-                intake.setPivot(0); //TODO is this the correct position? (also see userControlled)
-                intake.intaking = false;
-                if(!previousState.toggleIntake && currentState.toggleIntake) {
-                    intakeSlides.setPosition(30); // only on the transition
-                    intakeState = IntakingState.userControlled;
-                }
-                break;
-            case userControlled:
-                intake.setPivot(10);
-                if(currentState.intakeSlidesInput > 0.1) {
-                    intakeSlides.setPower(currentState.intakeSlidesInput*0.5);
-                }
-                if(intake.hasCorrectObject) {
-                    intakeState = IntakingState.retractSlides;
-                }
-                if(!previousState.toggleIntake && currentState.toggleIntake) {
-                    intakeState = IntakingState.inactive;
-                }
-                break;
-            case retractSlides:
-                intakeSlides.setPosition(0);
-                outtakeSlides.setPosition(0); // TODO reject all outtake inputs
-                if(intakeSlides.horizontalSlidesMotor.getCurrentPosition() < 10
-                        && outtakeSlides.rightSlide.getCurrentPosition() < 10
-                        && outtakeSlides.leftSlide.getCurrentPosition() < 10) {
-                    intakeState = IntakingState.transfer;
-                }
-                break;
-            case transfer:
-                intake.setPivot(0);
-                if(!intake.hasCorrectObject ) {// The object's in the bucket
-                    intakeState = IntakingState.inactive; // TODO maybe add a pause
-                }
-                break;
+        // Autograb (only when the slides are low enough)
+        if(manipulator.clawHasObject() && clawOpen
+                && outtakeSlides.leftSlide.getCurrentPosition() < 50
+                && outtakeSlides.rightSlide.getCurrentPosition() < 50) {
+            manipulator.closeClaw();
+            clawOpen = false;
         }
+        //Intake
+        // TODO uncomment after LM1
+//        switch(intakeState) {
+//            case inactive:
+//                intakeSlides.setPosition(0);
+//                intake.setPivot(0); //TODO intake retracted and not retracted position
+//                intake.intaking = false;
+//                if(!previousState.toggleIntake && currentState.toggleIntake) {
+//                    intakeSlides.setPosition(30); // only on the transition
+//                    intakeState = IntakingState.userControlled;
+//                }
+//                break;
+//            case userControlled:
+//                intake.setPivot(10);
+//                if(currentState.intakeSlidesInput > 0.1) {
+//                    intakeSlides.setPower(currentState.intakeSlidesInput*0.5);
+//                }
+//                if(intake.hasCorrectObject) {
+//                    intakeState = IntakingState.retractSlides;
+//                }
+//                if(!previousState.toggleIntake && currentState.toggleIntake) {
+//                    intakeState = IntakingState.inactive;
+//                }
+//                break;
+//            case retractSlides:
+//                intakeSlides.setPosition(0);
+//                outtakeSlides.setPosition(0); // TODO reject all outtake inputs
+//                if(intakeSlides.horizontalSlidesMotor.getCurrentPosition() < 10
+//                        && outtakeSlides.rightSlide.getCurrentPosition() < 10
+//                        && outtakeSlides.leftSlide.getCurrentPosition() < 10) {
+//                    intakeState = IntakingState.transfer;
+//                }
+//                break;
+//            case transfer:
+//                intake.setPivot(0);
+//                if(!intake.hasCorrectObject ) {// The object's in the bucket
+//                    intakeState = IntakingState.inactive; // TODO maybe add a pause
+//                }
+//                break;
+//        }
         previousState = new State(currentState);
     }
 
