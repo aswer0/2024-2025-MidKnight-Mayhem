@@ -42,11 +42,10 @@ public class Manipulator {
      *
      * @return Whether I have the sample
      */
-    public boolean doAutoClaw() {
+    public boolean clawHasObject() {
         redValue = clawColorSensor.red();
         greenValue = clawColorSensor.green();
         blueValue = clawColorSensor.blue();
-        // TODO How do you come up with this?
         return (redValue >= 609 || blueValue >= 609)
                 && ((redValue >= blueValue && redValue >= greenValue)
                     || (blueValue >= redValue && blueValue >= greenValue));

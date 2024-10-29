@@ -4,11 +4,13 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
 
 import java.util.List;
 
@@ -16,7 +18,16 @@ import java.util.List;
 public class FinalSingleTeleOp extends OpMode {
     Odometry odometry;
     WheelControl drive;
-    Lift lift;
+
+    Lift outtakeSlides;
+    Manipulator manipulator;
+    boolean clawOpen = false;
+
+    Intake intake;
+    HorizontalSlides intakeSlides;
+    IntakingState intakeState = IntakingState.inactive;
+
+
 
     List<LynxModule> allHubs;
 
@@ -30,7 +41,10 @@ public class FinalSingleTeleOp extends OpMode {
     public void init() {
         odometry = new Odometry(hardwareMap, 0, 0, 0, "BL", "FR", "FL");
         drive = new WheelControl(hardwareMap, odometry);
-        lift = new Lift(hardwareMap);
+        outtakeSlides = new Lift(hardwareMap);
+
+        intake = new Intake(hardwareMap);
+        intakeSlides = new HorizontalSlides(hardwareMap);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
@@ -40,10 +54,13 @@ public class FinalSingleTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        // TODO toggleOuttake/ toggleIntake, beginHang
+        // TODO beginHang, intake by LM2,
+        // TODO outtake control by LM1
         // Updates
         odometry.update();
-        lift.update();
+        outtakeSlides.update();
+        intakeSlides.update();
+        intake.update();
         // The user controlled part
         State currentState = new State(gamepad1.right_stick_x,
                 gamepad1.right_stick_y,
@@ -66,66 +83,117 @@ public class FinalSingleTeleOp extends OpMode {
         // Outtake presets
         // TODO set appropriate presets
         if(!previousState.toLowBasket && currentState.toLowBasket) {
-            lift.setPosition(100);
+            outtakeSlides.setPosition(100);
         } else if(!previousState.toHighBasket && currentState.toHighBasket) {
-            lift.setPosition(100);
+            outtakeSlides.setPosition(100);
         } else if (!previousState.toLowChamber && currentState.toLowChamber) {
-            lift.setPosition(100);
+            outtakeSlides.setPosition(100);
 
         } else if (!previousState.toHighChamber && currentState.toHighChamber) {
-            lift.setPosition(100);
+            outtakeSlides.setPosition(100);
         }
-        if(!previousState.toggleOuttake && previousState.toggleOuttake) {
 
+        if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO autograb and bucket logic
+            if (clawOpen) {
+                manipulator.openClaw();
+            } else {
+                manipulator.closeClaw();
+            }
+            clawOpen = !clawOpen;
         }
         // Custom outtake input
-        // TODO set a multiplier and config dead-zones
+        // TODO set a multiplier
         if(currentState.outtakeSlidesInput > 0.1) {
-            lift.setPower(currentState.outtakeSlidesInput);
+            outtakeSlides.setPower(currentState.outtakeSlidesInput*0.5);
         }
 
+        switch(intakeState) {
+            case inactive:
+                intakeSlides.setPosition(0);
+                intake.setPivot(0); //TODO is this the correct position? (also see userControlled)
+                intake.intaking = false;
+                if(!previousState.toggleIntake && currentState.toggleIntake) {
+                    intakeSlides.setPosition(30); // only on the transition
+                    intakeState = IntakingState.userControlled;
+                }
+                break;
+            case userControlled:
+                intake.setPivot(10);
+                if(currentState.intakeSlidesInput > 0.1) {
+                    intakeSlides.setPower(currentState.intakeSlidesInput*0.5);
+                }
+                if(intake.hasCorrectObject) {
+                    intakeState = IntakingState.retractSlides;
+                }
+                if(!previousState.toggleIntake && currentState.toggleIntake) {
+                    intakeState = IntakingState.inactive;
+                }
+                break;
+            case retractSlides:
+                intakeSlides.setPosition(0);
+                outtakeSlides.setPosition(0); // TODO reject all outtake inputs
+                if(intakeSlides.horizontalSlidesMotor.getCurrentPosition() < 10
+                        && outtakeSlides.rightSlide.getCurrentPosition() < 10
+                        && outtakeSlides.leftSlide.getCurrentPosition() < 10) {
+                    intakeState = IntakingState.transfer;
+                }
+                break;
+            case transfer:
+                intake.setPivot(0);
+                if(!intake.hasCorrectObject ) {// The object's in the bucket
+                    intakeState = IntakingState.inactive; // TODO maybe add a pause
+                }
+                break;
+        }
         previousState = new State(currentState);
     }
 
     public void outtakeControl() {
 
     }
-}
+    private static class State {
+        public double driveX;
+        public double driveY;
+        public double rotate;
+        // Preset Outtake intakeSlides
+        public boolean toLowChamber;
+        public boolean toHighChamber;
+        public boolean toLowBasket;
+        public boolean toHighBasket;
+        // Outtake stuff
+        public boolean toggleOuttake; // will either be claw or bucket based on context
+        // Slides custom input; claw is automatically controlled
+        public double outtakeSlidesInput; // Done so they act in one direction if one is pressed, but cancel each other out
+        public double intakeSlidesInput;
+        // Intake
+        public boolean toggleIntake; // Toggle intake spin. Automatically extends if it is not. Its transfer process is automatic.
+        // Hang
+        public boolean startHang; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
+        public State(double driveX, double driveY, double rotate, boolean toLowChamber, boolean toHighChamber, boolean toLowBasket, boolean toHighBucket, boolean toggleOuttake, double outtakeSlidesInput, double intakeSlidesInput, boolean toggleIntake, boolean startHang) {
+            this.driveX = driveX;
+            this.driveY = driveY;
+            this.rotate = rotate;
+            this.toLowChamber = toLowChamber;
+            this.toHighChamber = toHighChamber;
+            this.toLowBasket = toLowBasket;
+            this.toHighBasket = toHighBucket;
+            this.toggleOuttake = toggleOuttake;
+            this.outtakeSlidesInput = outtakeSlidesInput;
+            this.intakeSlidesInput = intakeSlidesInput;
+            this.toggleIntake = toggleIntake;
+            this.startHang = startHang;
+        }
 
-class State {
-    public double driveX;
-    public double driveY;
-    public double rotate;
-    // Preset Outtake slides
-    public boolean toLowChamber;
-    public boolean toHighChamber;
-    public boolean toLowBasket;
-    public boolean toHighBasket;
-    // Outtake stuff
-    public boolean toggleOuttake; // will either be claw or bucket based on context
-    // Slides custom input; claw is automatically controlled
-    public double outtakeSlidesInput; // Done so they act in one direction if one is pressed, but cancel each other out
-    public double intakeSlidesInput;
-    // Intake
-    public boolean toggleIntake; // Toggle intake spin. Automatically extends if it is not. Its transfer process is automatic.
-    // Hang
-    public boolean startHang; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
-    public State(double driveX, double driveY, double rotate, boolean toLowChamber, boolean toHighChamber, boolean toLowBasket, boolean toHighBucket, boolean toggleOuttake, double outtakeSlidesInput, double intakeSlidesInput, boolean toggleIntake, boolean startHang) {
-        this.driveX = driveX;
-        this.driveY = driveY;
-        this.rotate = rotate;
-        this.toLowChamber = toLowChamber;
-        this.toHighChamber = toHighChamber;
-        this.toLowBasket = toLowBasket;
-        this.toHighBasket = toHighBucket;
-        this.toggleOuttake = toggleOuttake;
-        this.outtakeSlidesInput = outtakeSlidesInput;
-        this.intakeSlidesInput = intakeSlidesInput;
-        this.toggleIntake = toggleIntake;
-        this.startHang = startHang;
+        public State(State state) {
+            this(state.driveX, state.driveY, state.rotate, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.toggleIntake, state.startHang);
+        }
     }
 
-    public State(State state) {
-        this(state.driveX, state.driveY, state.rotate, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.toggleIntake, state.startHang);
+    enum IntakingState {
+        inactive, // zero power; intake + slides fully retracted; dpad input is inactive
+        userControlled, // transitions when toggle intake is on
+        retractSlides, // horiz and vert at the same time
+        transfer // rotate the pivot & reverse the intake
     }
+    
 }

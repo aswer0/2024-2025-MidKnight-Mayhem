@@ -21,7 +21,7 @@ public class IntakeLogic {
         intake.update(possessingObject);
         switch(state) {
             case userControlled:
-                if(intake.hasObject) state = State.retractIntake;
+                if(intake.hasCorrectObject) state = State.retractIntake;
                 break;
             case retractIntake:
                 horizontalSlides.setPosition(0);

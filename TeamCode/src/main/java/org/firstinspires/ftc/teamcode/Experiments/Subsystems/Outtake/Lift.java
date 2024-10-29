@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFCoefficients;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFControllerTest;
 
-// todo Implement PID & update
+
 public class Lift {
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
