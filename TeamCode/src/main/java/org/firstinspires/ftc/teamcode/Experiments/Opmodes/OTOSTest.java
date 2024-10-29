@@ -6,9 +6,13 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 
 @TeleOp
 public class OTOSTest extends OpMode {
+    public static double hp = 0.011, hi = 0, hd = 0.0001;
+    PIDController heading;
+
     Odometry odometry;
     WheelControl drive;
 
@@ -22,8 +26,9 @@ public class OTOSTest extends OpMode {
 
     @Override
     public void init(){
-        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 8, 7, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
+        heading = new PIDController(hp, hi, hd);
     }
 
     @Override
@@ -45,10 +50,8 @@ public class OTOSTest extends OpMode {
         if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) powerLevel -= 0.1;
         if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) powerLevel += 0.1;
 
-        if (gamepad1.a) drive.BL.setPower(0.5);
-        if (gamepad1.b) drive.BR.setPower(0.5);
-        if (gamepad1.x) drive.FL.setPower(0.5);
-        if (gamepad1.y) drive.FR.setPower(0.5);
+        double error = heading.calculate(odometry.opt.get_heading(), -90);
+        if (gamepad1.a) drive.drive(1, -0.2, -error, -Math.toRadians(odometry.opt.get_heading()), powerLevel);
 
         odometry.opt.update();
         drive.drive(-gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x), 0, powerLevel);

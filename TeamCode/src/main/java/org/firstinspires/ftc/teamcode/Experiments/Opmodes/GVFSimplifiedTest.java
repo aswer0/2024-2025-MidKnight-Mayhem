@@ -16,34 +16,30 @@ public class GVFSimplifiedTest extends OpMode{
     Path path;
     WheelControl wheelControl;
     Odometry odometry;
-    double a;
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 0, 7.875, 72, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 27, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         Point[] cp = {
-                new Point(7.875, 72),
-                new Point(19, 87),
-                new Point(9.8, 106.8),
-                new Point(38, 105.6),
+                new Point(22, 72),
+                new Point(3.5, 158),
+                new Point(64.3, 93)
         };
 
-
-        path = new Path(cp, wheelControl, odometry, telemetry, 0.005, 5, -90, 0.5);
+        path = new Path(cp, wheelControl, odometry, telemetry, 0.01, 12, -90, 0.7);
     }
 
     @Override
     public void loop() {
         odometry.opt.update();
 
-        path.update(-90);
+        path.update(true);
 
         telemetry.addData("X position", odometry.opt.get_x());
         telemetry.addData("Y position", odometry.opt.get_y());
         telemetry.addData("Heading", odometry.opt.get_heading());
-        telemetry.addData("Distance threshold", a);
         telemetry.addData("D value", path.get_d());
         telemetry.update();
     }

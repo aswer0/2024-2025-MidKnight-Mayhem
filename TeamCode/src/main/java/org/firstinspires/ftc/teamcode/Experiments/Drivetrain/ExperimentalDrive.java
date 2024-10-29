@@ -52,6 +52,9 @@ public class ExperimentalDrive {
      * @param angle   The angle for where to rotate the thing. Get from odometry. (field oriented)
      */
     public void drive(double forward, double right, double rotate, double angle, double power) {
+        power = Math.max(power, 0.1);
+        rotate = Math.min(rotate, 1);
+
         double max = 1; // max motor power
         max = Math.max(forward, max);
         max = Math.max(right, max);
@@ -61,10 +64,10 @@ public class ExperimentalDrive {
         double newX = right*Math.cos(angle) - forward*Math.sin(angle);
         double newY = right*Math.sin(angle) + forward*Math.cos(angle);
 
-        double BLPower = newY + newX + rotate;
-        double BRPower = newY - newX - rotate;
-        double FLPower = newY - newX + rotate;
-        double FRPower = newY + newX - rotate;
+        double BLPower = (newY+newX)*power + rotate;
+        double BRPower = (newY-newX)*power - rotate;
+        double FLPower = (newY-newX)*power + rotate;
+        double FRPower = (newY+newX)*power - rotate;
         //setPowers(BLPower, BRPower, FLPower, FRPower, power);
 
         max = 1;
@@ -73,21 +76,28 @@ public class ExperimentalDrive {
         max = Math.max(FLPower, max);
         max = Math.max(FRPower, max); // Detect the motor with the most power
 
+        this.BL.setPower(BLPower/max);
+        this.BL.setPower(BRPower/max);
+        this.BL.setPower(FLPower/max);
+        this.BL.setPower(FRPower/max);
+
         if (!(BLPower==0)) {
-            this.BL.setPower(power * (BLPower/max)/* + 0.06*BLPower/Math.abs(BLPower)*/);
+            this.BL.setPower(power * (BLPower/max) + 0.06*BLPower/Math.abs(BLPower));
         } else {
             this.BL.setPower(0);
         }
         if (!(BRPower==0)) {
-            this.BR.setPower(power * (BRPower/max)/* + 0.06*BRPower/Math.abs(BRPower)*/);
+            this.BR.setPower(power * (BRPower/max) + 0.06*BRPower/Math.abs(BRPower));
         } else {
             this.BR.setPower(0);
-        }if (!(FLPower==0)) {
-            this.FL.setPower(power * (FLPower/max)/* + 0.06*FLPower/Math.abs(FLPower)*/);
+        }
+        if (!(FLPower==0)) {
+            this.FL.setPower(power * (FLPower/max) + 0.06*FLPower/Math.abs(FLPower));
         } else {
             this.FL.setPower(0);
-        }if (!(FRPower==0)) {
-            this.FR.setPower(power * (FRPower/max)/* + 0.06*FRPower/Math.abs(FRPower)*/);
+        }
+        if (!(FRPower==0)) {
+            this.FR.setPower(power * (FRPower/max) + 0.06*FRPower/Math.abs(FRPower));
         } else {
             this.FR.setPower(0);
         }

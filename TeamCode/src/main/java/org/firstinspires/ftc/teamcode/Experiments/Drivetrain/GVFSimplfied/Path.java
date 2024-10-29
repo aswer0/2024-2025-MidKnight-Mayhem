@@ -12,9 +12,9 @@ import java.util.ArrayList;
 
 @Config
 public class Path {
-    public static double xp = 0.1, xi = 0, xd = 0.001;
-    public static double yp = 0.1, yi = 0, yd = 0.001;
-    public static double hp = 0.011, hi = 0, hd = 0.0001;
+    public static double xp = 0.04, xi = 0, xd = 0.001;
+    public static double yp = 0.04, yi = 0, yd = 0.001;
+    public static double hp = 0.0065, hi = 0, hd = 0.00004;
 
     WheelControl wheelControl;
     Odometry odometry;
@@ -60,17 +60,19 @@ public class Path {
     public void update(boolean use_end_angle){
         Point d = this.bz.derivative(this.D);
         Point p = this.bz.forward(this.D);
-
         double target_angle;
-//        if (this.D >= 1 && use_end_angle){
-//            target_angle = this.end_angle;
-//        }
-//        else{
-            target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
-        //}
-        double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
 
-        this.pid_to_point(p, target_angle, true);
+        if (this.D >= 0.78 && use_end_angle){
+            target_angle = converge(this.D, this.end_angle, 0);
+        }
+        else{
+            target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
+        }
+
+        double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
+        telemetry.addData("distance", dist);
+
+        this.pid_to_point(p, target_angle);
 
         if (0.0 <= this.D && this.D <= 1) {
             if (dist < threshold) {
@@ -79,19 +81,13 @@ public class Path {
         }
 
     }
+
     public void update(double target_angle){
-        Point d = this.bz.derivative(this.D);
         Point p = this.bz.forward(this.D);
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
 
-        if (this.D <= 0.15){
-            target_angle = converge(this.D, target_angle, target_angle-5);
-            this.pid_to_point(p, target_angle, true);
-        }
-        else{
-            this.pid_to_point(p, target_angle, false);
-        }
-
+        target_angle = converge(this.D, target_angle, 0);
+        this.pid_to_point(p, target_angle);
 
         if (0.0 <= this.D && this.D <= 1) {
             if (dist < threshold) {
@@ -101,7 +97,7 @@ public class Path {
 
     }
 
-    public void pid_to_point(Point p, double target_angle, boolean use_angle){
+    public void pid_to_point(Point p, double target_angle){
         double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
         double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
@@ -109,18 +105,14 @@ public class Path {
             head_error = 0;
         }
 
-        if (use_angle){
-            wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
-        }
-        else{
-            wheelControl.drive(x_error, -y_error, 0, 0, this.power);
-        }
+        wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
     }
-    public void retrace(){
 
-    }
     public void set_new_path(Point[] cp){
         this.bz = new BezierCurve(cp);
+    }
+    public void set_end_angle(double end_angle){
+        this.end_angle = end_angle;
     }
     public void set_d(double d){
         this.D = d;
@@ -137,6 +129,18 @@ public class Path {
     
     public double get_dist(Point p1, Point p2){
         return Math.sqrt((p2.x-p1.x)*(p2.x-p1.x) + (p2.y-p1.y)*(p2.y-p1.y));
+    }
+    public boolean at_point(Point p, double collision_dist){
+        return get_dist(
+                new Point(odometry.opt.get_x(), odometry.opt.get_y()),
+                p
+        ) <= collision_dist;
+    }
+    public boolean at_point(double collision_dist){
+        return get_dist(
+                new Point(odometry.opt.get_x(), odometry.opt.get_y()),
+                new Point(this.bz.P[this.bz.K].x, this.bz.P[this.bz.K].y)
+        ) <= collision_dist;
     }
     public double converge(double t, double v_max, double v_min){
         double A = v_min-v_max;

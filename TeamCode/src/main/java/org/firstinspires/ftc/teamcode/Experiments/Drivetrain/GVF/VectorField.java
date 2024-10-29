@@ -2,14 +2,14 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.ExperimentalDrive;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.opencv.core.Point;
 
 public class VectorField {
     // Robot controls
     public Odometry odometry;
-    ExperimentalDrive drive;
+    WheelControl drive;
     Path path;
 
     // Robot tuning
@@ -19,8 +19,10 @@ public class VectorField {
     double angle_to_power = 20;
     double corr_weight = 0.1;
 
+    //
+
     // End decel: speed decrease per distance
-    double end_decel = 0.005;
+    double end_decel = 0.05;
     double end_heading;
 
     // Backend variables
@@ -28,17 +30,18 @@ public class VectorField {
     Point velocity = new Point(0, 0);
     public double speed;
     public double turn_speed;
+    public boolean PID = false;
 
-    // PID at end of path
-    double xp = 0.022, xi = 0, xd = 0;
-    double yp = 0.022, yi = 0, yd = 0;
-    double hp = 0.011, hi = 0, hd = 0.0001;
+    // PID at end of path.
+    double xp = 0.1, xi = 0, xd = 0;
+    double yp = 0.1, yi = 0, yd = 0;
+    double hp = 0.02, hi = 0, hd = 0.0001;
     PIDController x_PID;
     PIDController y_PID;
     PIDController heading_PID;
 
     // Constructor
-    public VectorField(ExperimentalDrive w,
+    public VectorField(WheelControl w,
                        Odometry o,
                        Path p,
                        double end_heading) {
@@ -120,42 +123,45 @@ public class VectorField {
 
 
     // Robot's angle to path
-    public double angle_to_path() {
+    public Point move_vector(double speed) {
         update_closest(0, 50, 5, 1);
         Point orth = Utils.sub_v(get_closest(), get_pos());
         orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
-        Point tangent = Utils.scale_v(path.derivative(D), 1);
-        return Utils.angle_v(Utils.add_v(orth, tangent));
+        Point tangent = Utils.scale_v(path.derivative (D), 1);
+        return Utils.scale_v(Utils.add_v(orth, tangent), speed);
     }
+
 
     // PID to a point given coordinates and heading
     public void pid_to_point(Point p, double target_angle, double power) {
-        double x_error = x_PID.calculate(get_x(), p.x)*1000;
-        double y_error = y_PID.calculate(get_y(), p.y)*1000;
-        double head_error = heading_PID.calculate(get_heading(), target_angle);
-        drive.drive(x_error, -y_error, -head_error, -Math.toRadians(get_heading()), power);
+        double x_error = x_PID.calculate(get_x(), p.x);
+        double y_error = x_PID.calculate(get_y(), p.y);
+        turn_speed = heading_PID.calculate(get_heading(), target_angle);
+        drive.drive(x_error, -y_error, -turn_speed, -Math.toRadians(get_heading()), power);
     }
 
     // Move with GVF and PID at the end
     public void move() {
         // Get speed with curves and end decel
-        double drive_speed = min_speed+(turn_speed/max_turn_speed)*(min_speed-max_speed);
-        double end_speed = Math.sqrt(2*end_decel*Utils.dist(get_pos(), path.forward(path.n_bz)));
+        double drive_speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
+        double end_speed = end_decel*Utils.dist(get_pos(), path.final_point);
         speed = Math.min(drive_speed, end_speed);
 
         // PID when you get close enough
-        if (Utils.dist(get_pos(), path.final_point) < 10) {
-            pid_to_point(path.final_point, end_heading, speed); return;
+        if (Utils.dist(get_pos(), path.final_point) < 20) {
+            PID = true;
+            pid_to_point(path.final_point, end_heading, 0.4); return;
         }
-
+        PID = false;
+        
         // Turning
-        double target_angle = angle_to_path();
-        turn_speed = turn_angle(get_heading(), Math.toDegrees(target_angle))/angle_to_power;
+        velocity = move_vector(speed);
+        double target_angle = Utils.angle_v(path.derivative(D));
+        turn_speed = turn_angle(get_heading(), target_angle)/angle_to_power;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
 
         // Drive according to calculations
-        velocity = Utils.scale_v(new Point(Math.cos(target_angle), Math.sin(target_angle)), speed);
-        drive.drive(1, 0, -turn_speed, 0, speed);
+        drive.drive(velocity.x, -velocity.y, -turn_speed, -Math.toRadians(get_heading()), speed);
     }
 }

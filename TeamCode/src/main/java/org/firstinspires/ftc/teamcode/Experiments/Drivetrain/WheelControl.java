@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-
+//
 public class WheelControl {
     public DcMotorEx BR;
     public DcMotorEx BL;
@@ -81,6 +81,57 @@ public class WheelControl {
             this.FL.setPower(0);
         }if (!(FRPower==0)) {
             this.FR.setPower(power * (FRPower/max) + 0.06*FRPower/Math.abs(FRPower));
+        } else {
+            this.FR.setPower(0);
+        }
+    }
+
+    /**
+     *
+     * @param forward Y component of the vector (robot oriented)
+     * @param right   X component of the vector (robot oriented)
+     * @param rotate  Rotation velocity (radians)
+     * @param angle   The angle for where to rotate the thing. Get from odometry. (field oriented)
+     */
+    public void experiment_drive(double forward, double right, double rotate, double angle, double power) {
+        power = Math.max(power, 0.1);
+
+        double max = 1; // max motor power
+        max = Math.max(forward, max);
+        max = Math.max(right, max);
+        forward /= max;
+        right /= max;
+
+        double newX = right*Math.cos(angle) - forward*Math.sin(angle);
+        double newY = right*Math.sin(angle) + forward*Math.cos(angle);
+
+        double BLPower = newY + newX + rotate;
+        double BRPower = newY - newX - rotate;
+        double FLPower = newY - newX + rotate;
+        double FRPower = newY + newX - rotate;
+        //setPowers(BLPower, BRPower, FLPower, FRPower, power);
+
+        max = 1;
+        max = Math.max(BLPower, max);
+        max = Math.max(BRPower, max);
+        max = Math.max(FLPower, max);
+        max = Math.max(FRPower, max); // Detect the motor with the most power
+
+        if (!(BLPower==0)) {
+            this.BL.setPower(power * (BLPower/max));
+        } else {
+            this.BL.setPower(0);
+        }
+        if (!(BRPower==0)) {
+            this.BR.setPower(power * (BRPower/max));
+        } else {
+            this.BR.setPower(0);
+        }if (!(FLPower==0)) {
+            this.FL.setPower(power * (FLPower/max));
+        } else {
+            this.FL.setPower(0);
+        }if (!(FRPower==0)) {
+            this.FR.setPower(power * (FRPower/max));
         } else {
             this.FR.setPower(0);
         }
