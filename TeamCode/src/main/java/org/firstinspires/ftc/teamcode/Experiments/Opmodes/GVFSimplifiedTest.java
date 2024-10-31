@@ -17,9 +17,11 @@ public class GVFSimplifiedTest extends OpMode{
     WheelControl wheelControl;
     Odometry odometry;
 
+    Point specimen_target;
+
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 0, 27, 72, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         Point[] cp = {
@@ -29,13 +31,14 @@ public class GVFSimplifiedTest extends OpMode{
         };
 
         path = new Path(cp, wheelControl, odometry, telemetry, 0.01, 12, -90, 0.7);
+        specimen_target = new Point(26, 72);
     }
 
     @Override
     public void loop() {
         odometry.opt.update();
 
-        path.update(true);
+        path.pid_to_point(specimen_target, 0);
 
         telemetry.addData("X position", odometry.opt.get_x());
         telemetry.addData("Y position", odometry.opt.get_y());

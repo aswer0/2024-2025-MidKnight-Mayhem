@@ -23,29 +23,28 @@ public class RedRight extends OpMode {
     public void init() {
         Point[] hang_path = {
                 new Point(22, 72),
-                new Point(3.5, 158),
-                new Point(64.3, 93)
+                new Point(5, -18),
+                new Point(55, 45)
         };
-        specimen_target = new Point(16, 72);
+        specimen_target = new Point(26, 72);
         timer = new ElapsedTime();
 
         odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        path = new Path(hang_path, wheelControl, odometry, telemetry, 0.01, 12, -90, 0.55);
+        path = new Path(hang_path, wheelControl, odometry, telemetry, 0.01, 12, 90, 0.7);
     }
 
     @Override
     public void loop() {
         odometry.opt.update();
 
-        if (!path.at_point(specimen_target, 2.5) && !start_hang_path){
+        if (!start_hang_path){
             path.pid_to_point(specimen_target, 0);
-            start_hang_path = true;
         }
-        else{
-            if (timer.milliseconds() >= 5000){
-                path.update(true);
-            }
+
+        if (timer.milliseconds() >= 2500){
+            start_hang_path = true;
+            path.update(true);
         }
 
         telemetry.addData("X position: ", odometry.opt.get_x());

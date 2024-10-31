@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.DriveCorrection;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
@@ -15,6 +16,7 @@ public class OTOSTest extends OpMode {
 
     Odometry odometry;
     WheelControl drive;
+    DriveCorrection driveCorrection;
 
     double powerLevel = 1;
 
@@ -29,6 +31,9 @@ public class OTOSTest extends OpMode {
         odometry = new Odometry(hardwareMap, 0, 8, 7, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
         heading = new PIDController(hp, hi, hd);
+
+        driveCorrection = new DriveCorrection(drive, odometry);
+
     }
 
     @Override
@@ -50,19 +55,19 @@ public class OTOSTest extends OpMode {
         if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) powerLevel -= 0.1;
         if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) powerLevel += 0.1;
 
-        double error = heading.calculate(odometry.opt.get_heading(), -90);
-        if (gamepad1.a) drive.drive(1, -0.2, -error, -Math.toRadians(odometry.opt.get_heading()), powerLevel);
-
         odometry.opt.update();
-        drive.drive(-gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x), 0, powerLevel);
+
+        double target_angle = gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x);
+        drive.drive(-gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, driveCorrection.stable_correction(target_angle), 0, powerLevel);
 
         telemetry.addData("power level", powerLevel);
-
         telemetry.addData("Linear Scalar", odometry.opt.get_linear_scalar());
         telemetry.addData("Angular Scalar", odometry.opt.get_angular_scalar());
         telemetry.addData("X position", odometry.opt.get_x());
         telemetry.addData("Y position", odometry.opt.get_y());
         telemetry.addData("Heading", odometry.opt.get_heading());
+        telemetry.addData("Target angle: ", target_angle);
+
         telemetry.update();
     }
 }

@@ -101,6 +101,7 @@ public class Path {
         double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
         double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
+
         if (Math.abs(target_angle-odometry.opt.get_heading()) <= 1){
             head_error = 0;
         }
