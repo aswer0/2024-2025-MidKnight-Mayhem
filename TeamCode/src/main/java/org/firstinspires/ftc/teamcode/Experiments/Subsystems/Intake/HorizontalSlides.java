@@ -8,6 +8,9 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import java.util.concurrent.CompletableFuture;
 
 public class HorizontalSlides {
+    final static int MIN = 0;
+    final static int MAX = 0;
+
     public DcMotorEx horizontalSlidesMotor;
     public PIDController pidController = new PIDController(0.001, 0, 0.001);
     private enum State {
@@ -27,9 +30,18 @@ public class HorizontalSlides {
     public void setPosition(double position) {
         setPosition(position, true);
     }
+
     public void setPower(double power) {
         state = State.userControlled;
         horizontalSlidesMotor.setPower(power);
+    }
+    public void trySetPower(double power) {
+        int slidePos = horizontalSlidesMotor.getCurrentPosition();
+        if (slidePos<MAX && power>0) {
+            setPower(power);
+        } else if (slidePos>MIN && power<0) {
+            setPower(power);
+        }
     }
     public void update() {
         if (state == State.runToPosition) {

@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator
 import java.util.List;
 
 @TeleOp
-public class FinalSingleTeleOp extends OpMode {
+public class FinalTeleOp extends OpMode {
     Odometry odometry;
     WheelControl drive;
 
@@ -35,7 +35,9 @@ public class FinalSingleTeleOp extends OpMode {
 
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
-    State previousState = new State(0,0,0,false, false, false, false, false, 0,0, false, false);
+    Gamepad currentGamepad2 = new Gamepad();
+    Gamepad previousGamepad2 = new Gamepad();
+    State previousState = new State(0,0,0,false, false, false, false, false, 0,0, 0, false);
 
     @Override
     public void init() {
@@ -56,11 +58,17 @@ public class FinalSingleTeleOp extends OpMode {
     public void loop() {
         // TODO beginHang, intake by LM2,
         // TODO outtake control by LM1
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+        previousGamepad2.copy(currentGamepad2);
+        currentGamepad2.copy(gamepad2);
+
         // Updates
         odometry.update();
         outtakeSlides.update();
         intakeSlides.update();
         intake.update();
+
         // The user controlled part
         State currentState = new State(gamepad1.right_stick_x, // drive X
                 gamepad1.right_stick_y, // Drive Y
@@ -69,15 +77,13 @@ public class FinalSingleTeleOp extends OpMode {
                 gamepad2.b, // high chamber
                 gamepad2.x, // low basket
                 gamepad2.y, // high basket
-                gamepad2.left_bumper || gamepad2.right_bumper, // toggle outtake
-                (gamepad2.dpad_up ? 1 : 0)  - (gamepad2.dpad_down ? 1 : 0), // outtake slides
-                (gamepad1.dpad_up ? 1 : 0)  - (gamepad1.dpad_down ? 1 : 0), // intake slides
-                gamepad1.a, // toggle intake
+                gamepad2.right_bumper, // toggle outtake
+                -gamepad2.left_stick_y, // outtake slides
+                -gamepad2.right_stick_y, // intake slides
+                gamepad2.right_trigger, // toggle intake
                 gamepad1.b); // start hang
-        // Drive
-        previousGamepad1.copy(currentGamepad1);
-        currentGamepad1.copy(gamepad1);
 
+        // Drive
         drive.drive(-gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, gamepad1.right_stick_x, 0, drivePower);
 
         // Outtake presets
@@ -102,7 +108,7 @@ public class FinalSingleTeleOp extends OpMode {
             clawOpen = !clawOpen;
         }
         // Custom outtake input
-        if(currentState.outtakeSlidesInput > 0.1) {
+        if(Math.abs(currentState.outtakeSlidesInput) > 0.1) {
             outtakeSlides.setPower(currentState.outtakeSlidesInput*0.5);
         }
         // Autograb (only when the slides are low enough)
@@ -112,6 +118,12 @@ public class FinalSingleTeleOp extends OpMode {
             manipulator.closeClaw();
             clawOpen = false;
         }
+
+        //manual horizontal extension
+        if(Math.abs(currentState.intakeSlidesInput) > 0.1) {
+            intakeSlides.trySetPower(currentState.intakeInput*0.5);
+        }
+
         //Intake
         // TODO uncomment after LM1
 //        switch(intakeState) {
@@ -162,7 +174,7 @@ public class FinalSingleTeleOp extends OpMode {
         public double driveX;
         public double driveY;
         public double rotate;
-        // Preset Outtake intakeSlides
+        // Preset Outtake Slides
         public boolean toLowChamber;
         public boolean toHighChamber;
         public boolean toLowBasket;
@@ -171,12 +183,24 @@ public class FinalSingleTeleOp extends OpMode {
         public boolean toggleOuttake; // will either be claw or bucket based on context
         // Slides custom input; claw is automatically controlled
         public double outtakeSlidesInput; // Done so they act in one direction if one is pressed, but cancel each other out
-        public double intakeSlidesInput;
+
         // Intake
-        public boolean toggleIntake; // Toggle intake spin. Automatically extends if it is not. Its transfer process is automatic.
-        // Hang
+        public double intakeSlidesInput;
+        public double intakeInput;
+
         public boolean startHang; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
-        public State(double driveX, double driveY, double rotate, boolean toLowChamber, boolean toHighChamber, boolean toLowBasket, boolean toHighBucket, boolean toggleOuttake, double outtakeSlidesInput, double intakeSlidesInput, boolean toggleIntake, boolean startHang) {
+        public State(double driveX,
+                     double driveY,
+                     double rotate,
+                     boolean toLowChamber,
+                     boolean toHighChamber,
+                     boolean toLowBasket,
+                     boolean toHighBucket,
+                     boolean toggleOuttake,
+                     double outtakeSlidesInput,
+                     double intakeSlidesInput,
+                     double intakeInput,
+                      boolean startHang) {
             this.driveX = driveX;
             this.driveY = driveY;
             this.rotate = rotate;
@@ -187,12 +211,12 @@ public class FinalSingleTeleOp extends OpMode {
             this.toggleOuttake = toggleOuttake;
             this.outtakeSlidesInput = outtakeSlidesInput;
             this.intakeSlidesInput = intakeSlidesInput;
-            this.toggleIntake = toggleIntake;
+            this.intakeInput = intakeInput;
             this.startHang = startHang;
         }
 
         public State(State state) {
-            this(state.driveX, state.driveY, state.rotate, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.toggleIntake, state.startHang);
+            this(state.driveX, state.driveY, state.rotate, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.intakeInput, state.startHang);
         }
     }
 
