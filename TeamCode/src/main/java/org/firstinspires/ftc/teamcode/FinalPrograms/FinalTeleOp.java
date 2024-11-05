@@ -80,7 +80,7 @@ public class FinalTeleOp extends OpMode {
                 gamepad2.right_bumper, // toggle outtake
                 -gamepad2.left_stick_y, // outtake slides
                 -gamepad2.right_stick_y, // intake slides
-                gamepad2.right_trigger, // toggle intake
+                gamepad2.right_trigger-gamepad2.left_trigger, // intake input
                 gamepad1.b); // start hang
 
         // Drive
@@ -122,6 +122,18 @@ public class FinalTeleOp extends OpMode {
         //manual horizontal extension
         if(Math.abs(currentState.intakeSlidesInput) > 0.1) {
             intakeSlides.trySetPower(currentState.intakeInput*0.5);
+        }
+
+        //manual intake
+        if (currentState.intakeInput>0.7) {
+            intake.intake();
+            intake.down();
+        } else if (currentState.intakeInput<0.7){
+            intake.reverse();
+            intake.down();
+        } else {
+            intake.setPower(0);
+            intake.up();
         }
 
         //Intake

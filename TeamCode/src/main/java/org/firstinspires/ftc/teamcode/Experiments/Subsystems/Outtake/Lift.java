@@ -31,12 +31,11 @@ public class Lift {
     public Lift (HardwareMap hardwareMap) {
         this.leftSlide = hardwareMap.get(DcMotorEx.class,"SlideRight"); //The one with the encoder
         this.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.leftSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         this.rightSlide = hardwareMap.get(DcMotorEx.class,"SlideLeft");
         this.rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightSlide.setDirection(DcMotorSimple.Direction.REVERSE);
         this.rightSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
@@ -58,8 +57,8 @@ public class Lift {
     }
     public void setPower(double power) {
         state = State.userControlled;
-        rightSlide.setPower(power);
         leftSlide.setPower(power);
+        rightSlide.setPower(-power);
     }
     public void update() {
         if (state == State.runToPosition) {
