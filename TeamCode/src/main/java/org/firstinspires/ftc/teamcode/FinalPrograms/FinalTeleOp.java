@@ -113,8 +113,7 @@ public class FinalTeleOp extends OpMode {
         }
         // Autograb (only when the slides are low enough)
         if(manipulator.clawHasObject() && clawOpen
-                && outtakeSlides.leftSlide.getCurrentPosition() < 50
-                && outtakeSlides.rightSlide.getCurrentPosition() < 50) {
+                && outtakeSlides.leftSlide.getCurrentPosition() < 50) {
             manipulator.closeClaw();
             clawOpen = false;
         }

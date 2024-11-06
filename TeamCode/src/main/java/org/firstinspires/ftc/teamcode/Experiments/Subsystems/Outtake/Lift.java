@@ -19,7 +19,6 @@ public class Lift {
     public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.02,0,-0.001,0.1);
 
     public PIDFController leftMotorController = new PIDFController(coefficients);;
-    public PIDFController rightMotorController = new PIDFController(coefficients);;
 
     private enum State {
         userControlled,
@@ -62,8 +61,9 @@ public class Lift {
     }
     public void update() {
         if (state == State.runToPosition) {
+            double input = leftMotorController.update(leftSlide.getCurrentPosition() - position);
             leftSlide.setPower(leftMotorController.update(leftSlide.getCurrentPosition() - position));
-            rightSlide.setPower(rightMotorController.update(rightSlide.getCurrentPosition() - position));
+            rightSlide.setPower(input);
             // Power should already be set for setPower
         }
     }
