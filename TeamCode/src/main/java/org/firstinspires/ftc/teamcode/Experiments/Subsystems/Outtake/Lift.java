@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -7,7 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFCoefficients;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 
-
+@Config
 public class Lift {
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
