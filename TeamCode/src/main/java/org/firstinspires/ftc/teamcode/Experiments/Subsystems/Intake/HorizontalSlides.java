@@ -35,6 +35,8 @@ public class HorizontalSlides {
         state = State.userControlled;
         horizontalSlidesMotor.setPower(power);
     }
+
+    //set power with limits
     public void trySetPower(double power) {
         int slidePos = horizontalSlidesMotor.getCurrentPosition();
         if (slidePos<MAX && power>0) {
@@ -43,6 +45,7 @@ public class HorizontalSlides {
             setPower(power);
         }
     }
+
     public void update() {
         if (state == State.runToPosition) {
             horizontalSlidesMotor.setPower(pidController.calculate(horizontalSlidesMotor.getCurrentPosition(), position));

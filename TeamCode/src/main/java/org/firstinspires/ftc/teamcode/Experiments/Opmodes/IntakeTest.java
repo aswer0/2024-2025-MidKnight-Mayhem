@@ -8,23 +8,46 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
+
 @TeleOp
 public class IntakeTest extends OpMode {
+    //CRServo servo1;
+    //CRServo servo2;
 
-    CRServo servo1;
-    CRServo servo2;
+    HorizontalSlides intakeSlides;
+    Intake intake;
 
     public void init(){
-        servo1 = hardwareMap.get(CRServo.class, "1");
-        servo2 = hardwareMap.get(CRServo.class, "2");
+        //servo1 = hardwareMap.get(CRServo.class, "1");
+        //servo2 = hardwareMap.get(CRServo.class, "2");
+        intakeSlides = new HorizontalSlides(hardwareMap);
+        intake = new Intake(hardwareMap);
     }
 
     public void loop(){
-        double y_pos1 = gamepad1.left_stick_y;
-        double y_pos2 = gamepad1.right_stick_y;
+        //double y_pos1 = gamepad1.left_stick_y;
+        //double y_pos2 = gamepad1.right_stick_y;
+        //servo1.setPower(y_pos1);
+        //servo2.setPower(-y_pos1);
 
-        servo1.setPower(y_pos1);
-        servo2.setPower(-y_pos1);
+        //manual horizontal extension
+        if(Math.abs(-gamepad2.right_stick_y) > 0.1) {
+            intakeSlides.trySetPower(-gamepad2.right_stick_y*0.5);
+        }
+
+        //manual intake
+        if (gamepad2.right_trigger-gamepad2.left_trigger>0.7) {
+            intake.intake();
+            intake.down();
+        } else if (gamepad2.right_trigger-gamepad2.left_trigger<0.7){
+            intake.reverse();
+            intake.down();
+        } else {
+            intake.setPower(0);
+            intake.up();
+        }
 
     }
 

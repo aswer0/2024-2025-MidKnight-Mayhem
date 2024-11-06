@@ -10,8 +10,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 public class Intake {
-    double DOWN_POS;
-    double UP_POS;
+    double DOWN_POS=0.2;
+    double UP_POS=0.9;
 
     public CRServo intakeServo1;
     public CRServo intakeServo2;
@@ -24,9 +24,9 @@ public class Intake {
     public boolean hasCorrectObject = false;
 
     public Intake(HardwareMap hardwareMap) {
-        intakeServo1 = hardwareMap.get(CRServo.class,"intakeServo1");
-        intakeServo2 = hardwareMap.get(CRServo.class,"intakeServo1");
-        intakePivotLeft = hardwareMap.get(Servo.class,"intakePivotLeft");
+        intakeServo1 = hardwareMap.get(CRServo.class,"intakeServo1"); //left looking from intake side
+        intakeServo2 = hardwareMap.get(CRServo.class,"intakeServo2");
+        intakePivotLeft = hardwareMap.get(Servo.class,"intakePivotLeft"); //from intake side
         intakePivotRight = hardwareMap.get(Servo.class,"intakePivotRight");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class,"intakeSensor");
     }

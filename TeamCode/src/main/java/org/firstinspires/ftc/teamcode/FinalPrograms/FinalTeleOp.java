@@ -70,9 +70,9 @@ public class FinalTeleOp extends OpMode {
         intake.update();
 
         // The user controlled part
-        State currentState = new State(gamepad1.right_stick_x, // drive X
-                gamepad1.right_stick_y, // Drive Y
-                gamepad1.left_stick_x, // Drive Y
+        State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
+                -gamepad1.left_stick_y, // Drive Y
+                gamepad1.right_stick_x, // Drive rotate
                 gamepad2.a, // toLowChamber
                 gamepad2.b, // high chamber
                 gamepad2.x, // low basket
@@ -80,11 +80,11 @@ public class FinalTeleOp extends OpMode {
                 gamepad2.right_bumper, // toggle outtake
                 -gamepad2.left_stick_y, // outtake slides
                 -gamepad2.right_stick_y, // intake slides
-                gamepad2.right_trigger-gamepad2.left_trigger, // intake input
+                (gamepad2.right_bumper ? 1 : 0) - (gamepad2.left_bumper ? 1 : 0), // intake input
                 gamepad1.b); // start hang
 
         // Drive
-        drive.drive(-gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, gamepad1.right_stick_x, 0, drivePower);
+        drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, 0, drivePower);
 
         // Outtake presets
         // TODO set outtake presets
