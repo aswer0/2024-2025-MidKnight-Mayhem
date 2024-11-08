@@ -67,7 +67,7 @@ public class FinalTeleOp extends OpMode {
         odometry.update();
         outtakeSlides.update();
         intakeSlides.update();
-        intake.update();
+        //intake.update(); TODO LM2 Automation
 
         // The user controlled part
         State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
@@ -89,13 +89,13 @@ public class FinalTeleOp extends OpMode {
         // Outtake presets
         // TODO set outtake presets
         if(!previousState.toLowBasket && currentState.toLowBasket) {
-            outtakeSlides.setPosition(100);
+            outtakeSlides.setPosition(50);
         } else if(!previousState.toHighBasket && currentState.toHighBasket) {
             outtakeSlides.setPosition(100);
         } else if (!previousState.toLowChamber && currentState.toLowChamber) {
-            outtakeSlides.setPosition(100);
+            outtakeSlides.setPosition(150);
         } else if (!previousState.toHighChamber && currentState.toHighChamber) {
-            outtakeSlides.setPosition(100);
+            outtakeSlides.setPosition(200);
         }
 
         if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
