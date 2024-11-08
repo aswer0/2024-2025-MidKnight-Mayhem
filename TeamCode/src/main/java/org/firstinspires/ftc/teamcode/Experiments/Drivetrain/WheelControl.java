@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
 
+import android.sax.StartElementListener;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -7,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.utils;
 
 //
@@ -94,24 +97,33 @@ public class WheelControl {
         }
     }
 
-   public void correction_drive(Gamepad gamepad1, double powerLevel){
-       this.target_angle = utils.cap(this.target_angle+gamepad1.right_stick_x*-1, 0, 360);
-
+   public void correction_drive(Gamepad gamepad1, double powerLevel, Telemetry telemetry){
        if (gamepad1.right_stick_x != 0){
+           this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+           this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+           this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+           this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
            this.drive(
                    -gamepad1.left_stick_y, gamepad1.left_stick_x,
-                   driveCorrection.turn_correction(this.target_angle), 0,
+                   -gamepad1.right_stick_x, 0,
                    powerLevel
            );
+           driveCorrection.set_target_angle(this.odometry.opt.get_heading());
+           telemetry.addData("target angle TURNING", driveCorrection.ta);
        }
        else{
+           this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+           this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+           this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+           this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
            this.drive(
                    -gamepad1.left_stick_y, gamepad1.left_stick_x,
-                   driveCorrection.stable_correction(this.target_angle), 0,
+                   driveCorrection.stable_correction(driveCorrection.ta), 0,
                    powerLevel
            );
+           telemetry.addData("target angle MOVING", driveCorrection.ta);
        }
-
-       driveCorrection.update_head();
    }
 }

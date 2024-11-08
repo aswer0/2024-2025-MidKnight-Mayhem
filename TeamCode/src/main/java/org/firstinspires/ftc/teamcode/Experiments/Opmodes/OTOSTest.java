@@ -16,7 +16,6 @@ public class OTOSTest extends OpMode {
     WheelControl drive;
 
     double powerLevel = 1;
-    double target_angle = -180;
 
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
@@ -52,11 +51,10 @@ public class OTOSTest extends OpMode {
 
         odometry.opt.update();
 
-        drive.correction_drive(gamepad1, powerLevel);
+        drive.correction_drive(gamepad1, powerLevel, telemetry);
 
         telemetry.addData("power level", powerLevel);
         telemetry.addData("Heading", odometry.opt.get_heading());
-        telemetry.addData("Target angle", target_angle);
 
         telemetry.update();
     }
