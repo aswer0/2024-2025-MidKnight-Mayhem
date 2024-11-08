@@ -3,8 +3,12 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+
+import org.firstinspires.ftc.teamcode.Experiments.Utils.utils;
+
 //
 public class WheelControl {
     public DcMotorEx BR;
@@ -12,7 +16,10 @@ public class WheelControl {
     public DcMotorEx FR;
     public DcMotorEx FL;
     private VoltageSensor voltageSensor;
+
     Odometry odometry;
+    DriveCorrection driveCorrection;
+    double target_angle = -180;
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
     public WheelControl(HardwareMap hardwareMap, Odometry odometry) {
@@ -30,6 +37,7 @@ public class WheelControl {
 
         this.odometry = odometry;
         this.voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
+        this.driveCorrection = new DriveCorrection(odometry);
     }
     public void setPowers(double BL, double BR, double FL, double FR, double power) {
         double max = 1; // max motor power
@@ -86,54 +94,24 @@ public class WheelControl {
         }
     }
 
-    /**
-     *
-     * @param forward Y component of the vector (robot oriented)
-     * @param right   X component of the vector (robot oriented)
-     * @param rotate  Rotation velocity (radians)
-     * @param angle   The angle for where to rotate the thing. Get from odometry. (field oriented)
-     */
-    public void experiment_drive(double forward, double right, double rotate, double angle, double power) {
-        power = Math.max(power, 0.1);
+   public void correction_drive(Gamepad gamepad1, double powerLevel){
+       this.target_angle = utils.cap(this.target_angle+gamepad1.right_stick_x*-1, 0, 360);
 
-        double max = 1; // max motor power
-        max = Math.max(forward, max);
-        max = Math.max(right, max);
-        forward /= max;
-        right /= max;
+       if (gamepad1.right_stick_x != 0){
+           this.drive(
+                   -gamepad1.left_stick_y, gamepad1.left_stick_x,
+                   driveCorrection.turn_correction(this.target_angle), 0,
+                   powerLevel
+           );
+       }
+       else{
+           this.drive(
+                   -gamepad1.left_stick_y, gamepad1.left_stick_x,
+                   driveCorrection.stable_correction(this.target_angle), 0,
+                   powerLevel
+           );
+       }
 
-        double newX = right*Math.cos(angle) - forward*Math.sin(angle);
-        double newY = right*Math.sin(angle) + forward*Math.cos(angle);
-
-        double BLPower = newY + newX + rotate;
-        double BRPower = newY - newX - rotate;
-        double FLPower = newY - newX + rotate;
-        double FRPower = newY + newX - rotate;
-        //setPowers(BLPower, BRPower, FLPower, FRPower, power);
-
-        max = 1;
-        max = Math.max(BLPower, max);
-        max = Math.max(BRPower, max);
-        max = Math.max(FLPower, max);
-        max = Math.max(FRPower, max); // Detect the motor with the most power
-
-        if (!(BLPower==0)) {
-            this.BL.setPower(power * (BLPower/max));
-        } else {
-            this.BL.setPower(0);
-        }
-        if (!(BRPower==0)) {
-            this.BR.setPower(power * (BRPower/max));
-        } else {
-            this.BR.setPower(0);
-        }if (!(FLPower==0)) {
-            this.FL.setPower(power * (FLPower/max));
-        } else {
-            this.FL.setPower(0);
-        }if (!(FRPower==0)) {
-            this.FR.setPower(power * (FRPower/max));
-        } else {
-            this.FR.setPower(0);
-        }
-    }
+       driveCorrection.update_head();
+   }
 }
