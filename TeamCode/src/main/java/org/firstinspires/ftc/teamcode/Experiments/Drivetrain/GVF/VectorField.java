@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.opencv.core.Point;
 
 public class VectorField {
@@ -14,15 +13,12 @@ public class VectorField {
 
     // Robot tuning
     double max_speed = 0.7;
-    double min_speed = 0.5;
+    double min_speed = 0.3;
     double max_turn_speed = 20;
     double angle_to_power = 100;
     double corr_weight = 0.1;
 
-    //
-    double target_angle;
-
-    // End decel: speed decrease per distance
+    // End decel: deceleration rate
     double end_decel = 0.02;
     double end_heading;
 
@@ -33,11 +29,6 @@ public class VectorField {
     public double turn_speed;
     public boolean PID = false;
     public double error = 0;
-
-    // PID at end of path.
-    double xp = 0.1, xi = 0, xd = 0;
-    double yp = 0.1, yi = 0, yd = 0;
-    double hp = 0.02, hi = 0, hd = 0.0001;
 
     // Constructor
     public VectorField(WheelControl w,
@@ -107,6 +98,10 @@ public class VectorField {
         if (D > path.n_bz) D = path.n_bz;
     }
 
+    public double D_from_end(double dist) {
+        return path.n_bz-dist/path.F[path.n_bz-1].est_arclen;
+    }
+
     // Get turn angle
     public double turn_angle(double current, double target) {
         double turn_angle = target-current;
@@ -115,19 +110,8 @@ public class VectorField {
         return turn_angle;
     }
 
-
-    // Robot's angle to path
-    public Point move_vector(double speed) {
-        update_closest(0, 50, 5, 1);
-        if (D > path.n_bz-0.1) {
-            PID = true;
-            return Utils.scale_v(Utils.sub_v(path.final_point, get_pos()), speed);
-        }
-        PID = false;
-        Point orth = Utils.sub_v(get_closest(), get_pos());
-        orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
-        Point tangent = Utils.scale_v(path.derivative(D), 1);
-        return Utils.scale_v(Utils.add_v(orth, tangent), speed);
+    public double get_end_speed(Point p) {
+        return Math.pow(end_decel*Utils.dist(get_pos(), p), 0.7);
     }
 
     public void set_turn_speed(double target_angle) {
@@ -136,15 +120,28 @@ public class VectorField {
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
     }
 
+    // Robot's move vector to path
+    public Point move_vector(double speed) {
+        update_closest(0, 50, 5, 1);
+        if (D > D_from_end(3)) {
+            return Utils.scale_v(Utils.sub_v(path.final_point, get_pos()), speed);
+        }
+        Point orth = Utils.sub_v(get_closest(), get_pos());
+        orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
+        Point tangent = Utils.scale_v(path.derivative(D), 1);
+        return Utils.scale_v(Utils.add_v(orth, tangent), speed);
+    }
+
     // Move to a point given coordinates and heading
     public void move_to_point(Point p, double target_angle, double power) {
         // Get speed and movement
-        double end_speed = end_decel*Utils.dist(get_pos(), p)+0.05;
-        speed = Math.min(end_speed, power);
+        speed = Math.min(get_end_speed(p), power);
         velocity = Utils.scale_v(Utils.sub_v(p, get_pos()), speed);
 
         // Turn speed
         set_turn_speed(target_angle);
+
+        error = Utils.dist(get_pos(), p);
 
         // Drive
         drive.drive(velocity.x, -velocity.y, -turn_speed, -Math.toRadians(get_heading()), 1);
@@ -154,16 +151,17 @@ public class VectorField {
     public void move() {
         // Get speed with curves and end decel
         double drive_speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
-        double end_speed = end_decel*Utils.dist(get_pos(), path.final_point)+0.05;
-        speed = Math.min(drive_speed, end_speed);
+        speed = Math.min(drive_speed, get_end_speed(path.final_point));
         velocity = move_vector(speed);
 
         // Error
-        error = Utils.dist(get_pos(), path.forward(D));
+        error = Utils.dist(get_pos(), path.final_point);
 
         // Angle
         double target_angle = end_heading;
-        if (D < path.n_bz-0.2) target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
+        if (D < D_from_end(5)) {
+            target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
+        }
         set_turn_speed(target_angle);
 
         // Drive according to calculations
