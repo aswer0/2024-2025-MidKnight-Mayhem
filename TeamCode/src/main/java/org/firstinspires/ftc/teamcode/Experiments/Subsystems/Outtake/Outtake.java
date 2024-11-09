@@ -41,7 +41,7 @@ public class Outtake {
         }
     }
     public static void lowerClaw(Lift lift, Manipulator manipulator) {
-        lift.setPosition(100);
+        lift.setPosition(lift.getPosition()- 100);
         manipulator.openClaw();
     }
 }

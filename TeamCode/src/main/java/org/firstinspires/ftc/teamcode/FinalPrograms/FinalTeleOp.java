@@ -105,8 +105,8 @@ public class FinalTeleOp extends OpMode {
             if (clawOpen) {
                 manipulator.closeClaw();
             } else {
+                outtakeSlides.setPosition(outtakeSlides.leftSlide.getCurrentPosition() - 150);
                 manipulator.openClaw();
-                outtakeSlides.setPosition(0);
                 autoGrabGracePeriod = getRuntime() + 0.25;
             }
             clawOpen = !clawOpen;
@@ -115,7 +115,7 @@ public class FinalTeleOp extends OpMode {
         if(Math.abs(currentState.outtakeSlidesInput) > 0.1) {
             outtakeSlides.setPower(currentState.outtakeSlidesInput*0.5);
         }
-        // Autograb (only when the slides are low enough)
+        // Autograb (only when the slides are low enough) TODO by lm2
 //        if(manipulator.clawHasObject() && clawOpen
 //                && outtakeSlides.leftSlide.getCurrentPosition() < 50
 //                && autoGrabGracePeriod - getRuntime() < 0) {

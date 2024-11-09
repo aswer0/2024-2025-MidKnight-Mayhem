@@ -77,6 +77,10 @@ public class Lift {
         leftSlide.setPower(power);
         rightSlide.setPower(power);
     }
+
+    public double getPosition() {
+        return position;
+    }
     public void update() {
         if (state == State.runToPosition) {
             double input = motorController.update(leftSlide.getCurrentPosition() - position);
