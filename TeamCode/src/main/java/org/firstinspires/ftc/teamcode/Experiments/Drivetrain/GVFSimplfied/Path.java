@@ -106,7 +106,7 @@ public class Path {
             head_error = 0;
         }
 
-        wheelControl.drive(x_error, -y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
+        wheelControl.drive(-x_error, y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
     }
 
     public void set_new_path(Point[] cp){

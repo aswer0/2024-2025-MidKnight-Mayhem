@@ -66,7 +66,7 @@ public class RedRight extends OpMode {
                 break;
 
             case extendSlides:
-                lift.toHighChamber();
+                lift.setPosition(700);
                 break;
 
             case depositSpecimen:
