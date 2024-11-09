@@ -10,9 +10,14 @@ public class OptOdometry {
     private double xPos;
     private double yPos;
 
-    private static double SENSOR_OFFSET_X = 2.296;
-    private static double SENSOR_OFFSET_Y = -5.709;
-    private static double SENSOR_OFFSET_H = 90;
+
+    //TEST ROBOT OFFSET:
+    //X: 2.296
+    //Y: -5.709
+    //X: 90
+    private static double SENSOR_OFFSET_X = 0;
+    private static double SENSOR_OFFSET_Y = 0;
+    private static double SENSOR_OFFSET_H = 0;
 
     private static double LINEAR_SCALAR = 1.014503821596663;
     private static double ANGULAR_SCALAR = 0.9875;
