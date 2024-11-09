@@ -50,6 +50,7 @@ public class FinalTeleOp extends OpMode {
 
         intake = new Intake(hardwareMap);
         intakeSlides = new HorizontalSlides(hardwareMap);
+        manipulator = new Manipulator(hardwareMap);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
@@ -69,20 +70,20 @@ public class FinalTeleOp extends OpMode {
         // Updates
         odometry.update();
         outtakeSlides.update();
-        intakeSlides.update();
+        //intakeSlides.update(); FIXME
         //intake.update(); TODO LM2 Automation
 
         // The user controlled part
         State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
-                -gamepad1.left_stick_y, // Drive Y
-                gamepad1.right_stick_x, // Drive rotate
+                gamepad1.left_stick_y, // Drive Y
+                -gamepad1.right_stick_x, // Drive rotate
                 gamepad2.cross, // toLowChamber
                 gamepad2.square, // high chamber
                 gamepad2.circle, // low basket
                 gamepad2.triangle, // high basket
                 gamepad2.right_bumper, // toggle outtake
                 -gamepad2.left_stick_y, // outtake slides
-                gamepad1.right_trigger-gamepad1.left_trigger, // intake slides
+                gamepad1.right_trigger - gamepad1.left_trigger, // intake slides
                 (gamepad1.right_bumper ? 1 : 0) - (gamepad1.left_bumper ? 1 : 0), // intake input
                 gamepad2.share); // start hang
 
@@ -105,19 +106,22 @@ public class FinalTeleOp extends OpMode {
             if (clawOpen) {
                 manipulator.closeClaw();
             } else {
-                outtakeSlides.setPosition(outtakeSlides.leftSlide.getCurrentPosition() - 150);
+                //outtakeSlides.setPosition(outtakeSlides.leftSlide.getCurrentPosition() - 150);
                 manipulator.openClaw();
                 autoGrabGracePeriod = getRuntime() + 0.25;
             }
             clawOpen = !clawOpen;
         }
         // Custom outtake input
-        if(Math.abs(currentState.outtakeSlidesInput) > 0.1) {
+
+        if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
             outtakeSlides.setPower(currentState.outtakeSlidesInput*0.5);
+        } else if (outtakeSlides.leftSlide.getPower() != 0 && outtakeSlides.getState() == Lift.State.userControlled) {
+            outtakeSlides.setPower(0);
         }
         // Autograb (only when the slides are low enough) TODO by lm2
 //        if(manipulator.clawHasObject() && clawOpen
-//                && outtakeSlides.leftSlide.getCurrentPosition() < 50
+//                && outtakeSlides.leftSlide.getCurrentPosition() < 200
 //                && autoGrabGracePeriod - getRuntime() < 0) {
 //            manipulator.closeClaw();
 //            autoGrabGracePeriod = getRuntime() + 0.25;
@@ -125,15 +129,17 @@ public class FinalTeleOp extends OpMode {
 //        }
 
         //manual horizontal extension
-        if(Math.abs(currentState.intakeSlidesInput) > 0.1) {
-            intakeSlides.trySetPower(currentState.intakeInput*0.5);
+        if(Math.abs(previousState.intakeSlidesInput) > 0.1) {
+            intakeSlides.setPower(previousState.intakeSlidesInput*0.5);
+        } else {
+            intakeSlides.setPower(0);
         }
 
         //manual intake
         if (currentState.intakeInput>0.7) {
             intake.down();
             intake.intake();
-        } else if (currentState.intakeInput<0.7){
+        } else if (currentState.intakeInput<-0.7){
             intake.down();
             if (intakeTimer.milliseconds()>150) {
                 intake.reverse();

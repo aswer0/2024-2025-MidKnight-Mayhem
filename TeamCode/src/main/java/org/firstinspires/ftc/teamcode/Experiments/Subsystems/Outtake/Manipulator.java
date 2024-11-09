@@ -20,13 +20,13 @@ public class Manipulator {
     ElapsedTime timer;
 
     public Manipulator(HardwareMap hardwareMap) {
-        this.armPitch = hardwareMap.get(Servo.class, "armPitch");
-        this.bucketPitch = hardwareMap.get(Servo.class, "bucketPitch");
-        this.flap = hardwareMap.get(Servo.class, "flap");
+       // this.armPitch = hardwareMap.get(Servo.class, "armPitch");
+        //this.bucketPitch = hardwareMap.get(Servo.class, "bucketPitch");
+        //this.flap = hardwareMap.get(Servo.class, "flap");
         this.claw = hardwareMap.get(Servo.class, "claw");
 
-        outtakeDistanceSensor = hardwareMap.get(DistanceSensor.class, "outtakeDistanceSensor");
-        clawColorSensor = hardwareMap.get(RevColorSensorV3.class, "clawColorSensor");
+        //outtakeDistanceSensor = hardwareMap.get(DistanceSensor.class, "outtakeDistanceSensor");
+        //clawColorSensor = hardwareMap.get(RevColorSensorV3.class, "clawColorSensor");
 
         timer = new ElapsedTime();
     }
@@ -35,7 +35,7 @@ public class Manipulator {
         claw.setPosition(0);
     }
     public void closeClaw() {
-        claw.setPosition(0.15);
+        claw.setPosition(0.27);
     }
 
     /**

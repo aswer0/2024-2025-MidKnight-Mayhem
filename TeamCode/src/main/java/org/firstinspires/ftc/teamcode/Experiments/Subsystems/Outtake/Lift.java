@@ -13,10 +13,10 @@ public class Lift {
     public static int min = 0;
     public static int max = 1500;
 
-    public static double highBasketPos=100;
-    public static double highChamberPos=100;
-    public static double lowBasketPos=100;
-    public static double lowChamberPos=100;
+    public static double highBasketPos=800;
+    public static double highChamberPos=800;
+    public static double lowBasketPos=175;
+    public static double lowChamberPos=175;
 
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
@@ -26,7 +26,7 @@ public class Lift {
 
     public PIDFController motorController = new PIDFController(coefficients);;
 
-    private enum State {
+    public enum State {
         userControlled,
         runToPosition
     }
@@ -38,11 +38,11 @@ public class Lift {
         this.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        this.leftSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        this.leftSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         this.rightSlide = hardwareMap.get(DcMotorEx.class,"SlideRight");
         this.rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.rightSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        this.rightSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void brakeSlides(boolean brake){
@@ -78,6 +78,9 @@ public class Lift {
         rightSlide.setPower(power);
     }
 
+    public State getState() {
+        return state;
+    }
     public double getPosition() {
         return position;
     }

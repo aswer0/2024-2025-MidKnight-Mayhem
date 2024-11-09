@@ -17,7 +17,7 @@ public class HorizontalSlides {
     final static int MAX = 440;
 
     public DcMotorEx horizontalSlidesMotor;
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.001,0,-0.001,0);
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.002,0,-0.0005,0);
     public PIDFController pidController = new PIDFController(coefficients);
     private enum State {
         userControlled,
@@ -47,9 +47,9 @@ public class HorizontalSlides {
     //set power with limits
     public void trySetPower(double power) {
         int slidePos = horizontalSlidesMotor.getCurrentPosition();
-        if (slidePos<MAX && power>0) {
+        if (slidePos<=MAX && power>=0) {
             setPower(power);
-        } else if (slidePos>MIN && power<0) {
+        } else if (slidePos>=MIN && power<=0) {
             setPower(power);
         }
     }

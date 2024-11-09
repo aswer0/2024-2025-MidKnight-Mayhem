@@ -14,19 +14,19 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 @TeleOp
 @Config
 public class PIDFControllerTest extends OpMode {
-    Lift lift;
+    HorizontalSlides lift;
     FtcDashboard dashboard;
     public static int target = 10;
     @Override
     public void init() {
         dashboard = FtcDashboard.getInstance();
-        lift = new Lift(hardwareMap);
+        lift = new HorizontalSlides(hardwareMap);
 
     }
     @Override
     public void init_loop() {
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Position", lift.leftSlide.getCurrentPosition());
+        packet.put("Position", lift.horizontalSlidesMotor.getCurrentPosition());
         packet.put("Target", target);
         dashboard.sendTelemetryPacket(packet);
     }
@@ -35,7 +35,7 @@ public class PIDFControllerTest extends OpMode {
         TelemetryPacket packet = new TelemetryPacket();
         lift.update();
         lift.setPosition(target);
-        packet.put("Position", lift.leftSlide.getCurrentPosition());
+        packet.put("Position", lift.horizontalSlidesMotor.getCurrentPosition());
         packet.put("Target", target);
         dashboard.sendTelemetryPacket(packet);
     }
