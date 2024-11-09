@@ -32,10 +32,10 @@ public class Manipulator {
     }
 
     public void openClaw() {
-        claw.setPosition(0.35);
+        claw.setPosition(0);
     }
     public void closeClaw() {
-        claw.setPosition(0.6);
+        claw.setPosition(0.15);
     }
 
     /**
