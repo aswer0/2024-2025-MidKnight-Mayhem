@@ -1,10 +1,17 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
 
+import android.sax.StartElementListener;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.utils;
+
 //
 public class WheelControl {
     public DcMotorEx BR;
@@ -12,7 +19,10 @@ public class WheelControl {
     public DcMotorEx FR;
     public DcMotorEx FL;
     private VoltageSensor voltageSensor;
+
     Odometry odometry;
+    DriveCorrection driveCorrection;
+    double target_angle = -180;
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
     public WheelControl(HardwareMap hardwareMap, Odometry odometry) {
@@ -30,6 +40,7 @@ public class WheelControl {
 
         this.odometry = odometry;
         this.voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
+        this.driveCorrection = new DriveCorrection(odometry);
     }
     public void setPowers(double BL, double BR, double FL, double FR, double power) {
         double max = 1; // max motor power
@@ -86,54 +97,33 @@ public class WheelControl {
         }
     }
 
-    /**
-     *
-     * @param forward Y component of the vector (robot oriented)
-     * @param right   X component of the vector (robot oriented)
-     * @param rotate  Rotation velocity (radians)
-     * @param angle   The angle for where to rotate the thing. Get from odometry. (field oriented)
-     */
-    public void experiment_drive(double forward, double right, double rotate, double angle, double power) {
-        power = Math.max(power, 0.1);
+   public void correction_drive(Gamepad gamepad1, double powerLevel, Telemetry telemetry){
+       if (gamepad1.right_stick_x != 0){
+           this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+           this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+           this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+           this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        double max = 1; // max motor power
-        max = Math.max(forward, max);
-        max = Math.max(right, max);
-        forward /= max;
-        right /= max;
+           this.drive(
+                   -gamepad1.left_stick_y, gamepad1.left_stick_x,
+                   -gamepad1.right_stick_x, 0,
+                   powerLevel
+           );
+           driveCorrection.set_target_angle(this.odometry.opt.get_heading());
+           telemetry.addData("target angle TURNING", driveCorrection.ta);
+       }
+       else{
+           this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+           this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+           this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+           this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        double newX = right*Math.cos(angle) - forward*Math.sin(angle);
-        double newY = right*Math.sin(angle) + forward*Math.cos(angle);
-
-        double BLPower = newY + newX + rotate;
-        double BRPower = newY - newX - rotate;
-        double FLPower = newY - newX + rotate;
-        double FRPower = newY + newX - rotate;
-        //setPowers(BLPower, BRPower, FLPower, FRPower, power);
-
-        max = 1;
-        max = Math.max(BLPower, max);
-        max = Math.max(BRPower, max);
-        max = Math.max(FLPower, max);
-        max = Math.max(FRPower, max); // Detect the motor with the most power
-
-        if (!(BLPower==0)) {
-            this.BL.setPower(power * (BLPower/max));
-        } else {
-            this.BL.setPower(0);
-        }
-        if (!(BRPower==0)) {
-            this.BR.setPower(power * (BRPower/max));
-        } else {
-            this.BR.setPower(0);
-        }if (!(FLPower==0)) {
-            this.FL.setPower(power * (FLPower/max));
-        } else {
-            this.FL.setPower(0);
-        }if (!(FRPower==0)) {
-            this.FR.setPower(power * (FRPower/max));
-        } else {
-            this.FR.setPower(0);
-        }
-    }
+           this.drive(
+                   -gamepad1.left_stick_y, gamepad1.left_stick_x,
+                   driveCorrection.stable_correction(driveCorrection.ta), 0,
+                   powerLevel
+           );
+           telemetry.addData("target angle MOVING", driveCorrection.ta);
+       }
+   }
 }

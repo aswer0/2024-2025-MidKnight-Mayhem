@@ -4,7 +4,6 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
@@ -17,17 +16,19 @@ import java.util.List;
 
 @TeleOp
 public class FinalTeleOp extends OpMode {
+
     Odometry odometry;
     WheelControl drive;
 
     Lift outtakeSlides;
     Manipulator manipulator;
     boolean clawOpen = false;
+    double autoGrabGracePeriod = 0;
 
     Intake intake;
     HorizontalSlides intakeSlides;
     IntakingState intakeState = IntakingState.inactive;
-    ElapsedTime intakeTimer;
+
 
 
     List<LynxModule> allHubs;
@@ -48,17 +49,11 @@ public class FinalTeleOp extends OpMode {
 
         intake = new Intake(hardwareMap);
         intakeSlides = new HorizontalSlides(hardwareMap);
-        intakeTimer = new ElapsedTime();
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-    }
-
-    @Override
-    public void start() {
-        intakeTimer.reset();
     }
 
     @Override
@@ -74,7 +69,7 @@ public class FinalTeleOp extends OpMode {
         odometry.update();
         outtakeSlides.update();
         intakeSlides.update();
-        intake.update();
+        //intake.update(); TODO LM2 Automation
 
         // The user controlled part
         State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
@@ -111,6 +106,7 @@ public class FinalTeleOp extends OpMode {
             } else {
                 manipulator.openClaw();
                 outtakeSlides.setPosition(0);
+                autoGrabGracePeriod = getRuntime() + 0.25;
             }
             clawOpen = !clawOpen;
         }
@@ -120,8 +116,10 @@ public class FinalTeleOp extends OpMode {
         }
         // Autograb (only when the slides are low enough)
         if(manipulator.clawHasObject() && clawOpen
-                && outtakeSlides.leftSlide.getCurrentPosition() < 50) {
+                && outtakeSlides.leftSlide.getCurrentPosition() < 50
+                && autoGrabGracePeriod - getRuntime() < 0) {
             manipulator.closeClaw();
+            autoGrabGracePeriod = getRuntime() + 0.25;
             clawOpen = false;
         }
 

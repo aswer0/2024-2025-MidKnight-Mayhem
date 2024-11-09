@@ -48,6 +48,7 @@ public class RedRightGVF extends OpMode {
     public void loop() {
         odometry.opt.update();
         TelemetryPacket telemetry = new TelemetryPacket();
+        //hang_gvf.move_to_point(specimen_target, 0, 0.4);
         if (!start_hang_path){
             hang_gvf.move_to_point(specimen_target, 0, 0.4);
         }
