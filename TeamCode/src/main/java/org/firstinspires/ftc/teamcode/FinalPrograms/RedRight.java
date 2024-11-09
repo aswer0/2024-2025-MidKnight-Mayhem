@@ -30,7 +30,6 @@ public class RedRight extends OpMode {
         extendSlides,
         depositSpecimen,
         startHangPath,
-
     }
 
     @Override

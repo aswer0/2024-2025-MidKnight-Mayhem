@@ -10,6 +10,8 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
 import org.opencv.core.Point;
 
 @Autonomous
@@ -22,12 +24,24 @@ public class RedRightGVF extends OpMode {
     WheelControl wheelControl;
     VectorField hang_gvf;
 
+    Lift lift;
+    Manipulator manipulator;
+
+    enum State {
+        startSpecimenPath,
+        extendSlides,
+        depositSpecimen,
+        startHangPath,
+    }
+
+    State state = State.startSpecimenPath;
+
     @Override
     public void init() {
         Point[][] hang_path_cp = {
                 {
                         new Point(22, 72),
-                        new Point(5, -18),
+                        new Point(5, -10),
                         new Point(55, 45)
                 }
         };
@@ -49,13 +63,33 @@ public class RedRightGVF extends OpMode {
         odometry.opt.update();
         TelemetryPacket telemetry = new TelemetryPacket();
         //hang_gvf.move_to_point(specimen_target, 0, 0.4);
-        if (!start_hang_path){
-            hang_gvf.move_to_point(specimen_target, 0, 0.4);
-        }
+        switch(state) {
+            case startSpecimenPath:
+                hang_gvf.move_to_point(specimen_target, 0, 0.4);
+                lift.setPosition(600);
 
-        if (timer.milliseconds() >= 2500) {
-            start_hang_path = true;
-            hang_gvf.move();
+                if (hang_gvf.dist_to_end() < 0.2) {
+                    timer.reset();
+                    state = State.depositSpecimen;
+                }
+                break;
+
+            case extendSlides:
+                lift.setPosition(450);
+                break;
+
+            case depositSpecimen:
+                lift.setPosition(300);
+                manipulator.openClaw();
+                if (timer.milliseconds() > 1000) state = State.startHangPath;
+                break;
+
+            case startHangPath:
+                hang_gvf.move();
+                if (hang_gvf.dist_to_end() < 0.2){
+                    state = State.extendSlides;
+                }
+                break;
         }
 
         telemetry.put("X position: ", odometry.opt.get_x());

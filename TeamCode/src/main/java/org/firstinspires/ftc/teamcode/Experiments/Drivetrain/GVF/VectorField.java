@@ -102,6 +102,10 @@ public class VectorField {
         return path.n_bz-dist/path.F[path.n_bz-1].est_arclen;
     }
 
+    public double dist_to_end() {
+        return Utils.dist(path.final_point, get_pos());
+    }
+
     // Get turn angle
     public double turn_angle(double current, double target) {
         double turn_angle = target-current;
@@ -155,7 +159,7 @@ public class VectorField {
         velocity = move_vector(speed);
 
         // Error
-        error = Utils.dist(get_pos(), path.final_point);
+        error = dist_to_end();
 
         // Angle
         double target_angle = end_heading;
