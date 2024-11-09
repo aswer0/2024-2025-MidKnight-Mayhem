@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @TeleOp
@@ -16,7 +17,9 @@ public class SlideLimitFinder extends OpMode {
     int maxPosition = Integer.MIN_VALUE;
     @Override
     public void init() {
-        motor = hardwareMap.get(DcMotorEx.class, "m1");
+        motor = hardwareMap.get(DcMotorEx.class, "SlideLeft");
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         dashboard = FtcDashboard.getInstance();
         motor.getCurrentPosition();
     }
