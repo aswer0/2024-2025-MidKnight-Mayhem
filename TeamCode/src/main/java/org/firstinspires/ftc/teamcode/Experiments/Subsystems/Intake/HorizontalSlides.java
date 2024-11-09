@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 @Config
 public class HorizontalSlides {
     final static int MIN = 0;
-    final static int MAX = 100;
+    final static int MAX = 440;
 
     public DcMotorEx horizontalSlidesMotor;
     public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.001,0,-0.001,0);

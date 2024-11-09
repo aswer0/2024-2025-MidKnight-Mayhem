@@ -10,6 +10,8 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 
 @Config
 public class Lift {
+    public static int min = 0;
+    public static int max = 1500;
 
     public static double highBasketPos=100;
     public static double highChamberPos=100;
@@ -20,7 +22,7 @@ public class Lift {
     public DcMotorEx rightSlide;
 
 
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.02,0, 0.001, 0.1);
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.005,0, 0, 0.1);
 
     public PIDFController motorController = new PIDFController(coefficients);;
 

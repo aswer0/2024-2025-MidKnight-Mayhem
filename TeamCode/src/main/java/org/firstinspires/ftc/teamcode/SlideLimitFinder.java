@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @TeleOp
 public class SlideLimitFinder extends OpMode {
-
     DcMotorEx motor;
     FtcDashboard dashboard;
     int minPosition = Integer.MAX_VALUE;

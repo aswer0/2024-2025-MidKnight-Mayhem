@@ -40,4 +40,8 @@ public class Outtake {
                 break;
         }
     }
+    public static void lowerClaw(Lift lift, Manipulator manipulator) {
+        lift.setPosition(100);
+        manipulator.openClaw();
+    }
 }

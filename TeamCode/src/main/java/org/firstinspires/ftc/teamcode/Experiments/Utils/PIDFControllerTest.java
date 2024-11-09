@@ -8,37 +8,35 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
+
 @TeleOp
 @Config
 public class PIDFControllerTest extends OpMode {
-    DcMotorEx motor;
+    Lift lift;
     FtcDashboard dashboard;
-    PIDFController controller = new PIDFController(coefficients);
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.02,0,-0.001,0.1); // Set D to -.0015 if you want smother input
     public static int target = 10;
     @Override
     public void init() {
         dashboard = FtcDashboard.getInstance();
-        motor = hardwareMap.get(DcMotorEx.class, "FL");
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        lift = new Lift(hardwareMap);
 
     }
     @Override
     public void init_loop() {
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Position", motor.getCurrentPosition());
+        packet.put("Position", lift.leftSlide.getCurrentPosition());
         packet.put("Target", target);
-        packet.put("Input", 0);
         dashboard.sendTelemetryPacket(packet);
     }
     @Override
     public void loop() {
         TelemetryPacket packet = new TelemetryPacket();
-        double input = controller.update(motor.getCurrentPosition() - target);
-        motor.setPower(/*Math.abs(input) > 0.5? Math.signum(input) * 0.5 :*/ input);
-        packet.put("Position", motor.getCurrentPosition());
+        lift.update();
+        lift.setPosition(target);
+        packet.put("Position", lift.leftSlide.getCurrentPosition());
         packet.put("Target", target);
-        packet.put("Input", /*Math.abs(input) > 0.5? Math.signum(input) * 0.5 :*/ input);
         dashboard.sendTelemetryPacket(packet);
     }
 }
