@@ -57,27 +57,28 @@ public class RedRight extends OpMode {
         switch(state) {
             case startSpecimenPath:
                 path.pid_to_point(specimen_target, 0);
-                lift.setPosition(600);
+                lift.toHighChamber();
 
-                if (path.at_point(2.5)) {
+                if (path.at_point(0.3)) {
                     timer.reset();
                     state = State.depositSpecimen;
                 }
                 break;
 
             case extendSlides:
-                lift.setPosition(450);
+                lift.toHighChamber();
                 break;
 
             case depositSpecimen:
-                lift.setPosition(300);
+                lift.toHighChamber();
                 manipulator.openClaw();
                 if(timer.milliseconds() > 1000) state = State.startHangPath;
                 break;
 
             case startHangPath:
                 path.update(true);
-                if (path.at_point(new Point(55, 45), 2.5)){
+                if (path.at_point(new Point(55, 45), 0.3)){
+                    manipulator.closeClaw();
                     state = State.extendSlides;
                 }
                 break;
