@@ -4,6 +4,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
@@ -26,7 +27,7 @@ public class FinalTeleOp extends OpMode {
     Intake intake;
     HorizontalSlides intakeSlides;
     IntakingState intakeState = IntakingState.inactive;
-
+    ElapsedTime intakeTimer;
 
 
     List<LynxModule> allHubs;
@@ -47,11 +48,17 @@ public class FinalTeleOp extends OpMode {
 
         intake = new Intake(hardwareMap);
         intakeSlides = new HorizontalSlides(hardwareMap);
+        intakeTimer = new ElapsedTime();
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
+    }
+
+    @Override
+    public void start() {
+        intakeTimer.reset();
     }
 
     @Override
@@ -73,15 +80,15 @@ public class FinalTeleOp extends OpMode {
         State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
                 -gamepad1.left_stick_y, // Drive Y
                 gamepad1.right_stick_x, // Drive rotate
-                gamepad2.a, // toLowChamber
-                gamepad2.b, // high chamber
-                gamepad2.x, // low basket
-                gamepad2.y, // high basket
+                gamepad2.cross, // toLowChamber
+                gamepad2.square, // high chamber
+                gamepad2.circle, // low basket
+                gamepad2.triangle, // high basket
                 gamepad2.right_bumper, // toggle outtake
                 -gamepad2.left_stick_y, // outtake slides
-                -gamepad2.right_stick_y, // intake slides
-                (gamepad2.right_bumper ? 1 : 0) - (gamepad2.left_bumper ? 1 : 0), // intake input
-                gamepad1.b); // start hang
+                gamepad1.right_trigger-gamepad1.left_trigger, // intake slides
+                (gamepad1.right_bumper ? 1 : 0) - (gamepad1.left_bumper ? 1 : 0), // intake input
+                gamepad2.share); // start hang
 
         // Drive
         drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, 0, drivePower);
@@ -89,13 +96,13 @@ public class FinalTeleOp extends OpMode {
         // Outtake presets
         // TODO set outtake presets
         if(!previousState.toLowBasket && currentState.toLowBasket) {
-            outtakeSlides.setPosition(100);
+            outtakeSlides.toLowBasket();
         } else if(!previousState.toHighBasket && currentState.toHighBasket) {
-            outtakeSlides.setPosition(100);
+            outtakeSlides.toHighBasket();
         } else if (!previousState.toLowChamber && currentState.toLowChamber) {
-            outtakeSlides.setPosition(100);
+            outtakeSlides.toLowChamber();
         } else if (!previousState.toHighChamber && currentState.toHighChamber) {
-            outtakeSlides.setPosition(100);
+            outtakeSlides.toHighChamber();
         }
 
         if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
@@ -125,12 +132,15 @@ public class FinalTeleOp extends OpMode {
 
         //manual intake
         if (currentState.intakeInput>0.7) {
+            intake.down();
             intake.intake();
-            intake.down();
         } else if (currentState.intakeInput<0.7){
-            intake.reverse();
             intake.down();
+            if (intakeTimer.milliseconds()>150) {
+                intake.reverse();
+            }
         } else {
+            intakeTimer.reset();
             intake.setPower(0);
             intake.up();
         }

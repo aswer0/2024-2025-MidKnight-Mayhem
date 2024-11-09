@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
@@ -19,11 +20,15 @@ public class IntakeTest extends OpMode {
     HorizontalSlides intakeSlides;
     Intake intake;
 
+    ElapsedTime intakeTimer;
+
     public void init(){
         //servo1 = hardwareMap.get(CRServo.class, "1");
         //servo2 = hardwareMap.get(CRServo.class, "2");
         intakeSlides = new HorizontalSlides(hardwareMap);
         intake = new Intake(hardwareMap);
+
+        intakeTimer = new ElapsedTime();
     }
 
     public void loop(){
@@ -41,10 +46,13 @@ public class IntakeTest extends OpMode {
         if (gamepad2.right_trigger-gamepad2.left_trigger>0.7) {
             intake.intake();
             intake.down();
-        } else if (gamepad2.right_trigger-gamepad2.left_trigger<0.7){
-            intake.reverse();
+        } else if (gamepad2.right_trigger-gamepad2.left_trigger<-0.7){
             intake.down();
+            if (intakeTimer.milliseconds()>150) {
+                intake.reverse();
+            }
         } else {
+            intakeTimer.reset();
             intake.setPower(0);
             intake.up();
         }

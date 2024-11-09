@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -7,13 +8,22 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFCoefficients;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 
-
+@Config
 public class Lift {
+    public static double kp=0; //-0.02
+    public static double kd=0; //-0.001
+    public static double kf=0.1;
+
+    public static double highBasketPos=100;
+    public static double highChamberPos=100;
+    public static double lowBasketPos=100;
+    public static double lowChamberPos=100;
+
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
 
 
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.02,0,-0.001,0.1);
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(kp,0, kd, kf);
 
     public PIDFController motorController = new PIDFController(coefficients);;
 
@@ -25,13 +35,13 @@ public class Lift {
     private State state = State.userControlled;
 
     public Lift (HardwareMap hardwareMap) {
-        this.leftSlide = hardwareMap.get(DcMotorEx.class,"SlideRight"); //The one with the encoder
+        this.leftSlide = hardwareMap.get(DcMotorEx.class,"SlideLeft"); //The one with the encoder
         this.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         this.leftSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        this.rightSlide = hardwareMap.get(DcMotorEx.class,"SlideLeft");
+        this.rightSlide = hardwareMap.get(DcMotorEx.class,"SlideRight");
         this.rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.rightSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
@@ -45,6 +55,17 @@ public class Lift {
             this.rightSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
     }
+
+    public void toHighBasket() {
+        setPosition(highBasketPos);
+    } public void toHighChamber() {
+        setPosition(highChamberPos);
+    } public void toLowBasket() {
+        setPosition(lowBasketPos);
+    } public void toLowChamber() {
+        setPosition(lowChamberPos);
+    }
+
     public void setPosition(double position, boolean changeState) {
         if(changeState) state = State.runToPosition;
         this.position = position;
@@ -55,7 +76,7 @@ public class Lift {
     public void setPower(double power) {
         state = State.userControlled;
         leftSlide.setPower(power);
-        rightSlide.setPower(-power);
+        rightSlide.setPower(power);
     }
     public void update() {
         if (state == State.runToPosition) {
