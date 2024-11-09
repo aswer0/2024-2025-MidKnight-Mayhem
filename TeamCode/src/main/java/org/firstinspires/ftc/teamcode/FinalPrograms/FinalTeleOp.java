@@ -4,6 +4,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @TeleOp
 public class FinalTeleOp extends OpMode {
-
+    ElapsedTime intakeTimer = new ElapsedTime();
     Odometry odometry;
     WheelControl drive;
 
@@ -115,13 +116,13 @@ public class FinalTeleOp extends OpMode {
             outtakeSlides.setPower(currentState.outtakeSlidesInput*0.5);
         }
         // Autograb (only when the slides are low enough)
-        if(manipulator.clawHasObject() && clawOpen
-                && outtakeSlides.leftSlide.getCurrentPosition() < 50
-                && autoGrabGracePeriod - getRuntime() < 0) {
-            manipulator.closeClaw();
-            autoGrabGracePeriod = getRuntime() + 0.25;
-            clawOpen = false;
-        }
+//        if(manipulator.clawHasObject() && clawOpen
+//                && outtakeSlides.leftSlide.getCurrentPosition() < 50
+//                && autoGrabGracePeriod - getRuntime() < 0) {
+//            manipulator.closeClaw();
+//            autoGrabGracePeriod = getRuntime() + 0.25;
+//            clawOpen = false;
+//        }
 
         //manual horizontal extension
         if(Math.abs(currentState.intakeSlidesInput) > 0.1) {

@@ -10,8 +10,8 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 
 @Config
 public class Lift {
-    public static double kp=0; //-0.02
-    public static double kd=0; //-0.001
+    public static double kp=-0.02;
+    public static double kd=-0.001;
     public static double kf=0.1;
 
     public static double highBasketPos=100;
