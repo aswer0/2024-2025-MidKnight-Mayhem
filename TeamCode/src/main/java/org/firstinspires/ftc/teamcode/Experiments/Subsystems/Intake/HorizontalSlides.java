@@ -41,17 +41,24 @@ public class HorizontalSlides {
 
     public void setPower(double power) {
         state = State.userControlled;
-        horizontalSlidesMotor.setPower(power);
+        horizontalSlidesMotor.setPower(-power);
     }
 
     //set power with limits
     public void trySetPower(double power) {
         int slidePos = horizontalSlidesMotor.getCurrentPosition();
-        if (slidePos<=MAX && power>=0) {
-            setPower(power);
-        } else if (slidePos>=MIN && power<=0) {
-            setPower(power);
+        if (slidePos<=MIN) {
+            if (power >0){
+                setPower(power);
+            }
         }
+        //else if (slidePos>=MIN) {
+        //    setPower(power);
+        //}
+    }
+
+    public double getPosition() {
+        return position;
     }
 
     public void update() {

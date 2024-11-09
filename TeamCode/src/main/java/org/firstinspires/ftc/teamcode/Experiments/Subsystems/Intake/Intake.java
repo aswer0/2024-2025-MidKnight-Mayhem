@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 public class Intake {
-    double DOWN_POS=0.32;
+    double DOWN_POS=0.36;
     double UP_POS=0.9;
 
     public CRServo intakeServo1;

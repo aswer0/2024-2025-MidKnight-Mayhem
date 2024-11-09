@@ -25,6 +25,7 @@ public class FinalTeleOp extends OpMode {
     Manipulator manipulator;
     boolean clawOpen = false;
     double autoGrabGracePeriod = 0;
+    double autoDepositBy = Double.POSITIVE_INFINITY;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -40,7 +41,7 @@ public class FinalTeleOp extends OpMode {
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
     Gamepad previousGamepad2 = new Gamepad();
-    State previousState = new State(0,0,0,false, false, false, false, false, 0,0, 0, false);
+    State previousState = new State(0,0,0,false, false, false, false, false, 0,0, 0, false, false);
 
     @Override
     public void init() {
@@ -85,6 +86,7 @@ public class FinalTeleOp extends OpMode {
                 -gamepad2.left_stick_y, // outtake slides
                 gamepad1.right_trigger - gamepad1.left_trigger, // intake slides
                 (gamepad1.right_bumper ? 1 : 0) - (gamepad1.left_bumper ? 1 : 0), // intake input
+                gamepad2.left_bumper, // deposit specimen
                 gamepad2.share); // start hang
 
         // Drive
@@ -106,14 +108,21 @@ public class FinalTeleOp extends OpMode {
             if (clawOpen) {
                 manipulator.closeClaw();
             } else {
-                //outtakeSlides.setPosition(outtakeSlides.leftSlide.getCurrentPosition() - 150);
-                manipulator.openClaw();
+                manipulator.openClaw();;
                 autoGrabGracePeriod = getRuntime() + 0.25;
             }
             clawOpen = !clawOpen;
         }
+        if(!previousState.depositSpecimen && currentState.depositSpecimen && !clawOpen) {
+            autoDepositBy = getRuntime() + 0.5;
+            outtakeSlides.setPosition(outtakeSlides.getPosition() - 250);
+        }
         // Custom outtake input
-
+        if(autoDepositBy - getRuntime() < 0 && !clawOpen) {
+            autoDepositBy = Double.POSITIVE_INFINITY;
+            manipulator.openClaw();
+            clawOpen = true;
+        }
         if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
             outtakeSlides.setPower(currentState.outtakeSlidesInput*0.5);
         } else if (outtakeSlides.leftSlide.getPower() != 0 && outtakeSlides.getState() == Lift.State.userControlled) {
@@ -130,7 +139,7 @@ public class FinalTeleOp extends OpMode {
 
         //manual horizontal extension
         if(Math.abs(previousState.intakeSlidesInput) > 0.1) {
-            intakeSlides.setPower(previousState.intakeSlidesInput*0.5);
+            intakeSlides.setPower(previousState.intakeSlidesInput*0.8);
         } else {
             intakeSlides.setPower(0);
         }
@@ -213,6 +222,7 @@ public class FinalTeleOp extends OpMode {
         // Intake
         public double intakeSlidesInput;
         public double intakeInput;
+        public boolean depositSpecimen;
 
         public boolean startHang; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
         public State(double driveX,
@@ -226,6 +236,7 @@ public class FinalTeleOp extends OpMode {
                      double outtakeSlidesInput,
                      double intakeSlidesInput,
                      double intakeInput,
+                      boolean depositSpecimen,
                       boolean startHang) {
             this.driveX = driveX;
             this.driveY = driveY;
@@ -238,11 +249,12 @@ public class FinalTeleOp extends OpMode {
             this.outtakeSlidesInput = outtakeSlidesInput;
             this.intakeSlidesInput = intakeSlidesInput;
             this.intakeInput = intakeInput;
+            this.depositSpecimen = depositSpecimen;
             this.startHang = startHang;
         }
 
         public State(State state) {
-            this(state.driveX, state.driveY, state.rotate, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.intakeInput, state.startHang);
+            this(state.driveX, state.driveY, state.rotate, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.intakeInput, state.depositSpecimen, state.startHang);
         }
     }
 
