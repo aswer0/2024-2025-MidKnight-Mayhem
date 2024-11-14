@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -10,8 +12,10 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 
 @Config
 public class Lift {
-    public static int min = 0;
-    public static int max = 1500;
+    public static boolean outputDebugInfo = false;
+
+    public static int MIN = 0;
+    public static int MAX = 1500;
 
     public static double highBasketPos=770;
     public static double highChamberPos=770;
@@ -20,7 +24,6 @@ public class Lift {
 
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
-
 
     public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.005,0, 0, 0.1);
 
@@ -78,6 +81,15 @@ public class Lift {
         rightSlide.setPower(power);
     }
 
+    public void trySetPower(double power) {
+        int slidePos = leftSlide.getCurrentPosition();
+        if ((slidePos>=MIN && power <= 0) || (slidePos <= MAX && power >= 0)) {
+            setPower(power);
+        } else {
+            setPower(0);
+        }
+    }
+
     public State getState() {
         return state;
     }
@@ -89,7 +101,15 @@ public class Lift {
             double input = motorController.update(leftSlide.getCurrentPosition() - position);
             leftSlide.setPower(input);
             rightSlide.setPower(input);
-            // Power should already be set for setPower
+        }
+        if(outputDebugInfo) {
+            FtcDashboard dashboard = FtcDashboard.getInstance();
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.put("Lift/Current", leftSlide.getCurrentPosition());
+            packet.put("Lift/Target", position);
+            packet.put("Lift/State", state);
+            packet.put("Lift/Power", leftSlide.getPower());
+            dashboard.sendTelemetryPacket(packet);
         }
     }
 

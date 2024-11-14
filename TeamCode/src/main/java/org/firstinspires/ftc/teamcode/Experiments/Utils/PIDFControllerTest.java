@@ -26,8 +26,6 @@ public class PIDFControllerTest extends OpMode {
     @Override
     public void init_loop() {
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Position", lift.horizontalSlidesMotor.getCurrentPosition());
-        packet.put("Target", target);
         dashboard.sendTelemetryPacket(packet);
     }
     @Override
@@ -35,8 +33,6 @@ public class PIDFControllerTest extends OpMode {
         TelemetryPacket packet = new TelemetryPacket();
         lift.update();
         lift.setPosition(target);
-        packet.put("Position", lift.horizontalSlidesMotor.getCurrentPosition());
-        packet.put("Target", target);
         dashboard.sendTelemetryPacket(packet);
     }
 }

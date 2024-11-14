@@ -71,7 +71,7 @@ public class FinalTeleOp extends OpMode {
         // Updates
         odometry.update();
         outtakeSlides.update();
-        //intakeSlides.update(); FIXME
+        intakeSlides.update();
         //intake.update(); TODO LM2 Automation
 
         // The user controlled part
@@ -124,9 +124,9 @@ public class FinalTeleOp extends OpMode {
             clawOpen = true;
         }
         if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
-            outtakeSlides.setPower(currentState.outtakeSlidesInput*0.5);
+            outtakeSlides.trySetPower(currentState.outtakeSlidesInput*0.5);
         } else if (outtakeSlides.leftSlide.getPower() != 0 && outtakeSlides.getState() == Lift.State.userControlled) {
-            outtakeSlides.setPower(0);
+            outtakeSlides.trySetPower(0);
         }
         // Autograb (only when the slides are low enough) TODO by lm2
 //        if(manipulator.clawHasObject() && clawOpen
@@ -139,9 +139,9 @@ public class FinalTeleOp extends OpMode {
 
         //manual horizontal extension
         if(Math.abs(previousState.intakeSlidesInput) > 0.1) {
-            intakeSlides.setPower(previousState.intakeSlidesInput*0.8);
-        } else {
-            intakeSlides.setPower(0);
+            intakeSlides.trySetPower(previousState.intakeSlidesInput*0.8);
+        } else if (intakeSlides.horizontalSlidesMotor.getPower() != 0 && intakeSlides.getState() == HorizontalSlides.State.userControlled) { // in the dead zone and not running to target
+            intakeSlides.trySetPower(0);
         }
 
         //manual intake

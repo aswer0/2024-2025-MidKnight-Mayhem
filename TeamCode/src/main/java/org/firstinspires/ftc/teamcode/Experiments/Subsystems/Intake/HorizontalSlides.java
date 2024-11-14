@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -13,13 +15,15 @@ import java.util.concurrent.CompletableFuture;
 
 @Config
 public class HorizontalSlides {
-    final static int MIN = 0;
-    final static int MAX = 440;
+    public static boolean outputDebugInfo = false;
+
+    final static int MIN = -490;
+    final static int MAX = 0;
 
     public DcMotorEx horizontalSlidesMotor;
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.002,0,-0.0005,0);
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.055,0,-0.0005,0);
     public PIDFController pidController = new PIDFController(coefficients);
-    private enum State {
+    public enum State {
         userControlled,
         runToPosition
     }
@@ -47,18 +51,18 @@ public class HorizontalSlides {
     //set power with limits
     public void trySetPower(double power) {
         int slidePos = horizontalSlidesMotor.getCurrentPosition();
-        if (slidePos<=MIN) {
-            if (power >0){
-                setPower(power);
-            }
+        if ((slidePos>=MIN && power >= 0) || (slidePos <= MAX && power <= 0)) {
+            setPower(power);
+        } else {
+            setPower(0);
         }
-        //else if (slidePos>=MIN) {
-        //    setPower(power);
-        //}
     }
 
     public double getPosition() {
         return position;
+    }
+    public State getState() {
+        return state;
     }
 
     public void update() {
@@ -66,6 +70,14 @@ public class HorizontalSlides {
             horizontalSlidesMotor.setPower(pidController.update(horizontalSlidesMotor.getCurrentPosition() - position));
             // Brake if already in position
 
+        }
+        if(outputDebugInfo) {
+            FtcDashboard dashboard = FtcDashboard.getInstance();
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.put("HorizontalSlides/Current", horizontalSlidesMotor.getCurrentPosition());
+            packet.put("HorizontalSlides/Target", position);
+            packet.put("HorizontalSlides/State", state);
+            dashboard.sendTelemetryPacket(packet);
         }
     }
 }
