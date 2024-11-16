@@ -3,11 +3,18 @@ package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Cameras;
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.vision.VisionPortal;
+
+import java.util.List;
 
 @TeleOp
 public class CameraTest extends OpMode {
@@ -15,6 +22,21 @@ public class CameraTest extends OpMode {
     CameraName camera;
     VisionPortal portal;
     FtcDashboard dashboard;
+
+    Odometry odometry;
+    WheelControl drive;
+
+    List<LynxModule> allHubs;
+
+    double powerLevel = 1;
+
+    ElapsedTime timer;
+
+    Gamepad currentGamepad1 = new Gamepad();
+    Gamepad currentGamepad2 = new Gamepad();
+
+    Gamepad previousGamepad1 = new Gamepad();
+    Gamepad previousGamepad2 = new Gamepad();
 
     @Override
     public void init() {
@@ -29,9 +51,30 @@ public class CameraTest extends OpMode {
                 .build();
         dashboard = FtcDashboard.getInstance();
         dashboard.startCameraStream(processor, 0);
+
+        //================================================
+
+        odometry = new Odometry(hardwareMap, 0, 0, 0,"OTOS");
+        drive = new WheelControl(hardwareMap, odometry);
+
+        allHubs = hardwareMap.getAll(LynxModule.class);
+
+        timer = new ElapsedTime();
     }
     @Override
     public void loop() {
+        odometry.opt.update();
+
+        previousGamepad1.copy(currentGamepad1);
+        previousGamepad2.copy(currentGamepad2);
+
+        currentGamepad1.copy(gamepad1);
+        currentGamepad2.copy(gamepad2);
+
+        if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) powerLevel -= 0.1;
+        if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) powerLevel += 0.1;
+
+        drive.drive(gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, -gamepad1.right_stick_x, 0, powerLevel);
     }
 
 
