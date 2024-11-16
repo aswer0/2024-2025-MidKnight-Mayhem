@@ -25,7 +25,7 @@ public class OTOSTest extends OpMode {
 
     @Override
     public void init(){
-        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 7.875, 6.625, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
 
     }
@@ -51,12 +51,12 @@ public class OTOSTest extends OpMode {
 
         odometry.opt.update();
 
-        drive.drive(1.1*gamepad1.left_stick_x,gamepad1.left_stick_y,-gamepad1.right_stick_x, 0, powerLevel);
+        drive.drive(1.1*gamepad1.left_stick_y, gamepad1.left_stick_x, -gamepad1.right_stick_x, 0, powerLevel);
 
         telemetry.addData("power level", powerLevel);
+        telemetry.addData("Heading", odometry.opt.get_heading());
         telemetry.addData("X pos", odometry.opt.get_x());
         telemetry.addData("Y pos", odometry.opt.get_y());
-        telemetry.addData("Heading", odometry.opt.get_heading());
 
         telemetry.update();
     }

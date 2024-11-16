@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
@@ -26,6 +28,7 @@ public class Path {
     double threshold;
     double end_angle;
     double power;
+    double conv_point;
     Double[] even_t;
 
     PIDController heading;
@@ -48,6 +51,7 @@ public class Path {
         this.end_angle = end_angle;
         this.power = power;
         this.D = 0.0;
+        this.conv_point = 0.78;
 
         //ArrayList<Double> temp_even_t = bz.arc_length_param(speed);
         //even_t = temp_even_t.toArray(new Double[temp_even_t.size()]);
@@ -62,7 +66,7 @@ public class Path {
         Point p = this.bz.forward(this.D);
         double target_angle;
 
-        if (this.D >= 0.78 && use_end_angle){
+        if (this.D >= this.conv_point && use_end_angle){
             target_angle = converge(this.D, this.end_angle, 0);
         }
         else{
@@ -70,7 +74,6 @@ public class Path {
         }
 
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
-        telemetry.addData("distance", dist);
 
         this.pid_to_point(p, target_angle);
 
@@ -80,6 +83,28 @@ public class Path {
             }
         }
 
+    }
+
+    public void retrace(boolean use_end_angle) {
+        Point d = this.bz.derivative(this.D);
+        Point p = this.bz.forward(this.D);
+        double target_angle;
+
+        if (this.D <= 1-this.conv_point && use_end_angle){
+            target_angle = converge(this.D, this.end_angle, 0);
+        } else {
+            target_angle = Math.toDegrees(Math.atan2(d.y, d.x));
+        }
+
+        double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
+
+        this.pid_to_point(p, target_angle);
+
+        if (0.0 <= this.D && this.D <= 1) {
+            if (dist < threshold) {
+                this.D -= this.speed;
+            }
+        }
     }
 
     public void update(double target_angle){
@@ -102,11 +127,18 @@ public class Path {
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
         double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
 
+        TelemetryPacket telemetry = new TelemetryPacket();
+
         if (Math.abs(target_angle-odometry.opt.get_heading()) <= 1){
             head_error = 0;
         }
 
-        wheelControl.drive(-x_error, y_error, -head_error, -Math.toRadians(odometry.opt.get_heading()), this.power);
+        wheelControl.drive(-x_error, -y_error, head_error, Math.toRadians(odometry.opt.get_heading()), this.power);
+
+        telemetry.put("X position: ", odometry.opt.get_x());
+        telemetry.put("Y position: ", odometry.opt.get_y());
+        telemetry.put("Heading: ", odometry.opt.get_heading());
+        (FtcDashboard.getInstance()).sendTelemetryPacket(telemetry);
     }
 
     public void set_new_path(Point[] cp){
