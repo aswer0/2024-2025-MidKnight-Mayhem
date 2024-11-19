@@ -138,7 +138,7 @@ public class RedRightGVF extends OpMode {
                 {
                         new Point(22, 72),
                         new Point(5, -10),
-                        new Point(55, 45)
+                        new Point(64, 45)
                 }
         };
         Path hang_path = new Path(hang_path_cp);
@@ -156,6 +156,8 @@ public class RedRightGVF extends OpMode {
 
     @Override
     public void loop() {
+        //wheelControl.drive(0, 0, 1, 0, 0.15);
+    //}
         odometry.opt.update();
         TelemetryPacket telemetry = new TelemetryPacket();
         //hang_gvf.move_to_point(specimen_target, 0, 0.4);
