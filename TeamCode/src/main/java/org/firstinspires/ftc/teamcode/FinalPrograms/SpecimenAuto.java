@@ -84,7 +84,7 @@ public class SpecimenAuto extends OpMode {
 
             case deposit:
                 lift.setPosition(600);
-                if (timer.milliseconds() >= 1000){
+                if (timer.milliseconds() >= 250){
                     manipulator.openClaw();
                 }
 
