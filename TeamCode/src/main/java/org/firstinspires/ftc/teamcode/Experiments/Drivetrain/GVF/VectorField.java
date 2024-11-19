@@ -13,9 +13,9 @@ public class VectorField {
 
     // Robot tuning
     double max_speed = 0.7;
-    double min_speed = 0.3;
+    double min_speed = 0.5;
     double max_turn_speed = 20;
-    double angle_to_power = 100;
+    double angle_to_power = 50;
     double corr_weight = 0.1;
 
     // End decel: deceleration rate
@@ -148,7 +148,7 @@ public class VectorField {
         error = Utils.dist(get_pos(), p);
 
         // Drive
-        drive.drive(velocity.x, -velocity.y, -turn_speed, -Math.toRadians(get_heading()), 1);
+        drive.drive(-velocity.x, -velocity.y, turn_speed, Math.toRadians(get_heading()), 1);
     }
 
     // Move with GVF and PID at the end
@@ -169,6 +169,6 @@ public class VectorField {
         set_turn_speed(target_angle);
 
         // Drive according to calculations
-        drive.drive(velocity.x, -velocity.y, -turn_speed, -Math.toRadians(get_heading()), 1);
+        drive.drive(-velocity.x, -velocity.y, turn_speed, Math.toRadians(get_heading()), 1);
     }
 }

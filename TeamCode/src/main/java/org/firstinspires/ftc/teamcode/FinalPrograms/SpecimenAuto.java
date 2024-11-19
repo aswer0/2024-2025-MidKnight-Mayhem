@@ -16,9 +16,9 @@ import org.opencv.core.Point;
 @TeleOp
 @Config
 public class SpecimenAuto extends OpMode {
-    public static double pos = 600;
-
     Point start_target;
+    Point get_specimen_target;
+
     ElapsedTime timer;
 
     Odometry odometry;
@@ -33,6 +33,7 @@ public class SpecimenAuto extends OpMode {
 
     enum State {
         startPID,
+        getSpecimen,
         followPath,
         deposit
     }
@@ -40,14 +41,16 @@ public class SpecimenAuto extends OpMode {
     @Override
     public void init() {
         Point[] follow_path = {
-                new Point(28.9, 54.9),
-                new Point(2.4, 48.5),
-                new Point(23.8, 46.5),
-                new Point(1.6, 28.2),
-                new Point(24.2, 29.2),
-                new Point(-1.7, 13.5),
+                new Point(7.875, 21.3),
+                new Point(38, 46),
+                new Point(11.2, 79.3),
+                new Point(21, 106.3),
+                new Point(28, 118),
         };
+
         start_target = new Point(35.5, 66);
+        get_specimen_target = new Point(7.875, 21.3);
+
         timer = new ElapsedTime();
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
@@ -80,12 +83,15 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case deposit:
-                lift.setPosition(pos);
-                if (timer.milliseconds() >= 250){
+                lift.setPosition(600);
+                if (timer.milliseconds() >= 1000){
                     manipulator.openClaw();
                 }
 
                 break;
+
+            case followPath:
+                path.update(145);
 
         }
 
