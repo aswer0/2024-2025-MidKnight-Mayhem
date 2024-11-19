@@ -105,6 +105,11 @@ public class FinalTeleOp extends OpMode {
                 } else if (!previousState.toHighChamber && currentState.toHighChamber) {
                     outtakeSlides.toHighChamber();
                 }
+                if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
+                    outtakeSlides.trySetPower(currentState.outtakeSlidesInput*0.5);
+                } else if (outtakeSlides.leftSlide.getPower() != 0 && outtakeSlides.getState() == Lift.State.userControlled) {
+                    outtakeSlides.trySetPower(0);
+                }
 
                 if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
                     if (clawOpen) {
@@ -117,6 +122,7 @@ public class FinalTeleOp extends OpMode {
                 }
                 if(!previousState.depositSpecimen && currentState.depositSpecimen && !clawOpen) {
                     autoDepositLimit = outtakeSlides.leftSlide.getCurrentPosition() - 300;
+                    outtakeState = OuttakeState.depositingSpecimen;
                 }
                 break;
             case depositingSpecimen:

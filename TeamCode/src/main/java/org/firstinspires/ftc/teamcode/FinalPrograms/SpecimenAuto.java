@@ -16,7 +16,7 @@ import org.opencv.core.Point;
 @TeleOp
 @Config
 public class SpecimenAuto extends OpMode {
-    public static double pos = 710;
+    public static double pos = 600;
 
     Point start_target;
     ElapsedTime timer;
@@ -81,7 +81,7 @@ public class SpecimenAuto extends OpMode {
 
             case deposit:
                 lift.setPosition(pos);
-                if (timer.milliseconds() >= 1000){
+                if (timer.milliseconds() >= 250){
                     manipulator.openClaw();
                 }
 
