@@ -129,6 +129,7 @@ public class FinalTeleOp extends OpMode {
                 // Custom outtake input
                 outtakeSlides.setPower(-0.5);
                 if(outtakeSlides.leftSlide.getCurrentPosition() < autoDepositLimit) outtakeState = OuttakeState.inactive;
+                
                 break;
         }
         // Autograb (only when the slides are low enough) TODO by lm2
