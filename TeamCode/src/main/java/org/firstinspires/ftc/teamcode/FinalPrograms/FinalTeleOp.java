@@ -25,7 +25,8 @@ public class FinalTeleOp extends OpMode {
     Manipulator manipulator;
     boolean clawOpen = false;
     double autoGrabGracePeriod = 0;
-    double autoDepositBy = Double.POSITIVE_INFINITY;
+    double autoDepositLimit = Double.POSITIVE_INFINITY;
+    OuttakeState outtakeState = OuttakeState.inactive;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -77,7 +78,7 @@ public class FinalTeleOp extends OpMode {
         // The user controlled part
         State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
                 gamepad1.left_stick_y, // Drive Y
-                -gamepad1.right_stick_x, // Drive rotate
+                -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x)*0.8 , // Drive rotate
                 gamepad2.cross, // toLowChamber
                 gamepad2.square, // high chamber
                 gamepad2.circle, // low basket
@@ -91,42 +92,38 @@ public class FinalTeleOp extends OpMode {
 
         // Drive
         drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, 0, drivePower);
+        switch(outtakeState) {
+            case inactive:
+                // Outtake presets
+                // TODO set outtake presets
+                if(!previousState.toLowBasket && currentState.toLowBasket) {
+                    outtakeSlides.toLowBasket();
+                } else if(!previousState.toHighBasket && currentState.toHighBasket) {
+                    outtakeSlides.toHighBasket();
+                } else if (!previousState.toLowChamber && currentState.toLowChamber) {
+                    outtakeSlides.toLowChamber();
+                } else if (!previousState.toHighChamber && currentState.toHighChamber) {
+                    outtakeSlides.toHighChamber();
+                }
 
-        // Outtake presets
-        // TODO set outtake presets
-        if(!previousState.toLowBasket && currentState.toLowBasket) {
-            outtakeSlides.toLowBasket();
-        } else if(!previousState.toHighBasket && currentState.toHighBasket) {
-            outtakeSlides.toHighBasket();
-        } else if (!previousState.toLowChamber && currentState.toLowChamber) {
-            outtakeSlides.toLowChamber();
-        } else if (!previousState.toHighChamber && currentState.toHighChamber) {
-            outtakeSlides.toHighChamber();
-        }
-
-        if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
-            if (clawOpen) {
-                manipulator.closeClaw();
-            } else {
-                manipulator.openClaw();;
-                autoGrabGracePeriod = getRuntime() + 0.25;
-            }
-            clawOpen = !clawOpen;
-        }
-        if(!previousState.depositSpecimen && currentState.depositSpecimen && !clawOpen) {
-            autoDepositBy = getRuntime() + 0.5;
-            outtakeSlides.setPosition(outtakeSlides.getPosition() - 250);
-        }
-        // Custom outtake input
-        if(autoDepositBy - getRuntime() < 0 && !clawOpen) {
-            autoDepositBy = Double.POSITIVE_INFINITY;
-            manipulator.openClaw();
-            clawOpen = true;
-        }
-        if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
-            outtakeSlides.trySetPower(currentState.outtakeSlidesInput*0.5);
-        } else if (outtakeSlides.leftSlide.getPower() != 0 && outtakeSlides.getState() == Lift.State.userControlled) {
-            outtakeSlides.trySetPower(0);
+                if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
+                    if (clawOpen) {
+                        manipulator.closeClaw();
+                    } else {
+                        manipulator.openClaw();;
+                        autoGrabGracePeriod = getRuntime() + 0.25;
+                    }
+                    clawOpen = !clawOpen;
+                }
+                if(!previousState.depositSpecimen && currentState.depositSpecimen && !clawOpen) {
+                    autoDepositLimit = outtakeSlides.leftSlide.getCurrentPosition() - 300;
+                }
+                break;
+            case depositingSpecimen:
+                // Custom outtake input
+                outtakeSlides.setPower(-0.5);
+                if(outtakeSlides.leftSlide.getCurrentPosition() < autoDepositLimit) outtakeState = OuttakeState.inactive;
+                break;
         }
         // Autograb (only when the slides are low enough) TODO by lm2
 //        if(manipulator.clawHasObject() && clawOpen
@@ -139,7 +136,7 @@ public class FinalTeleOp extends OpMode {
 
         //manual horizontal extension
         if(Math.abs(previousState.intakeSlidesInput) > 0.1) {
-            intakeSlides.trySetPower(previousState.intakeSlidesInput*0.8);
+            intakeSlides.trySetPower(previousState.intakeSlidesInput);
         } else if (intakeSlides.horizontalSlidesMotor.getPower() != 0 && intakeSlides.getState() == HorizontalSlides.State.userControlled) { // in the dead zone and not running to target
             intakeSlides.trySetPower(0);
         }
@@ -263,6 +260,11 @@ public class FinalTeleOp extends OpMode {
         userControlled, // transitions when toggle intake is on
         retractSlides, // horiz and vert at the same time
         transfer // rotate the pivot & reverse the intake
+    }
+
+    enum OuttakeState {
+        inactive,
+        depositingSpecimen // break if it is 300 below, or derivative is zero for 0.5 seconds.
     }
     
 }
