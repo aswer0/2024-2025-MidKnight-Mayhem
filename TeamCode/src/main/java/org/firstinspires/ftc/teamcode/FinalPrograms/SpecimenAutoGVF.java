@@ -17,7 +17,7 @@ import org.opencv.core.Point;
 
 @TeleOp
 @Config
-public class SpecimenAuto extends OpMode {
+public class SpecimenAutoGVF extends OpMode {
     Point start_target;
     Point get_specimen_target;
 
@@ -28,7 +28,7 @@ public class SpecimenAuto extends OpMode {
     WheelControl wheelControl;
     Path path;
 
-    SpecimenAuto.State state = SpecimenAuto.State.startPID;
+    SpecimenAutoGVF.State state = SpecimenAutoGVF.State.startPID;
     Lift lift;
     Manipulator manipulator;
     double deposit_state = 0;

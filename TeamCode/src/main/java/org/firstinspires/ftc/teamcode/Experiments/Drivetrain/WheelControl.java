@@ -97,12 +97,24 @@ public class WheelControl {
         }
     }
 
+    public void change_mode(DcMotor.ZeroPowerBehavior mode){
+        if (mode == DcMotor.ZeroPowerBehavior.BRAKE){
+            this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+        else if (mode == DcMotor.ZeroPowerBehavior.FLOAT){
+            this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
+    }
+
    public void correction_drive(Gamepad gamepad1, double powerLevel, Telemetry telemetry){
        if (gamepad1.right_stick_x != 0){
-           this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-           this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-           this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-           this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+           this.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
            this.drive(
                    -gamepad1.left_stick_y, gamepad1.left_stick_x,
@@ -113,10 +125,7 @@ public class WheelControl {
            telemetry.addData("target angle TURNING", driveCorrection.ta);
        }
        else{
-           this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-           this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-           this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-           this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+           this.change_mode(DcMotor.ZeroPowerBehavior.FLOAT);
 
            this.drive(
                    -gamepad1.left_stick_y, gamepad1.left_stick_x,

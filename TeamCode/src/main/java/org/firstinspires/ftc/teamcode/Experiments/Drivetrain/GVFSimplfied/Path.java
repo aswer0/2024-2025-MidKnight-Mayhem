@@ -8,6 +8,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 import org.opencv.core.Point;
 
 import java.util.ArrayList;
@@ -17,6 +18,10 @@ public class Path {
     public static double xp = 0.04, xi = 0, xd = 0.001;
     public static double yp = 0.04, yi = 0, yd = 0.001;
     public static double hp = 0.0065, hi = 0, hd = 0.00004;
+
+    public static double follow_xp = 0.045, follow_xi = 0, follow_xd = 0.001;
+    public static double follow_yp = 0.055, follow_yi = 0, follow_yd = 0.001;
+    public static double follow_hp = 0.0095, follow_hi = 0, follow_hd = 0.00004;
 
     WheelControl wheelControl;
     Odometry odometry;
@@ -34,6 +39,10 @@ public class Path {
     PIDController heading;
     PIDController x_pos;
     PIDController y_pos;
+
+    PIDController follow_heading;
+    PIDController follow_x_pos;
+    PIDController follow_y_pos;
 
     public Path(Point[] cp, WheelControl w, Odometry odometry, Telemetry telemetry, 
                 double speed, 
@@ -59,6 +68,10 @@ public class Path {
         heading = new PIDController(hp, hi, hd);
         x_pos = new PIDController(xp, xi, xd);
         y_pos = new PIDController(yp, yi, yd);
+
+        follow_heading = new PIDController(follow_hp, follow_hi, follow_hd);
+        follow_x_pos = new PIDController(follow_xp, follow_xi, follow_xd);
+        follow_y_pos = new PIDController(follow_yp, follow_yi, follow_yd);
     }
 
     public void update(boolean use_end_angle){
@@ -127,18 +140,23 @@ public class Path {
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);
         double head_error = heading.calculate(this.odometry.opt.get_heading(), target_angle);
 
-        TelemetryPacket telemetry = new TelemetryPacket();
+        if (Math.abs(target_angle-odometry.opt.get_heading()) <= 1){
+            head_error = 0;
+        }
+
+        wheelControl.drive(-x_error, -y_error, head_error, Math.toRadians(odometry.opt.get_heading()), this.power);
+    }
+
+    public void follow_pid_to_point(Point p, double target_angle){
+        double x_error = follow_x_pos.calculate(this.odometry.opt.get_x(), p.x);
+        double y_error = follow_y_pos.calculate(this.odometry.opt.get_y(), p.y);
+        double head_error = follow_heading.calculate(this.odometry.opt.get_heading(), target_angle);
 
         if (Math.abs(target_angle-odometry.opt.get_heading()) <= 1){
             head_error = 0;
         }
 
         wheelControl.drive(-x_error, -y_error, head_error, Math.toRadians(odometry.opt.get_heading()), this.power);
-
-        telemetry.put("X position: ", odometry.opt.get_x());
-        telemetry.put("Y position: ", odometry.opt.get_y());
-        telemetry.put("Heading: ", odometry.opt.get_heading());
-        (FtcDashboard.getInstance()).sendTelemetryPacket(telemetry);
     }
 
     public void set_new_path(Point[] cp){
