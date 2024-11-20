@@ -141,7 +141,7 @@ public class FinalTeleOp extends OpMode {
                 if((outtakeSlides.leftSlide.getCurrentPosition() - outtakeLastPosition)/(getRuntime() - lastTime) < 10) {
                     outtakeDepositBy -= (getRuntime() - lastTime);
                 }
-                if(Math.abs(currentState.outtakeSlidesInput) > 0.6) {
+                if(Math.abs(currentState.outtakeSlidesInput) > 0.6 || (!previousState.depositSpecimen && currentState.depositSpecimen)) {
                     outtakeState = OuttakeState.inactive;
                 }
                 if(outtakeSlides.leftSlide.getCurrentPosition() < autoDepositLimit) {
