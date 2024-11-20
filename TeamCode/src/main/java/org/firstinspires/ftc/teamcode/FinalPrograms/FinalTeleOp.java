@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -17,6 +19,8 @@ import java.util.List;
 
 @TeleOp
 public class FinalTeleOp extends OpMode {
+    double lastTime = getRuntime();
+
     ElapsedTime intakeTimer = new ElapsedTime();
     Odometry odometry;
     WheelControl drive;
@@ -27,6 +31,8 @@ public class FinalTeleOp extends OpMode {
     double autoGrabGracePeriod = 0;
     double autoDepositLimit = Double.POSITIVE_INFINITY;
     OuttakeState outtakeState = OuttakeState.inactive;
+    double outtakeLastPosition = 0;
+    double outtakeDepositBy = 1;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -74,7 +80,6 @@ public class FinalTeleOp extends OpMode {
         outtakeSlides.update();
         intakeSlides.update();
         //intake.update(); TODO LM2 Automation
-
         // The user controlled part
         State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
                 gamepad1.left_stick_y, // Drive Y
@@ -122,14 +127,30 @@ public class FinalTeleOp extends OpMode {
                 }
                 if(!previousState.depositSpecimen && currentState.depositSpecimen && !clawOpen) {
                     autoDepositLimit = outtakeSlides.leftSlide.getCurrentPosition() - 300;
+                    outtakeLastPosition = outtakeSlides.leftSlide.getCurrentPosition();
                     outtakeState = OuttakeState.depositingSpecimen;
                 }
                 break;
             case depositingSpecimen:
                 // Custom outtake input
+                TelemetryPacket packet = new TelemetryPacket();
+                packet.put("Derivative", (outtakeSlides.leftSlide.getCurrentPosition() - outtakeLastPosition)/(getRuntime() - lastTime));
+                packet.put("Seconds", outtakeDepositBy);
+                (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
                 outtakeSlides.setPower(-0.5);
-                if(outtakeSlides.leftSlide.getCurrentPosition() < autoDepositLimit) outtakeState = OuttakeState.inactive;
-                
+                if((outtakeSlides.leftSlide.getCurrentPosition() - outtakeLastPosition)/(getRuntime() - lastTime) < 10) {
+                    outtakeDepositBy -= (getRuntime() - lastTime);
+                }
+                if(outtakeSlides.leftSlide.getCurrentPosition() < autoDepositLimit) {
+                    outtakeState = OuttakeState.inactive;
+                }
+                if(outtakeDepositBy < 0) {
+                    manipulator.openClaw();;
+                    clawOpen = true;
+                    outtakeState = OuttakeState.inactive;
+                }
+                outtakeLastPosition = outtakeSlides.leftSlide.getCurrentPosition();
+
                 break;
         }
         // Autograb (only when the slides are low enough) TODO by lm2
@@ -203,6 +224,7 @@ public class FinalTeleOp extends OpMode {
 //                }
 //                break;
 //        }
+        lastTime = getRuntime();
         previousState = new State(currentState);
     }
 
