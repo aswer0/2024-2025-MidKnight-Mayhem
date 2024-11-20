@@ -1,15 +1,17 @@
-/*package org.firstinspires.ftc.teamcode.FinalPrograms;
+package org.firstinspires.ftc.teamcode.FinalPrograms;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
-//
+
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Utils;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
 import org.opencv.core.Point;
@@ -24,113 +26,18 @@ public class RedRightGVF extends OpMode {
     WheelControl wheelControl;
     VectorField hang_gvf;
 
+    State state = State.startPID;
     Lift lift;
     Manipulator manipulator;
 
-    public enum State {
-        startSpecimenPath,
-        extendSlides,
-        depositSpecimen,
-        startHangPath,
+    Intake intake;
+
+    enum State {
+        startPID,
+        getSpecimen,
+        followPath,
+        deposit
     }
-
-    State state = State.startSpecimenPath;
-
-    @Override
-    public void init() {
-        Point[][] hang_path_cp = {
-                {
-                        new Point(22, 72),
-                        new Point(5, -10),
-                        new Point(55, 45)
-                }
-        };
-        Path hang_path = new Path(hang_path_cp);
-        specimen_target = new Point(26, 72);
-
-        odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
-        wheelControl = new WheelControl(hardwareMap, odometry);
-        hang_gvf = new VectorField(wheelControl, odometry, hang_path, 90);
-    }
-
-    @Override
-    public void start() {
-        timer = new ElapsedTime();
-    }
-
-    public void change_state(State state) {
-        this.state = state;
-        timer.reset();
-    }
-
-    @Override
-    public void loop() {
-        odometry.opt.update();
-        lift.update();
-        TelemetryPacket telemetry = new TelemetryPacket();
-        //hang_gvf.move_to_point(specimen_target, 0, 0.4);
-        switch (state) {
-            case startSpecimenPath:
-                hang_gvf.move_to_point(specimen_target, 0, 0.4);
-                lift.toHighChamber();
-
-                if (hang_gvf.dist_to_end() < 0.5) {
-                    change_state(State.depositSpecimen);
-                }
-                break;
-
-            case extendSlides:
-                lift.toHighBasket();
-                break;
-
-            case depositSpecimen:
-                lift.setPosition(300);
-                manipulator.openClaw();
-                if (timer.milliseconds() > 1000) state = State.startHangPath;
-                break;
-
-            case startHangPath:
-                hang_gvf.move();
-                if (hang_gvf.dist_to_end() < 0.5) {
-                    state = State.extendSlides;
-                }
-                break;
-        }
-
-        telemetry.put("X position: ", odometry.opt.get_x());
-        telemetry.put("Y position: ", odometry.opt.get_y());
-        telemetry.put("Heading: ", odometry.opt.get_heading());
-        telemetry.put("D: ", hang_gvf.D);
-        telemetry.put("Speed: ", hang_gvf.speed);
-        telemetry.put("Velocity: ", hang_gvf.velocity);
-        telemetry.put("Error: ", hang_gvf.error);
-        (FtcDashboard.getInstance()).sendTelemetryPacket(telemetry);
-    }
-}*/
-
-package org.firstinspires.ftc.teamcode.FinalPrograms;
-
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.opencv.core.Point;
-
-@Autonomous
-public class RedRightGVF extends OpMode {
-    Point specimen_target;
-    ElapsedTime timer;
-    boolean start_hang_path = false;
-
-    Odometry odometry;
-    WheelControl wheelControl;
-    VectorField hang_gvf;
 
     @Override
     public void init() {
@@ -142,11 +49,18 @@ public class RedRightGVF extends OpMode {
                 }
         };
         Path hang_path = new Path(hang_path_cp);
-        specimen_target = new Point(26, 72);
+        specimen_target = new Point(35.5, 66);
 
-        odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         hang_gvf = new VectorField(wheelControl, odometry, hang_path, 90);
+
+        lift = new Lift(hardwareMap);
+        manipulator = new Manipulator(hardwareMap);
+
+        intake = new Intake(hardwareMap);
+
+        manipulator.closeClaw();
     }
 
     @Override
@@ -160,14 +74,28 @@ public class RedRightGVF extends OpMode {
     //}
         odometry.opt.update();
         TelemetryPacket telemetry = new TelemetryPacket();
-        //hang_gvf.move_to_point(specimen_target, 0, 0.4);
-        if (!start_hang_path){
-            hang_gvf.move_to_point(specimen_target, 0, 0.4);
-        }
 
-        if (timer.milliseconds() >= 2500) {
-            start_hang_path = true;
-            hang_gvf.move();
+        switch (state){
+            case startPID:
+                manipulator.closeClaw();
+                lift.toHighChamber();
+                hang_gvf.move_to_point(specimen_target, 0, 0.5);
+
+                if (Utils.dist(odometry.opt.get_pos(), specimen_target) < 0.2){
+                    timer.reset();
+                    state = State.deposit;
+                }
+
+                break;
+
+            case deposit:
+                lift.setPosition(600);
+                if (timer.milliseconds() >= 250){
+                    manipulator.openClaw();
+                }
+
+                break;
+
         }
 
         telemetry.put("X position: ", odometry.opt.get_x());

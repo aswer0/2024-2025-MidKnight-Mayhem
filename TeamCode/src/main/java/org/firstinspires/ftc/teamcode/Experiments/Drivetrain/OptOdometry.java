@@ -4,6 +4,7 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.opencv.core.Point;
 
 public class OptOdometry {
     private double heading;
@@ -55,6 +56,10 @@ public class OptOdometry {
 
     public double get_y() {
         return this.yPos;
+    }
+
+    public Point get_pos() {
+        return new Point(this.xPos, this.yPos);
     }
 
     public double get_heading() {
