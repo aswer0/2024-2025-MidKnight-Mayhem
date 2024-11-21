@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import org.opencv.core.Point;
 
-@TeleOp
+@Autonomous
 @Config
 public class SpecimenAuto extends OpMode {
     Point start_target;
@@ -55,7 +55,7 @@ public class SpecimenAuto extends OpMode {
                 new Point(36.2, 66)
         };
 
-        start_target = new Point(36.2, 66);
+        start_target = new Point(36.2, 72);
         get_specimen_target = new Point(12.875, 28);
 
         timer = new ElapsedTime();
@@ -63,7 +63,7 @@ public class SpecimenAuto extends OpMode {
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 180, 0.7);
+        path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 180, 1);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -99,6 +99,11 @@ public class SpecimenAuto extends OpMode {
                     state = State.deposit;
                 }
 
+                if (timer.milliseconds()>5000) {
+                    timer.reset();
+                    state = State.deposit;
+                }
+
                 break;
 
             case deposit:
@@ -113,7 +118,7 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case goToSpecimen:
-                path.follow_pid_to_point(get_specimen_target, 185);
+                path.follow_pid_to_point(get_specimen_target, 180);
                 lift.toLowChamber();
 
                 if (path.at_point(get_specimen_target, 4)){
@@ -131,13 +136,10 @@ public class SpecimenAuto extends OpMode {
                     manipulator.closeClaw();
 
                     timer.reset();
-                    start_target.y += 1.2;
+                    start_target.y += 1;
+                    start_target.x -= 1.75;
                     state = State.startPID;
                 }
-                break;
-
-            case followPath:
-                path.update(180);
                 break;
 
         }

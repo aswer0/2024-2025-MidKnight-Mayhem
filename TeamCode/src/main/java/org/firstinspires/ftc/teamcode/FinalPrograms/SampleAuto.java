@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -15,9 +15,9 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import org.opencv.core.Point;
 
-@TeleOp
+@Autonomous
 @Config
-public class SpecimenAutoGVF extends OpMode {
+public class SampleAuto extends OpMode {
     Point start_target;
     Point get_specimen_target;
 
@@ -28,7 +28,7 @@ public class SpecimenAutoGVF extends OpMode {
     WheelControl wheelControl;
     Path path;
 
-    SpecimenAutoGVF.State state = SpecimenAutoGVF.State.startPID;
+    SampleAuto.State state = SampleAuto.State.startPID;
     Lift lift;
     Manipulator manipulator;
     double deposit_state = 0;
@@ -39,12 +39,15 @@ public class SpecimenAutoGVF extends OpMode {
         startPID,
         goToSpecimen,
         pickupSpecimen,
-        followPath,
+        followPathBack,
         deposit
     }
 
     @Override
     public void init() {
+        start_target = new Point(36.2, 66);
+        get_specimen_target = new Point(36.2, 66);
+
         Point[] follow_path = {
                 new Point(7.875, 21.3),
                 new Point(48, 21.3),
@@ -52,18 +55,15 @@ public class SpecimenAutoGVF extends OpMode {
                 new Point(43.6, 47.3),
                 new Point(16.5, 72.4),
                 new Point(23, 65),
-                new Point(36.2, 66)
+                get_specimen_target
         };
-
-        start_target = new Point(36.2, 66);
-        get_specimen_target = new Point(12.875, 28);
 
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 180, 0.7);
+        path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 0, 0.7);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -76,25 +76,17 @@ public class SpecimenAutoGVF extends OpMode {
     }
 
     @Override
-    public void start() {
-
-    }
-
-    @Override
     public void loop() {
         odometry.opt.update();
 
         switch (state){
             case startPID:
                 manipulator.closeClaw();
-
-                if (timer.milliseconds() >= 200){
-                    lift.toHighChamber();
-                }
+                lift.toHighChamber();
 
                 path.follow_pid_to_point(start_target, 0);
 
-                if (sensors.atChamber() && odometry.opt.get_heading()>-50 && odometry.opt.get_heading()<50){
+                if (sensors.atChamber()){
                     timer.reset();
                     state = State.deposit;
                 }
@@ -103,9 +95,10 @@ public class SpecimenAutoGVF extends OpMode {
 
             case deposit:
                 lift.setPosition(550);
+
                 if (timer.milliseconds() >= 300){
                     manipulator.openClaw();
-                    if (deposit_state == 0){
+                    if (deposit_state == 0 || deposit_state == 1){
                         state = State.goToSpecimen;
                     }
                 }
@@ -113,31 +106,38 @@ public class SpecimenAutoGVF extends OpMode {
                 break;
 
             case goToSpecimen:
-                path.follow_pid_to_point(get_specimen_target, 185);
+                path.update( 185);
                 lift.toLowChamber();
 
-                if (path.at_point(get_specimen_target, 4)){
+                if (sensors.get_front_dist() >= 2.5){
+                    timer.reset();
                     state = State.pickupSpecimen;
                 }
 
                 break;
 
             case pickupSpecimen:
-                if (sensors.get_front_dist() >= 2.5){
-                    wheelControl.drive(-0.3, 0, 0, 0, 0.7);
-                }
-                else{
-                    wheelControl.drive(0, 0, 0, 0, 0.7);
+                path.stop();
+
+                if (timer.milliseconds() >= 250){
                     manipulator.closeClaw();
 
                     timer.reset();
-                    start_target.y += 1.2;
-                    state = State.startPID;
+
+                    get_specimen_target.y += 1.2;
+                    state = State.followPathBack;
                 }
+
                 break;
 
-            case followPath:
-                path.update(180);
+            case followPathBack:
+                path.retrace(true);
+                lift.toHighChamber();
+
+                if (sensors.atChamber()){
+                    state = State.deposit;
+                }
+
                 break;
 
         }

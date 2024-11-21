@@ -6,9 +6,9 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.opencv.core.Point;
 
 public class PIDdrive {
-    public static double xp = 0.04, xi = 0, xd = 0.001;
-    public static double yp = 0.04, yi = 0, yd = 0.001;
-    public static double hp = 0.0065, hi = 0, hd = 0.00004;
+    public static double xp = 0.045, xi = 0, xd = 0.001;
+    public static double yp = 0.055, yi = 0, yd = 0.001;
+    public static double hp = 0.0095, hi = 0, hd = 0.00004;
 
     WheelControl wheelControl;
     Odometry odometry;
