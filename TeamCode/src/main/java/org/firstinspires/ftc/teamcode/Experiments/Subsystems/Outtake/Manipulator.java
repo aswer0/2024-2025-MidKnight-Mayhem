@@ -1,12 +1,17 @@
 package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Config
 public class Manipulator {
+    public static double claw_pos_close = 0.32;
+    public static double claw_pos_open = 0.1;
+
     public Servo armPitch;
     public Servo bucketPitch;
     public Servo flap;
@@ -32,10 +37,10 @@ public class Manipulator {
     }
 
     public void openClaw() {
-        claw.setPosition(0);
+        claw.setPosition(claw_pos_open);
     }
     public void closeClaw() {
-        claw.setPosition(0.27);
+        claw.setPosition(claw_pos_close);
     }
 
     /**
