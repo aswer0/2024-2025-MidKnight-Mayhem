@@ -27,12 +27,12 @@ public class FinalTeleOp extends OpMode {
 
     Lift outtakeSlides;
     Manipulator manipulator;
-    boolean clawOpen = false;
+    boolean clawOpen = true;
     double autoGrabGracePeriod = 0;
     double autoDepositLimit = Double.POSITIVE_INFINITY;
     OuttakeState outtakeState = OuttakeState.inactive;
     double outtakeLastPosition = 0;
-    double outtakeDepositBy = 1;
+    double outtakeDepositBy = 0.5;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -48,17 +48,19 @@ public class FinalTeleOp extends OpMode {
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
     Gamepad previousGamepad2 = new Gamepad();
-    State previousState = new State(0,0,0,false, false, false, false, false, 0,0, 0, false, false);
+    State previousState = new State(0,0,0, false,false, false, false, false, false, 0,0, 0, false, false);
 
     @Override
     public void init() {
         odometry = new Odometry(hardwareMap, 0, 0, 0, "BL", "FR", "FL");
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap);
+        outtakeSlides.brakeSlides(true);
 
         intake = new Intake(hardwareMap);
         intakeSlides = new HorizontalSlides(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
+        manipulator.openClaw();
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
@@ -84,19 +86,23 @@ public class FinalTeleOp extends OpMode {
         State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
                 gamepad1.left_stick_y, // Drive Y
                 -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x)*0.8 , // Drive rotate
+                gamepad1.options, // realign Field Oriented
                 gamepad2.cross, // toLowChamber
                 gamepad2.square, // high chamber
                 gamepad2.circle, // low basket
                 gamepad2.triangle, // high basket
                 gamepad2.right_bumper, // toggle outtake
                 -gamepad2.left_stick_y, // outtake slides
-                gamepad1.right_trigger - gamepad1.left_trigger, // intake slides
-                (gamepad1.right_bumper ? 1 : 0) - (gamepad1.left_bumper ? 1 : 0), // intake input
+                -gamepad2.right_stick_y, // intake slides
+                gamepad2.right_trigger-gamepad2.left_trigger, // intake input
                 gamepad2.left_bumper, // deposit specimen
                 gamepad2.share); // start hang
 
         // Drive
-        drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, 0, drivePower);
+        drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, -odometry.getHeading(), drivePower);
+        if(!previousState.reAlign && currentState.reAlign) {
+            odometry.setPos(odometry.getxPos(), odometry.getyPos(), 0);
+        }
         switch(outtakeState) {
             case inactive:
                 // Outtake presets
@@ -137,8 +143,8 @@ public class FinalTeleOp extends OpMode {
                 packet.put("Derivative", (outtakeSlides.leftSlide.getCurrentPosition() - outtakeLastPosition)/(getRuntime() - lastTime));
                 packet.put("Seconds", outtakeDepositBy);
                 (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
-                outtakeSlides.setPower(-0.5);
-                if((outtakeSlides.leftSlide.getCurrentPosition() - outtakeLastPosition)/(getRuntime() - lastTime) < 10) {
+                outtakeSlides.setPower(-0.35);
+                if((outtakeSlides.leftSlide.getCurrentPosition() - outtakeLastPosition)/(getRuntime() - lastTime) > -300) {
                     outtakeDepositBy -= (getRuntime() - lastTime);
                 }
                 if(Math.abs(currentState.outtakeSlidesInput) > 0.6 || (!previousState.depositSpecimen && currentState.depositSpecimen)) {
@@ -147,8 +153,9 @@ public class FinalTeleOp extends OpMode {
                 if(outtakeSlides.leftSlide.getCurrentPosition() < autoDepositLimit) {
                     outtakeState = OuttakeState.inactive;
                 }
-                if(outtakeDepositBy < 0) {
-                    manipulator.openClaw();;
+                if(outtakeDepositBy < 0 || currentState.toggleOuttake) {
+                    outtakeDepositBy = 1;
+                    manipulator.openClaw();
                     clawOpen = true;
                     outtakeState = OuttakeState.inactive;
                 }
@@ -238,6 +245,7 @@ public class FinalTeleOp extends OpMode {
         public double driveX;
         public double driveY;
         public double rotate;
+        public boolean reAlign;
         // Preset Outtake Slides
         public boolean toLowChamber;
         public boolean toHighChamber;
@@ -257,6 +265,7 @@ public class FinalTeleOp extends OpMode {
         public State(double driveX,
                      double driveY,
                      double rotate,
+                     boolean reAlign,
                      boolean toLowChamber,
                      boolean toHighChamber,
                      boolean toLowBasket,
@@ -270,6 +279,7 @@ public class FinalTeleOp extends OpMode {
             this.driveX = driveX;
             this.driveY = driveY;
             this.rotate = rotate;
+            this.reAlign = reAlign;
             this.toLowChamber = toLowChamber;
             this.toHighChamber = toHighChamber;
             this.toLowBasket = toLowBasket;
@@ -283,7 +293,7 @@ public class FinalTeleOp extends OpMode {
         }
 
         public State(State state) {
-            this(state.driveX, state.driveY, state.rotate, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.intakeInput, state.depositSpecimen, state.startHang);
+            this(state.driveX, state.driveY, state.rotate, state.reAlign, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.intakeInput, state.depositSpecimen, state.startHang);
         }
     }
 
