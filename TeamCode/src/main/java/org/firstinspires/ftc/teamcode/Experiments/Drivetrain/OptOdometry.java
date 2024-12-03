@@ -74,7 +74,11 @@ public class OptOdometry {
     }
 
     public void setPos(double x, double y){
-        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
+        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(x, y, get_heading());
+        this.otos.setPosition(currentPosition);
+    }
+    public void setPos(double x, double y, double heading) {
+        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(x, y, heading);
         this.otos.setPosition(currentPosition);
     }
 

@@ -52,7 +52,7 @@ public class FinalTeleOp extends OpMode {
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 0, 0, 0, "BL", "FR", "FL");
+        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap);
         outtakeSlides.brakeSlides(true);
@@ -78,7 +78,7 @@ public class FinalTeleOp extends OpMode {
         currentGamepad2.copy(gamepad2);
 
         // Updates
-        odometry.update();
+        odometry.opt.update();
         outtakeSlides.update();
         intakeSlides.update();
         //intake.update(); TODO LM2 Automation
@@ -99,9 +99,9 @@ public class FinalTeleOp extends OpMode {
                 gamepad2.share); // start hang
 
         // Drive
-        drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, -odometry.getHeading(), drivePower);
+        drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
         if(!previousState.reAlign && currentState.reAlign) {
-            odometry.setPos(odometry.getxPos(), odometry.getyPos(), 0);
+            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
         }
         switch(outtakeState) {
             case inactive:
