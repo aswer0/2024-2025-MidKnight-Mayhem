@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -8,10 +9,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-
+@Config
 public class Intake {
-    double DOWN_POS=0.31;
-    double UP_POS=0.9;
+    public static double DOWN_POS=0.49;
+    public static double UP_POS=0.9;
 
     public CRServo intakeServo1;
     public CRServo intakeServo2;
