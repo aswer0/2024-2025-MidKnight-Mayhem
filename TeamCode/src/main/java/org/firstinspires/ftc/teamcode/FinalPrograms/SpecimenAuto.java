@@ -87,6 +87,12 @@ public class SpecimenAuto extends OpMode {
 
         manipulator.closeClaw();
     }
+
+    @Override
+    public void start() {
+        timer.reset();
+    }
+
     @Override
     public void loop() {
         odometry.opt.update();
@@ -106,7 +112,7 @@ public class SpecimenAuto extends OpMode {
                 intake.up();
                 manipulator.closeClaw();
 
-                if (timer.milliseconds() >= 200){
+                if (timer.milliseconds() >= 200 || deposit_state==0){
                     lift.toHighChamber();
                 }
 
@@ -129,7 +135,8 @@ public class SpecimenAuto extends OpMode {
                 lift.setPosition(550);
                 if (timer.milliseconds() >= 300){
                     manipulator.openClaw();
-                    state = State.goToSpecimen;
+                    deposit_state++;
+                    state = State.manage;
                 }
 
                 break;
@@ -140,7 +147,7 @@ public class SpecimenAuto extends OpMode {
                 lift.toLowChamber();
 
                 if (path.at_point(get_specimen_target, 4)){
-                    state = State.manage;
+                    state = State.pickupSpecimen;
                 }
 
                 break;
@@ -166,8 +173,8 @@ public class SpecimenAuto extends OpMode {
                     timer.reset();
                     target.y -= 0.25;
                     target.x -= 1.25;
-                    deposit_state++;
-
+                    //deposit_state++;
+                    state = State.pid;
                 }
 
                 break;
@@ -191,9 +198,12 @@ public class SpecimenAuto extends OpMode {
                 intake.intake();
                 intake.down();
 
-                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-pos) <= 1.5){
+                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-pos) <= 15){
                     deposit_state++;
                     state = State.manageDepositState;
+                }
+                if (timer.milliseconds()>2500) {
+                    //failsafe
                 }
 
                 break;
