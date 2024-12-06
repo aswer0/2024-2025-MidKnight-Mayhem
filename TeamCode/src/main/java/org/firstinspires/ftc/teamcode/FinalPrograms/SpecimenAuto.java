@@ -20,9 +20,9 @@ import org.opencv.core.Point;
 @Config
 public class SpecimenAuto extends OpMode {
     public static double pos = -470;
-    public static double target_angle = 170;
-    public static double sample_x = 15;
-    public static double sample_y = 28;
+    public static double target_angle = 135;
+    public static double sample_x = 24.5;
+    public static double sample_y = 37;
     public static double power = 1;
 
     Point target;
@@ -43,6 +43,7 @@ public class SpecimenAuto extends OpMode {
     Intake intake;
 
     double deposit_state = 0;
+    int intakeState = 0;
 
     enum State {
         pid,
@@ -52,7 +53,8 @@ public class SpecimenAuto extends OpMode {
         manage,
         deposit,
         gotoSample,
-        manageDepositState
+        manageDepositState,
+        spitSample
     }
 
     @Override
@@ -99,11 +101,13 @@ public class SpecimenAuto extends OpMode {
 
         switch (state){
             case manageDepositState:
+                intake.stop();
                 intake.up();
                 if (deposit_state == 0 || deposit_state == 1){
                     state = State.pid;
                 }
                 if (deposit_state == 2){
+                    timer.reset();
                     state = State.gotoSample;
                 }
                 break;
@@ -112,7 +116,7 @@ public class SpecimenAuto extends OpMode {
                 intake.up();
                 manipulator.closeClaw();
 
-                if (timer.milliseconds() >= 200 || deposit_state==0){
+                if (timer.milliseconds() >= 100 || deposit_state==0){
                     lift.toHighChamber();
                 }
 
@@ -132,9 +136,13 @@ public class SpecimenAuto extends OpMode {
 
             case deposit:
                 intake.up();
-                lift.setPosition(550);
-                if (timer.milliseconds() >= 300){
+                lift.setPosition(525);
+                if (timer.milliseconds() >= 310){
                     manipulator.openClaw();
+                    if (deposit_state == 0){
+                        odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), -5);
+                    }
+
                     deposit_state++;
                     state = State.manage;
                 }
@@ -157,7 +165,7 @@ public class SpecimenAuto extends OpMode {
                     state = State.manageDepositState;
                 }
                 else{
-                    state = State.pickupSpecimen;
+                    state = State.goToSpecimen;
                 }
 
             case pickupSpecimen:
@@ -171,7 +179,7 @@ public class SpecimenAuto extends OpMode {
                     manipulator.closeClaw();
 
                     timer.reset();
-                    target.y -= 0.25;
+                    target.y += 0.25;
                     target.x -= 1.25;
                     //deposit_state++;
                     state = State.pid;
@@ -180,10 +188,11 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case gotoSample:
+                lift.toLowChamber();
                 intake.up();
                 path.follow_pid_to_point(get_sample_target, target_angle);
 
-                if (path.at_point(get_sample_target, 2)){
+                if (path.at_point(get_sample_target, 1) || timer.milliseconds()>1500){
                     wheelControl.drive(0, 0, 0, 0, 0);
                     timer.reset();
                     state = State.intakeSample;
@@ -192,21 +201,41 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case intakeSample:
-                if (timer.milliseconds() >= 200){
+                lift.toLowChamber();
+                if (timer.milliseconds() >= 500){
                     horizontalSlides.setPosition(pos);
                 }
                 intake.intake();
                 intake.down();
 
-                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-pos) <= 15){
-                    deposit_state++;
-                    state = State.manageDepositState;
+                if (intakeState == 0 && Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-pos) <= 15){
+                    intakeState++;
                 }
-                if (timer.milliseconds()>2500) {
-                    //failsafe
+                if (intakeState > 0 && timer.milliseconds()>2000) {
+                    deposit_state++;
+                    timer.reset();
+                    state = State.spitSample;
                 }
 
                 break;
+
+            case spitSample:
+                Point p = new Point(odometry.opt.get_x(), odometry.opt.get_y());
+                path.follow_pid_to_point(p, 35);
+
+                if (timer.milliseconds() < 500){
+                    horizontalSlides.setPosition(-200);
+                } else{
+                    horizontalSlides.setPosition(pos);
+                }
+
+                if (timer.milliseconds() >= 1000){
+                    intake.reverse();
+                } if (timer.milliseconds() >= 2000){
+                    intake.up();
+                    intake.stop();
+                }
+
 
         }
 
