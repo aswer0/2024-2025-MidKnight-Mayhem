@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Config
 public class Manipulator {
-    public static double claw_pos_close = 0.32;
-    public static double claw_pos_open = 0.1;
+    public static double claw_pos_close = 0.36;
+    public static double claw_pos_open = 0.15;
 
     public Servo armPitch;
     public Servo bucketPitch;

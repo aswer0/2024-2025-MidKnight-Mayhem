@@ -25,6 +25,10 @@ public class SpecimenAuto extends OpMode {
     public static double sample_y = 37;
     public static double power = 1;
 
+    //36.2
+    public static double target_x = 37.2; //36.2
+    public static double target_y = 72;
+
     Point target;
     Point get_specimen_target;
     Point get_sample_target;
@@ -69,7 +73,7 @@ public class SpecimenAuto extends OpMode {
                 new Point(36.2, 66)
         };
 
-        target = new Point(36.2, 72);
+        target = new Point(target_x, target_y);
         get_specimen_target = new Point(12.875, 28);
         get_sample_target = new Point(sample_x, sample_y);
 
@@ -127,9 +131,9 @@ public class SpecimenAuto extends OpMode {
                     state = State.deposit;
                 }
 
-                if (timer.milliseconds()>5000) {
-                    timer.reset();
-                    state = State.deposit;
+                if (timer.milliseconds() > 5000) {
+                    //timer.reset();
+                    //state = State.deposit;
                 }
 
                 break;
@@ -168,6 +172,8 @@ public class SpecimenAuto extends OpMode {
                     state = State.goToSpecimen;
                 }
 
+                break;
+
             case pickupSpecimen:
                 intake.up();
 
@@ -179,8 +185,8 @@ public class SpecimenAuto extends OpMode {
                     manipulator.closeClaw();
 
                     timer.reset();
-                    target.y += 0.25;
-                    target.x -= 1.25;
+                    target.y -= 2;
+                    target.x += 1;
                     //deposit_state++;
                     state = State.pid;
                 }
@@ -190,6 +196,8 @@ public class SpecimenAuto extends OpMode {
             case gotoSample:
                 lift.toLowChamber();
                 intake.up();
+                horizontalSlides.setPosition(-1);
+
                 path.follow_pid_to_point(get_sample_target, target_angle);
 
                 if (path.at_point(get_sample_target, 1) || timer.milliseconds()>1500){
@@ -232,10 +240,11 @@ public class SpecimenAuto extends OpMode {
                 if (timer.milliseconds() >= 1000){
                     intake.reverse();
                 } if (timer.milliseconds() >= 2000){
-                    intake.up();
                     intake.stop();
+                    state = State.goToSpecimen;
                 }
 
+                break;
 
         }
 
@@ -251,5 +260,10 @@ public class SpecimenAuto extends OpMode {
         lift.update();
         horizontalSlides.update();
         telemetry.update();
+    }
+
+    public void stop() {
+        lift.setPosition(0);
+        horizontalSlides.setPosition(0);
     }
 }
