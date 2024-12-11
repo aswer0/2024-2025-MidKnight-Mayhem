@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -48,13 +49,13 @@ public class FinalTeleOp extends OpMode {
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
     Gamepad previousGamepad2 = new Gamepad();
-    State previousState = new State(0,0,0, false,false, false, false, false, false, 0,0, 0, false, false);
+    State previousState = new State();
 
     @Override
     public void init() {
         odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
-        outtakeSlides = new Lift(hardwareMap);
+        outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
 
         intake = new Intake(hardwareMap);
@@ -83,25 +84,30 @@ public class FinalTeleOp extends OpMode {
         intakeSlides.update();
         //intake.update(); TODO LM2 Automation
         // The user controlled part
-        State currentState = new State(1.1*gamepad1.left_stick_x, // drive X
-                gamepad1.left_stick_y, // Drive Y
-                -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x)*0.8 , // Drive rotate
-                gamepad1.options, // realign Field Oriented
-                gamepad2.cross, // toLowChamber
-                gamepad2.square, // high chamber
-                gamepad2.circle, // low basket
-                gamepad2.triangle, // high basket
-                gamepad2.right_bumper, // toggle outtake
-                -gamepad2.left_stick_y, // outtake slides
-                -gamepad2.right_stick_y, // intake slides
-                gamepad2.right_trigger-gamepad2.left_trigger, // intake input
-                gamepad2.left_bumper, // deposit specimen
-                gamepad2.share); // start hang
-
+        State currentState = new State();
+        currentState.driveX = 1.1*gamepad1.left_stick_x; // drive X
+        currentState.driveY = gamepad1.left_stick_y; // Drive Y
+        currentState.rotate = -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x)*0.8; // Drive rotate
+        currentState.reAlignFieldOriented = gamepad1.options; // realign Field Oriented
+        currentState.toLowChamber = gamepad2.cross; // toLowChamber
+        currentState.toHighChamber = gamepad2.square; // high chamber
+        currentState.toLowBasket = gamepad2.circle; // low basket
+        currentState.toHighBasket = gamepad2.triangle; // high basket
+        currentState.toggleOuttake = gamepad2.right_bumper; // toggle outtake
+        currentState.outtakeSlidesInput = -gamepad2.left_stick_y; // outtake slides
+        currentState.resetOuttake = gamepad2.options; // reset Outtake
+        currentState.intakeSlidesInput = -gamepad2.right_stick_y; // intake slides
+        currentState.intakeInput = gamepad2.right_trigger-gamepad2.left_trigger; // intake input
+        currentState.depositSpecimen = gamepad2.left_bumper; // deposit specimen
+        currentState.startHang = gamepad2.share;
         // Drive
         drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
-        if(!previousState.reAlign && currentState.reAlign) {
+        if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
+        }
+        if(!previousState.resetOuttake && currentState.resetOuttake) {
+            outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            outtakeSlides.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         switch(outtakeState) {
             case inactive:
@@ -235,37 +241,38 @@ public class FinalTeleOp extends OpMode {
 //                break;
 //        }
         lastTime = getRuntime();
-        previousState = new State(currentState);
+        previousState = currentState;
     }
 
     public void outtakeControl() {
 
     }
     private static class State {
-        public double driveX;
-        public double driveY;
-        public double rotate;
-        public boolean reAlign;
+        public double driveX = 0;
+        public double driveY = 0;
+        public double rotate = 0;
+        public boolean reAlignFieldOriented = false;
         // Preset Outtake Slides
-        public boolean toLowChamber;
-        public boolean toHighChamber;
-        public boolean toLowBasket;
-        public boolean toHighBasket;
+        public boolean toLowChamber = false;
+        public boolean toHighChamber = false;
+        public boolean toLowBasket = false;
+        public boolean toHighBasket = false;
         // Outtake stuff
-        public boolean toggleOuttake; // will either be claw or bucket based on context
+        public boolean toggleOuttake = false; // will either be claw or bucket based on context
         // Slides custom input; claw is automatically controlled
-        public double outtakeSlidesInput; // Done so they act in one direction if one is pressed, but cancel each other out
+        public double outtakeSlidesInput = 0; // Done so they act in one direction if one is pressed, but cancel each other out
+        public boolean resetOuttake = false;
 
         // Intake
-        public double intakeSlidesInput;
-        public double intakeInput;
-        public boolean depositSpecimen;
+        public double intakeSlidesInput = 0;
+        public double intakeInput = 0;
+        public boolean depositSpecimen = false;
 
-        public boolean startHang; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
-        public State(double driveX,
+        public boolean startHang = false; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
+        /*public State(double driveX,
                      double driveY,
                      double rotate,
-                     boolean reAlign,
+                     boolean reAlignFieldOriented,
                      boolean toLowChamber,
                      boolean toHighChamber,
                      boolean toLowBasket,
@@ -279,7 +286,7 @@ public class FinalTeleOp extends OpMode {
             this.driveX = driveX;
             this.driveY = driveY;
             this.rotate = rotate;
-            this.reAlign = reAlign;
+            this.reAlignFieldOriented = reAlignFieldOriented;
             this.toLowChamber = toLowChamber;
             this.toHighChamber = toHighChamber;
             this.toLowBasket = toLowBasket;
@@ -290,11 +297,7 @@ public class FinalTeleOp extends OpMode {
             this.intakeInput = intakeInput;
             this.depositSpecimen = depositSpecimen;
             this.startHang = startHang;
-        }
-
-        public State(State state) {
-            this(state.driveX, state.driveY, state.rotate, state.reAlign, state.toLowChamber, state.toHighChamber, state.toLowBasket, state.toHighBasket, state.toggleOuttake, state.outtakeSlidesInput, state.intakeSlidesInput, state.intakeInput, state.depositSpecimen, state.startHang);
-        }
+        }*/
     }
 
     enum IntakingState {

@@ -36,9 +36,9 @@ public class Lift {
     private double position = 0;
     private State state = State.userControlled;
 
-    public Lift (HardwareMap hardwareMap) {
+    public Lift (HardwareMap hardwareMap, boolean resetEncoders) {
         this.leftSlide = hardwareMap.get(DcMotorEx.class,"SlideLeft"); //The one with the encoder
-        this.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        if(resetEncoders)this.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         this.leftSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -46,6 +46,10 @@ public class Lift {
         this.rightSlide = hardwareMap.get(DcMotorEx.class,"SlideRight");
         this.rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.rightSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+    public Lift (HardwareMap hardwareMap) {
+        this(hardwareMap, true);
     }
 
     public void brakeSlides(boolean brake){
