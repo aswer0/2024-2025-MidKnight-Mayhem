@@ -89,13 +89,15 @@ public class FinalTeleOp extends OpMode {
         currentState.driveY = gamepad1.left_stick_y; // Drive Y
         currentState.rotate = -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x)*0.8; // Drive rotate
         currentState.reAlignFieldOriented = gamepad1.options; // realign Field Oriented
+
         currentState.toLowChamber = gamepad2.cross; // toLowChamber
         currentState.toHighChamber = gamepad2.square; // high chamber
         currentState.toLowBasket = gamepad2.circle; // low basket
         currentState.toHighBasket = gamepad2.triangle; // high basket
         currentState.toggleOuttake = gamepad2.right_bumper; // toggle outtake
         currentState.outtakeSlidesInput = -gamepad2.left_stick_y; // outtake slides
-        currentState.resetOuttake = gamepad2.options; // reset Outtake
+        currentState.resetOuttakeSlides = gamepad2.options; // reset Outtake
+
         currentState.intakeSlidesInput = -gamepad2.right_stick_y; // intake slides
         currentState.intakeInput = gamepad2.right_trigger-gamepad2.left_trigger; // intake input
         currentState.depositSpecimen = gamepad2.left_bumper; // deposit specimen
@@ -105,7 +107,7 @@ public class FinalTeleOp extends OpMode {
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
         }
-        if(!previousState.resetOuttake && currentState.resetOuttake) {
+        if(!previousState.resetOuttakeSlides && currentState.resetOuttakeSlides) {
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
@@ -142,6 +144,9 @@ public class FinalTeleOp extends OpMode {
                     outtakeLastPosition = outtakeSlides.leftSlide.getCurrentPosition();
                     outtakeState = OuttakeState.depositingSpecimen;
                 }
+                if(!previousState.startHang && currentState.startHang && getRuntime() > 80) {
+                    outtakeState = OuttakeState.hangingStage1;
+                }
                 break;
             case depositingSpecimen:
                 // Custom outtake input
@@ -167,6 +172,9 @@ public class FinalTeleOp extends OpMode {
                 }
                 outtakeLastPosition = outtakeSlides.leftSlide.getCurrentPosition();
 
+                break;
+            case hangingStage1:
+                outtakeSlides.setPosition(0);
                 break;
         }
         // Autograb (only when the slides are low enough) TODO by lm2
@@ -261,7 +269,7 @@ public class FinalTeleOp extends OpMode {
         public boolean toggleOuttake = false; // will either be claw or bucket based on context
         // Slides custom input; claw is automatically controlled
         public double outtakeSlidesInput = 0; // Done so they act in one direction if one is pressed, but cancel each other out
-        public boolean resetOuttake = false;
+        public boolean resetOuttakeSlides = false;
 
         // Intake
         public double intakeSlidesInput = 0;
@@ -269,35 +277,6 @@ public class FinalTeleOp extends OpMode {
         public boolean depositSpecimen = false;
 
         public boolean startHang = false; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
-        /*public State(double driveX,
-                     double driveY,
-                     double rotate,
-                     boolean reAlignFieldOriented,
-                     boolean toLowChamber,
-                     boolean toHighChamber,
-                     boolean toLowBasket,
-                     boolean toHighBucket,
-                     boolean toggleOuttake,
-                     double outtakeSlidesInput,
-                     double intakeSlidesInput,
-                     double intakeInput,
-                      boolean depositSpecimen,
-                      boolean startHang) {
-            this.driveX = driveX;
-            this.driveY = driveY;
-            this.rotate = rotate;
-            this.reAlignFieldOriented = reAlignFieldOriented;
-            this.toLowChamber = toLowChamber;
-            this.toHighChamber = toHighChamber;
-            this.toLowBasket = toLowBasket;
-            this.toHighBasket = toHighBucket;
-            this.toggleOuttake = toggleOuttake;
-            this.outtakeSlidesInput = outtakeSlidesInput;
-            this.intakeSlidesInput = intakeSlidesInput;
-            this.intakeInput = intakeInput;
-            this.depositSpecimen = depositSpecimen;
-            this.startHang = startHang;
-        }*/
     }
 
     enum IntakingState {
@@ -309,7 +288,8 @@ public class FinalTeleOp extends OpMode {
 
     enum OuttakeState {
         inactive,
-        depositingSpecimen // break if it is 300 below, or derivative is zero for 0.5 seconds.
+        depositingSpecimen, // break if it is 300 below, or derivative is zero for 0.5 seconds.
+        hangingStage1
     }
     
 }
