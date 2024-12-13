@@ -103,7 +103,7 @@ public class FinalTeleOp extends OpMode {
         currentState.depositSpecimen = gamepad2.left_bumper; // deposit specimen
         currentState.startHang = gamepad2.share;
         // Drive
-        drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, /*Math.toRadians(odometry.opt.get_heading())*/ 0, drivePower);
+        drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
         }

@@ -17,10 +17,10 @@ public class Lift {
     public static int MIN = 0;
     public static int MAX = 1500;
 
-    public static double highBasketPos=770;
-    public static double highChamberPos=770;
-    public static double lowBasketPos=107;
-    public static double lowChamberPos=107;
+    public static double highBasketPos=1300;
+    public static double highChamberPos=1300;
+    public static double lowBasketPos=90;
+    public static double lowChamberPos=90;
 
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
