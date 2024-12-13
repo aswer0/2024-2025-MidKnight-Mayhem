@@ -7,11 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFCoefficients;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
-
-import java.util.concurrent.CompletableFuture;
 
 @Config
 public class HorizontalSlides {
@@ -59,7 +56,7 @@ public class HorizontalSlides {
         }
     }
 
-    public double getPosition() {
+    public double getTargetPosition() {
         return position;
     }
     public State getState() {
