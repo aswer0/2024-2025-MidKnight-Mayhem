@@ -125,7 +125,7 @@ public class FinalTeleOp extends OpMode {
                     outtakeSlides.toHighChamber();
                 }
                 if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
-                    outtakeSlides.trySetPower(currentState.outtakeSlidesInput*0.5);
+                    outtakeSlides.trySetPower(currentState.outtakeSlidesInput*1);
                 } else if (outtakeSlides.leftSlide.getPower() != 0 && outtakeSlides.getState() == Lift.State.userControlled) {
                     outtakeSlides.trySetPower(0);
                 }
