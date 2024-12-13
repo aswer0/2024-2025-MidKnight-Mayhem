@@ -14,7 +14,7 @@ public class Sensors {
     public static double chamberThreshold = 5.5;
 
     public Sensors(HardwareMap hardwareMap, Telemetry telemetry)  {
-        frontDistanceSensor = hardwareMap.get(DistanceSensor.class, "frontDistanceSensor");
+        frontDistanceSensor = hardwareMap.get(DistanceSensor.class, "fDS");
         this.telemetry = telemetry;
 
     }

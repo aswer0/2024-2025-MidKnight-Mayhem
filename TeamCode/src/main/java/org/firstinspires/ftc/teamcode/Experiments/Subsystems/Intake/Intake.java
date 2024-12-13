@@ -25,11 +25,11 @@ public class Intake {
     public boolean hasCorrectObject = false;
 
     public Intake(HardwareMap hardwareMap) {
-        intakeServo1 = hardwareMap.get(CRServo.class,"intakeServo1"); //left looking from intake side
-        intakeServo2 = hardwareMap.get(CRServo.class,"intakeServo2");
-        intakePivotLeft = hardwareMap.get(Servo.class,"intakePivotLeft"); //from intake side
-        intakePivotRight = hardwareMap.get(Servo.class,"intakePivotRight");
-        intakeSensor = hardwareMap.get(RevColorSensorV3.class,"intakeSensor");
+        intakeServo1 = hardwareMap.get(CRServo.class,"iS1"); //left looking from intake side
+        intakeServo2 = hardwareMap.get(CRServo.class,"iS2");
+        intakePivotLeft = hardwareMap.get(Servo.class,"iPL"); //from intake side
+        intakePivotRight = hardwareMap.get(Servo.class,"iPR");
+        intakeSensor = hardwareMap.get(RevColorSensorV3.class,"iS");
     }
 
     public void setPower(double power) {

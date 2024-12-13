@@ -34,6 +34,7 @@ public class HorizontalSlides {
         horizontalSlidesMotor = hardwareMap.get(DcMotorEx.class,"horizontalSlidesMotor");
         horizontalSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontalSlidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        horizontalSlidesMotor.setDirection(DcMotor.Direction.REVERSE);
     }
     public void setPosition(double position, boolean changeState) {
         if(changeState) state = State.runToPosition;
