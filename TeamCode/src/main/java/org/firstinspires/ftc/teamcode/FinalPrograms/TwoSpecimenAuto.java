@@ -22,7 +22,7 @@ public class TwoSpecimenAuto extends OpMode {
     public static double sample_x = 24.5;
     public static double sample_y = 37;
     public static double pos = 550;
-    public static double power = 1;
+    public static double power = 0.7;
 
     public static double target_x = 36.5; //36.2
     public static double target_y = 72;
@@ -127,13 +127,14 @@ public class TwoSpecimenAuto extends OpMode {
 
             case goToSpecimen:
                 intake.up();
-                path.follow_pid_to_point(get_specimen_target, 180);
+                path.follow_pid_to_point(get_specimen_target, 179);
 
                 if (timer.milliseconds() > 500){
                     lift.toLowChamber();
                 }
 
-                if (path.at_point(get_specimen_target, 4)) {
+                if (path.at_point(get_specimen_target, 5)) { //4
+                    wheelControl.drive(0, 0, 0, 0, 0.7);
                     state = State.pickupSpecimen;
                 }
 
@@ -145,7 +146,7 @@ public class TwoSpecimenAuto extends OpMode {
                 if (sensors.get_front_dist() >= 2.5) {
                     wheelControl.drive(-0.3, 0, 0, 0, 0.7);
                 } else {
-                    wheelControl.drive(0, 0, 0, 0, 0.7);
+                    wheelControl.drive(0, 0, 0, 0, 0);
                     manipulator.closeClaw();
 
                     timer.reset();
