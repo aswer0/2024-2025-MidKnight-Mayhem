@@ -53,7 +53,7 @@ public class FinalTeleOp extends OpMode {
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
+        odometry = new Odometry(hardwareMap, 180, 0, 0, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
