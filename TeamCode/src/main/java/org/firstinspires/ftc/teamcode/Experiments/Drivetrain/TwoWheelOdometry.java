@@ -93,6 +93,7 @@ public class TwoWheelOdometry {
         double dH = (horiz-oldH)*TICKS_TO_INCHES;
 
         dTheta = heading-oldHeading;
+        double middleH = (heading+oldHeading)/2;
 
         // Y is FB and X is LR
         if (Math.abs(dTheta) <= threshold) { //prevents divide by 0 error (when driving straight forward)
@@ -106,8 +107,8 @@ public class TwoWheelOdometry {
         double change_x = dY*Math.sin(dTheta/2) + dX*Math.cos(dTheta/2);
         double change_y = dY*Math.cos(dTheta/2) + dX*Math.sin(dTheta/2);
 
-        this.xPos = xPos+Math.cos(heading-Math.PI/2)*change_x-Math.sin(heading-Math.PI/2)*change_y;
-        this.yPos = yPos+Math.sin(heading-Math.PI/2)*change_x+Math.cos(heading-Math.PI/2)*change_y;
+        this.xPos = xPos+Math.cos(middleH-Math.PI/2)*change_x-Math.sin(middleH-Math.PI/2)*change_y;
+        this.yPos = yPos+Math.sin(middleH-Math.PI/2)*change_x+Math.cos(middleH-Math.PI/2)*change_y;
     }
 
 }

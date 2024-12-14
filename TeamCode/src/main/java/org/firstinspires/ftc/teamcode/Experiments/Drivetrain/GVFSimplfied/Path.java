@@ -19,8 +19,8 @@ public class Path {
     public static double yp = 0.04, yi = 0, yd = 0.001;
     public static double hp = 0.0065, hi = 0, hd = 0.00004;
 
-    public static double follow_xp = 0.045, follow_xi = 0, follow_xd = 0.001;
-    public static double follow_yp = 0.055, follow_yi = 0, follow_yd = 0.001;
+    public static double follow_xp = 0.035, follow_xi = 0, follow_xd = 0.001;
+    public static double follow_yp = 0.035, follow_yi = 0, follow_yd = 0.001;
     public static double follow_hp = 0.0095, follow_hi = 0, follow_hd = 0.00004;
 
     WheelControl wheelControl;
