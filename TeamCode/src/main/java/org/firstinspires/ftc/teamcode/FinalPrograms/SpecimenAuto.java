@@ -32,6 +32,8 @@ public class SpecimenAuto extends OpMode {
     public static double target_x = 37.2; //36.2
     public static double target_y = 72;
 
+    public static boolean distance_recalibration = true;
+
     Point target;
     Point get_specimen_target;
     Point get_sample_target;
@@ -157,7 +159,7 @@ public class SpecimenAuto extends OpMode {
 
                 if (timer.milliseconds() >= 310){
                     manipulator.openClaw();
-                    if (deposit_state < 2){
+                    if (deposit_state < 2 && distance_recalibration){
                         // Why set heading -5?
                         // odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), -5);
                         odometry.opt.setPos(24-sensors.get_front_dist()-robot_length/2, odometry.opt.get_y(), 0);
@@ -200,7 +202,9 @@ public class SpecimenAuto extends OpMode {
                     wheelControl.drive(-0.3, 0, 0, 0, power);
                 }
                 else{
-                    odometry.opt.setX(sensors.get_front_dist()+robot_length/2);
+                    if (distance_recalibration) {
+                        odometry.opt.setPos(sensors.get_front_dist()+robot_length/2, odometry.opt.get_y(), 0);
+                    }
                     wheelControl.drive(0, 0, 0, 0, 0);
                     manipulator.closeClaw();
 
