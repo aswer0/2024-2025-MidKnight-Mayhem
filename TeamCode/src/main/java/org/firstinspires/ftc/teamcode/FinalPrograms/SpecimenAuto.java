@@ -88,7 +88,7 @@ public class SpecimenAuto extends OpMode {
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
-        odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, robot_length/2, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 180, power);
 
@@ -195,13 +195,12 @@ public class SpecimenAuto extends OpMode {
 
             // Picks up specimen from human player area
             case pickupSpecimen:
-                intake.up();
-
                 if (sensors.get_front_dist() >= 2.5){
                     wheelControl.drive(-0.3, 0, 0, 0, 0.7);
                 }
                 else{
-                    wheelControl.drive(0, 0, 0, 0, 0.7);
+                    odometry.opt.setX(sensors.get_front_dist()+robot_length/2);
+                    wheelControl.drive(0, 0, 0, 0, 0);
                     manipulator.closeClaw();
 
                     timer.reset();
