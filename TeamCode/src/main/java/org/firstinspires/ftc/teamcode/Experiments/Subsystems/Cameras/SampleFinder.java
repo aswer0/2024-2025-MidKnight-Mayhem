@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.vision.VisionProcessor;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -54,11 +55,6 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public boolean insideContour = false;
 
     FtcDashboard dashboard;
-
-    public enum Alliance {
-        red,
-        blue
-    }
     public SampleFinder(Alliance alliance) {
         this.alliance = alliance;
         this.dashboard = FtcDashboard.getInstance();
