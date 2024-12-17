@@ -43,7 +43,7 @@ public class SpecimenAuto extends OpMode {
     WheelControl wheelControl;
     Path path;
 
-    SpecimenAuto.State state = State.pid;
+    SpecimenAuto.State state = State.pidToBar;
     Lift lift;
     Manipulator manipulator;
     HorizontalSlides horizontalSlides;
@@ -53,12 +53,12 @@ public class SpecimenAuto extends OpMode {
     int intakeState = 0;
 
     // Order:
-    // pid -> deposit -> manage -> manageDepositState or goToSpecimen
-    // manageDepositState -> pid or goToSample
-    // goToSpecimen -> pickupSpecimen -> pid
+    // pidToBar -> deposit -> manage -> manageDepositState or goToSpecimen
+    // manageDepositState -> pidToBar or goToSample
+    // goToSpecimen -> pickupSpecimen -> pidToBar
     // goToSample -> intakeSample -> spitSample -> goToSpecimen
     enum State {
-        pid,
+        pidToBar,
         goToSpecimen,
         pickupSpecimen,
         intakeSample,
@@ -120,7 +120,7 @@ public class SpecimenAuto extends OpMode {
                 // This case is called after PID and only during deposit state 2
                 // Why PID again right after you PID; needs fixing
                 if (deposit_state == 0 || deposit_state == 1){
-                    state = State.pid;
+                    state = State.pidToBar;
                 }
                 if (deposit_state >= 2){
                     timer.reset();
@@ -128,7 +128,7 @@ public class SpecimenAuto extends OpMode {
                 }
                 break;*/
             // Move to high specimen bar
-            case pid:
+            case pidToBar:
                 intake.up();
                 manipulator.closeClaw();
 
@@ -197,7 +197,7 @@ public class SpecimenAuto extends OpMode {
             // Picks up specimen from human player area
             case pickupSpecimen:
                 if (sensors.get_front_dist() >= 2.5){
-                    wheelControl.drive(-0.3, 0, 0, 0, 0.7);
+                    wheelControl.drive(-0.3, 0, 0, 0, power);
                 }
                 else{
                     odometry.opt.setX(sensors.get_front_dist()+robot_length/2);
@@ -207,7 +207,7 @@ public class SpecimenAuto extends OpMode {
                     timer.reset();
                     target.y -= 2;
                     //target.x += 1;
-                    state = State.pid;
+                    state = State.pidToBar;
                 }
 
                 break;
