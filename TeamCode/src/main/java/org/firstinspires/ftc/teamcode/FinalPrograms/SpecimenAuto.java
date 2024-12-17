@@ -49,6 +49,11 @@ public class SpecimenAuto extends OpMode {
     double deposit_state = 0;
     int intakeState = 0;
 
+    // Order:
+    // pid -> deposit -> manage -> manageDepositState or goToSpecimen
+    // manageDepositState -> pid -> goToSample
+    // goToSpecimen -> pickupSpecimen -> pid
+    // gotoSample -> intakeSample -> spitSample -> goToSpecimen
     enum State {
         pid,
         goToSpecimen,
@@ -233,7 +238,7 @@ public class SpecimenAuto extends OpMode {
 
                 if (timer.milliseconds() < 500){
                     horizontalSlides.setPosition(-200);
-                } else{
+                } else {
                     horizontalSlides.setPosition(pos);
                 }
 
