@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSl
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class FinalTeleOp extends OpMode {
     ElapsedTime intakeTimer = new ElapsedTime();
     Odometry odometry;
     WheelControl drive;
+    Alliance alliance = Alliance.red;
 
     Lift outtakeSlides;
     Manipulator manipulator;
@@ -89,6 +91,7 @@ public class FinalTeleOp extends OpMode {
         currentState.driveY = gamepad1.left_stick_y; // Drive Y
         currentState.rotate = -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x)*0.8; // Drive rotate
         currentState.reAlignFieldOriented = gamepad1.options; // realign Field Oriented
+        currentState.toggleAlliance = gamepad1.share;
 
         currentState.toLowChamber = gamepad2.cross; // toLowChamber
         currentState.toHighChamber = gamepad2.square; // high chamber
@@ -110,6 +113,9 @@ public class FinalTeleOp extends OpMode {
         if(!previousState.resetOuttakeSlides && currentState.resetOuttakeSlides) {
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+        for(LynxModule test: allHubs){
+            test.clearBulkCache();
         }
         switch(outtakeState) {
             case inactive:
@@ -260,6 +266,7 @@ public class FinalTeleOp extends OpMode {
         public double driveY = 0;
         public double rotate = 0;
         public boolean reAlignFieldOriented = false;
+        public boolean toggleAlliance = false;
         // Preset Outtake Slides
         public boolean toLowChamber = false;
         public boolean toHighChamber = false;

@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class CameraTest extends OpMode {
 
     @Override
     public void init() {
-        processor = new SampleFinder(SampleFinder.Alliance.red);
+        processor = new SampleFinder(Alliance.red);
         camera = hardwareMap.get(CameraName.class, "Webcam 1");
         portal = new VisionPortal
                 .Builder()
