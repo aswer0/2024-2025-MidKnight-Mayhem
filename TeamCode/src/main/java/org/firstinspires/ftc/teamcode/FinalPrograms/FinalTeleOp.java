@@ -108,7 +108,7 @@ public class FinalTeleOp extends OpMode {
         // Drive
         drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
-            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
+            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 180);
         }
         if(!previousState.resetOuttakeSlides && currentState.resetOuttakeSlides) {
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
