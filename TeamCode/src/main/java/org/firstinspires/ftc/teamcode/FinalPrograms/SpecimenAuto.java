@@ -19,6 +19,9 @@ import org.opencv.core.Point;
 @Autonomous
 @Config
 public class SpecimenAuto extends OpMode {
+    public static double robot_length = 15.75;
+    public static double robot_width = 13.75;
+
     public static double pos = -470;
     public static double target_angle = 135;
     public static double sample_x = 24.5;
@@ -51,9 +54,9 @@ public class SpecimenAuto extends OpMode {
 
     // Order:
     // pid -> deposit -> manage -> manageDepositState or goToSpecimen
-    // manageDepositState -> pid -> goToSample
+    // manageDepositState -> pid or goToSample
     // goToSpecimen -> pickupSpecimen -> pid
-    // gotoSample -> intakeSample -> spitSample -> goToSpecimen
+    // goToSample -> intakeSample -> spitSample -> goToSpecimen
     enum State {
         pid,
         goToSpecimen,
@@ -61,7 +64,7 @@ public class SpecimenAuto extends OpMode {
         intakeSample,
         manage,
         deposit,
-        gotoSample,
+        goToSample,
         manageDepositState,
         spitSample
     }
@@ -109,18 +112,23 @@ public class SpecimenAuto extends OpMode {
         odometry.opt.update();
 
         switch (state){
+            // Chooses PID to high rung vs pick up sample from lines
+            // Weird
             case manageDepositState:
                 intake.stop();
                 intake.up();
-                if (deposit_state == 0 || deposit_state == 1){
+                // This case is called after PID and only during deposit state 2
+                // Why PID again right after you PID; needs fixing
+                /*if (deposit_state == 0 || deposit_state == 1){
                     state = State.pid;
-                }
+                }*/
                 if (deposit_state >= 2){
                     timer.reset();
-                    state = State.gotoSample;
+                    state = State.goToSample;
                 }
                 break;
 
+            // Move to high specimen bar
             case pid:
                 intake.up();
                 manipulator.closeClaw();
@@ -137,20 +145,23 @@ public class SpecimenAuto extends OpMode {
                 }
 
                 if (timer.milliseconds() > 5000) {
-                    //timer.reset();
-                    //state = State.deposit;
+                    timer.reset();
+                    state = State.deposit;
                 }
 
                 break;
 
+            // Deposits specimen at high rung
             case deposit:
                 intake.up();
                 lift.setPosition(525);
 
                 if (timer.milliseconds() >= 310){
                     manipulator.openClaw();
-                    if (deposit_state == 0){
-                        odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), -5);
+                    if (deposit_state < 2){
+                        // Why set heading -5?
+                        // odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), -5);
+                        odometry.opt.setPos(24-sensors.get_front_dist()-robot_length/2, odometry.opt.get_y(), 0);
                     }
 
                     deposit_state++;
@@ -159,6 +170,7 @@ public class SpecimenAuto extends OpMode {
 
                 break;
 
+            // Goes to human player zone to pick up specimen
             case goToSpecimen:
                 intake.up();
                 path.follow_pid_to_point(get_specimen_target, 180);
@@ -170,6 +182,7 @@ public class SpecimenAuto extends OpMode {
 
                 break;
 
+            // Manages logic based on current number of deposits
             case manage:
                 if (deposit_state == 2) {
                     state = State.manageDepositState;
@@ -180,6 +193,7 @@ public class SpecimenAuto extends OpMode {
 
                 break;
 
+            // Picks up specimen from human player area
             case pickupSpecimen:
                 intake.up();
 
@@ -192,27 +206,30 @@ public class SpecimenAuto extends OpMode {
 
                     timer.reset();
                     target.y -= 2;
-                    target.x += 1;
+                    //target.x += 1;
                     state = State.pid;
                 }
 
                 break;
 
-            case gotoSample:
+            // Goes to a sample from the lines
+            case goToSample:
                 lift.toLowChamber();
                 intake.up();
                 horizontalSlides.setPosition(-1);
 
                 path.follow_pid_to_point(get_sample_target, target_angle);
 
-                if (path.at_point(get_sample_target, 1) || timer.milliseconds()>1500){
+                if (path.at_point(get_sample_target, 1) || timer.milliseconds()>1500) {
                     wheelControl.drive(0, 0, 0, 0, 0);
                     timer.reset();
+                    get_sample_target.y += 3;
                     state = State.intakeSample;
                 }
 
                 break;
 
+            // Intakes sample from lines
             case intakeSample:
                 lift.toLowChamber();
                 if (timer.milliseconds() >= 500){
@@ -232,6 +249,7 @@ public class SpecimenAuto extends OpMode {
 
                 break;
 
+            // Spits out sample trapped in intake
             case spitSample:
                 Point p = new Point(odometry.opt.get_x(), odometry.opt.get_y());
                 path.follow_pid_to_point(p, 35);
