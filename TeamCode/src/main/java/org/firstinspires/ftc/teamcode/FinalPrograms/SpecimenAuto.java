@@ -114,20 +114,19 @@ public class SpecimenAuto extends OpMode {
         switch (state){
             // Chooses PID to high rung vs pick up sample from lines
             // Weird
-            case manageDepositState:
+            /*case manageDepositState:
                 intake.stop();
                 intake.up();
                 // This case is called after PID and only during deposit state 2
                 // Why PID again right after you PID; needs fixing
-                /*if (deposit_state == 0 || deposit_state == 1){
+                if (deposit_state == 0 || deposit_state == 1){
                     state = State.pid;
-                }*/
+                }
                 if (deposit_state >= 2){
                     timer.reset();
                     state = State.goToSample;
                 }
-                break;
-
+                break;*/
             // Move to high specimen bar
             case pid:
                 intake.up();
@@ -185,9 +184,11 @@ public class SpecimenAuto extends OpMode {
             // Manages logic based on current number of deposits
             case manage:
                 if (deposit_state == 2) {
-                    state = State.manageDepositState;
+                    timer.reset();
+                    state = State.goToSample;
                 }
                 else{
+                    timer.reset();
                     state = State.goToSpecimen;
                 }
 
@@ -214,6 +215,7 @@ public class SpecimenAuto extends OpMode {
             // Goes to a sample from the lines
             case goToSample:
                 lift.toLowChamber();
+                intake.stop();
                 intake.up();
                 horizontalSlides.setPosition(-1);
 
