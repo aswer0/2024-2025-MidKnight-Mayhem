@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -12,6 +14,8 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 
 @Config
 public class Intake {
+    public static boolean outputDebugInfo = false;
+
     public static double DOWN_POS=0.47;
     public static double UP_POS=0.9;
 
@@ -32,6 +36,7 @@ public class Intake {
         intakePivotLeft = hardwareMap.get(Servo.class,"iPL"); //from intake side
         intakePivotRight = hardwareMap.get(Servo.class,"iPR");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class,"iS");
+        intakeSensor.enableLed(false);
     }
     public void setAlliance(Alliance alliance) {
         this.alliance = alliance;
@@ -59,16 +64,25 @@ public class Intake {
     public void down() {setPivot(DOWN_POS);}
 
     public void update(boolean posessingObject) {
-        hasCorrectObject = ((alliance == Alliance.red ? intakeSensor.getNormalizedColors().red > 120 : intakeSensor.getNormalizedColors().blue > 120) || (intakeSensor.getNormalizedColors().red > 120 && intakeSensor.getNormalizedColors().green > 120)) && intakeSensor.getDistance(DistanceUnit.INCH) < 0.1;
+        hasCorrectObject = ((alliance == Alliance.red ? intakeSensor.getNormalizedColors().red > 120 : intakeSensor.getNormalizedColors().blue > 80) || (intakeSensor.getNormalizedColors().red > 120 && intakeSensor.getNormalizedColors().green > 120)) && intakeSensor.getDistance(DistanceUnit.INCH) < 2.5;
         // TODO: Alliance detection
         if(intaking && hasCorrectObject) {
-            stop();
+            //stop();
         } else if(intaking) {
-            intake();
+            //intake();
         } else if (!hasCorrectObject) { // bad object or no object, reverse both. TODO maybe make a distinction between both objects
-            reverse();
+            //reverse();
         } else {
-            stop();
+            //stop();
+        }
+        if(outputDebugInfo) {
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.put("Intake/Red", intakeSensor.red() );
+            packet.put("Intake/Green", intakeSensor.green());
+            packet.put("Intake/Blue", intakeSensor.blue());
+            packet.put("Intake/Distance", intakeSensor.getDistance(DistanceUnit.INCH));
+            packet.put("Intake/hasCorrectObject", hasCorrectObject);
+            (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
         }
     }
     public void update() {

@@ -64,6 +64,8 @@ public class FinalTeleOp extends OpMode {
         intakeSlides = new HorizontalSlides(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
         manipulator.openClaw();
+        gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
+        gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
@@ -84,13 +86,14 @@ public class FinalTeleOp extends OpMode {
         odometry.opt.update();
         outtakeSlides.update();
         intakeSlides.update();
+        intake.update();
         //intake.update(); TODO LM2 Automation
         // The user controlled part
         State currentState = new State();
         currentState.driveX = 1.1*gamepad1.left_stick_x; // drive X
         currentState.driveY = gamepad1.left_stick_y; // Drive Y
         currentState.rotate = -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x)*0.8; // Drive rotate
-        currentState.reAlignFieldOriented = gamepad1.options; // realign Field Oriented
+        currentState.reAlignFieldOriented = gamepad1.options; // realign Field Oriented & to red
         currentState.toggleAlliance = gamepad1.share;
 
         currentState.toLowChamber = gamepad2.cross; // toLowChamber
@@ -108,6 +111,8 @@ public class FinalTeleOp extends OpMode {
         // Drive
         drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
+            alliance = Alliance.red;
+            gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 180);
         }
         if(!previousState.resetOuttakeSlides && currentState.resetOuttakeSlides) {
@@ -115,7 +120,8 @@ public class FinalTeleOp extends OpMode {
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         if(!previousState.toggleAlliance && currentState.toggleAlliance) {
-            alliance = alliance == Alliance.red ? Alliance.blue : Alliance.red;
+            gamepad1.setLedColor(0,0,1,Gamepad.LED_DURATION_CONTINUOUS);
+            alliance = Alliance.blue;
         }
         switch(outtakeState) {
             case inactive:
