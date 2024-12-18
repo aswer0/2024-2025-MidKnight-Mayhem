@@ -22,7 +22,7 @@ public class WheelControl {
 
     Odometry odometry;
     DriveCorrection driveCorrection;
-    double target_angle = -180;
+    double target_angle = 0;
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
     public WheelControl(HardwareMap hardwareMap, Odometry odometry) {
@@ -112,22 +112,25 @@ public class WheelControl {
         }
     }
 
-   public void correction_drive(Gamepad gamepad1, double powerLevel, Telemetry telemetry){
-       if (gamepad1.right_stick_x != 0){
+   public void correction_drive(double left_stick_y, double left_stick_x, double rotate, double angle, double powerLevel){
+       if (rotate != 0){
            this.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
            this.drive(
-                   -gamepad1.left_stick_y, gamepad1.left_stick_x,
-                   driveCorrection.set_correction(gamepad1.right_stick_x), 0,
+                   -left_stick_y, left_stick_x,
+                   driveCorrection.set_correction(target_angle),
+                   angle,
                    powerLevel
            );
+           target_angle += rotate*0.1;
        }
        else{
            this.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
            this.drive(
-                   -gamepad1.left_stick_y, gamepad1.left_stick_x,
-                   driveCorrection.stable_correction(gamepad1.right_stick_x), 0,
+                   -left_stick_y, left_stick_x,
+                   driveCorrection.stable_correction(target_angle),
+                   angle,
                    powerLevel
            );
        }

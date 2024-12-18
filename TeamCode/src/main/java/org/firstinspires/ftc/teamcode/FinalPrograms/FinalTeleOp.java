@@ -41,8 +41,6 @@ public class FinalTeleOp extends OpMode {
     HorizontalSlides intakeSlides;
     IntakingState intakeState = IntakingState.inactive;
 
-
-
     List<LynxModule> allHubs;
 
     double drivePower=1;
@@ -109,7 +107,7 @@ public class FinalTeleOp extends OpMode {
         currentState.depositSpecimen = gamepad2.left_bumper; // deposit specimen
         currentState.startHang = gamepad2.share;
         // Drive
-        drive.drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
+        drive.correction_drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
             alliance = Alliance.red;
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
