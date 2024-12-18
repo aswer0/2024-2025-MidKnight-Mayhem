@@ -8,6 +8,8 @@ import org.opencv.core.Point;
 
 public class OptOdometry {
     private double heading;
+    private double heading_unnorm;
+
     private double xPos;
     private double yPos;
 
@@ -35,7 +37,9 @@ public class OptOdometry {
         otos = hardwareMap.get(SparkFunOTOS.class, oto);
         this.xPos = x;
         this.yPos = y;
+
         this.heading = h;
+        this.heading_unnorm = h;
 
         otos.setLinearUnit(DistanceUnit.INCH);
         otos.setAngularUnit(AngleUnit.DEGREES);
@@ -66,11 +70,16 @@ public class OptOdometry {
         return this.heading;
     }
 
+    public double get_heading_unnorm() {
+        return this.heading_unnorm;
+    }
+
     public void update(){
         SparkFunOTOS.Pose2D pos = this.otos.getPosition();
         this.xPos = pos.x;
         this.yPos = pos.y;
         this.heading = pos.h % 360;
+        this.heading_unnorm = pos.h;
     }
 
     public void setX(double x){

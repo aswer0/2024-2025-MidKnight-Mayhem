@@ -150,7 +150,7 @@ public class TwoSpecimenAuto extends OpMode {
                     manipulator.closeClaw();
 
                     timer.reset();
-                    target.y -= 4;
+                    target.y -= 2;
                     state = State.pid;
                 }
 
