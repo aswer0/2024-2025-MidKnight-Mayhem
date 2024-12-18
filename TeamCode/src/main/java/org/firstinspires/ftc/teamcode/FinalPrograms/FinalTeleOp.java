@@ -114,8 +114,8 @@ public class FinalTeleOp extends OpMode {
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
-        for(LynxModule test: allHubs){
-            test.clearBulkCache();
+        if(!previousState.toggleAlliance && currentState.toggleAlliance) {
+            alliance = alliance == Alliance.red ? Alliance.blue : Alliance.red;
         }
         switch(outtakeState) {
             case inactive:

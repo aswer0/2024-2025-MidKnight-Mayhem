@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 
 @Config
 public class Intake {
@@ -23,6 +24,7 @@ public class Intake {
     public RevColorSensorV3 intakeSensor;
     public boolean intaking = false;
     public boolean hasCorrectObject = false;
+    public Alliance alliance = Alliance.red;
 
     public Intake(HardwareMap hardwareMap) {
         intakeServo1 = hardwareMap.get(CRServo.class,"iS1"); //left looking from intake side
@@ -31,7 +33,9 @@ public class Intake {
         intakePivotRight = hardwareMap.get(Servo.class,"iPR");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class,"iS");
     }
-
+    public void setAlliance(Alliance alliance) {
+        this.alliance = alliance;
+    }
     public void setPower(double power) {
         intakeServo1.setPower(power);
         intakeServo2.setPower(-power);
@@ -55,7 +59,7 @@ public class Intake {
     public void down() {setPivot(DOWN_POS);}
 
     public void update(boolean posessingObject) {
-        hasCorrectObject = intakeSensor.getDistance(DistanceUnit.INCH) < 0.1;
+        hasCorrectObject = ((alliance == Alliance.red ? intakeSensor.getNormalizedColors().red > 120 : intakeSensor.getNormalizedColors().blue > 120) || (intakeSensor.getNormalizedColors().red > 120 && intakeSensor.getNormalizedColors().green > 120)) && intakeSensor.getDistance(DistanceUnit.INCH) < 0.1;
         // TODO: Alliance detection
         if(intaking && hasCorrectObject) {
             stop();
