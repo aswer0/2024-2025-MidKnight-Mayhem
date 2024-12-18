@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Config
 public class Odometry {
@@ -86,7 +87,6 @@ public class Odometry {
         yPos = y;
         heading = theta;
     }
-
     public void update() {
         boolean useIMU = false;
 //        if (imuTimer.milliseconds()>500) { //update imu heading everyone 500 milliseconds
@@ -109,6 +109,12 @@ public class Odometry {
         double dR = (right-oldR)*TICKS_TO_INCHES;
         double dF = (front-oldF)*TICKS_TO_INCHES;
 
+        if (useIMU) {
+            double cur_heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            dTheta = cur_heading-heading;
+            heading = cur_heading;
+            imuTimer.reset();
+        }
         dTheta = (dL - dR) / (TRACK_WIDTH);
 
         if (Math.abs(dTheta) <= threshold) { //prevents divide by 0 error (when driving straight forward)
@@ -119,7 +125,11 @@ public class Odometry {
             dY = 2 * (dR / dTheta + TRACK_RIGHT) * (Math.sin(dTheta / 2));
             dX = 2 * (dF / dTheta - LENGTH) * (Math.sin(dTheta / 2));
         }
+        /*double change_x = dY*Math.sin(dTheta/2) + dX*Math.cos(dTheta/2);
+        double change_y = dY*Math.cos(dTheta/2) + dX*Math.sin(dTheta/2);
 
+        this.xPos = xPos + Math.cos(heading-Math.PI/2)*change_x-Math.sin(heading-Math.PI/2)*change_y;
+        this.yPos = yPos + Math.sin(heading-Math.PI/2)*change_x+Math.cos(heading-Math.PI/2)*change_y;*/
         this.xPos = xPos + Math.cos(heading-Math.PI/2)*dX-Math.sin(heading-Math.PI/2)*dY;  //globalization
         this.yPos = yPos + Math.sin(heading-Math.PI/2)*dX+Math.cos(heading-Math.PI/2)*dY;
         if (!useIMU) this.heading = heading - dTheta;
