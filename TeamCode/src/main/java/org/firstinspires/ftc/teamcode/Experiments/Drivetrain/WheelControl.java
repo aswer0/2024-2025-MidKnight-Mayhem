@@ -118,21 +118,18 @@ public class WheelControl {
 
            this.drive(
                    -gamepad1.left_stick_y, gamepad1.left_stick_x,
-                   -gamepad1.right_stick_x, 0,
+                   driveCorrection.set_correction(gamepad1.right_stick_x), 0,
                    powerLevel
            );
-           driveCorrection.set_target_angle(this.odometry.opt.get_heading());
-           telemetry.addData("target angle TURNING", driveCorrection.ta);
        }
        else{
-           this.change_mode(DcMotor.ZeroPowerBehavior.FLOAT);
+           this.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
            this.drive(
                    -gamepad1.left_stick_y, gamepad1.left_stick_x,
-                   driveCorrection.stable_correction(driveCorrection.ta), 0,
+                   driveCorrection.stable_correction(gamepad1.right_stick_x), 0,
                    powerLevel
            );
-           telemetry.addData("target angle MOVING", driveCorrection.ta);
        }
    }
 }
