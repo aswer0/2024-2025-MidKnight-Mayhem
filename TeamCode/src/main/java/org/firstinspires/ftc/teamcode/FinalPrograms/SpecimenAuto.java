@@ -22,7 +22,7 @@ public class SpecimenAuto extends OpMode {
     public static double robot_length = 15.75;
     public static double robot_width = 13.75;
 
-    public static double pos = -470;
+    public static double specimen_low_pos = 550;
     public static double target_angle = 135;
     public static double sample_x = 24.5;
     public static double sample_y = 37;
@@ -67,7 +67,7 @@ public class SpecimenAuto extends OpMode {
         manage,
         deposit,
         goToSample,
-        manageDepositState,
+        //manageDepositState,
         spitSample
     }
 
@@ -238,12 +238,12 @@ public class SpecimenAuto extends OpMode {
             case intakeSample:
                 lift.toLowChamber();
                 if (timer.milliseconds() >= 500){
-                    horizontalSlides.setPosition(pos);
+                    horizontalSlides.setPosition(specimen_low_pos);
                 }
                 intake.intake();
                 intake.down();
 
-                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-pos) <= 15){
+                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-specimen_low_pos) <= 15){
                     intakeState++;
                 }
                 if (intakeState > 0 && timer.milliseconds()>2000) {
@@ -262,7 +262,7 @@ public class SpecimenAuto extends OpMode {
                 if (timer.milliseconds() < 500){
                     horizontalSlides.setPosition(-200);
                 } else {
-                    horizontalSlides.setPosition(pos);
+                    horizontalSlides.setPosition(specimen_low_pos);
                 }
 
                 if (horizontalSlides.horizontalSlidesMotor.getCurrentPosition() <= 15){
