@@ -30,6 +30,7 @@ public class VectorField {
     public double turn_speed;
     public boolean PID = false;
     public double error = 0;
+
     public double xp = end_decel, xi = 0, xd = 0.001;
     public double yp = end_decel, yi = 0, yd = 0.001;
     public double hp = 0.0065, hi = 0, hd = 0.00004;
@@ -56,7 +57,7 @@ public class VectorField {
         drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         x_PID = new PIDController(xp, xi, xd);
-        x_PID = new PIDController(yp, yi, yd);
+        y_PID = new PIDController(yp, yi, yd);
         h_PID = new PIDController(hp, hi, hd);
     }
 

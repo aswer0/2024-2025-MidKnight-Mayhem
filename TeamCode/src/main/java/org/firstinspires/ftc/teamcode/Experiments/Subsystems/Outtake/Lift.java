@@ -64,11 +64,17 @@ public class Lift {
 
     public void toHighBasket() {
         setPosition(highBasketPos);
-    } public void toHighChamber() {
+    }
+
+    public void toHighChamber() {
         setPosition(highChamberPos);
-    } public void toLowBasket() {
+    }
+
+    public void toLowBasket() {
         setPosition(lowBasketPos);
-    } public void toLowChamber() {
+    }
+
+    public void toLowChamber() {
         setPosition(lowChamberPos);
     }
 

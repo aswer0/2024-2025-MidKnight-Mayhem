@@ -89,7 +89,7 @@ public class RedRightGVF extends OpMode {
                 break;
 
             case deposit:
-                lift.setPosition(600);
+                lift.setPosition(550);
                 if (timer.milliseconds() >= 250){
                     manipulator.openClaw();
                 }

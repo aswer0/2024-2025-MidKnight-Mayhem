@@ -22,7 +22,7 @@ public class SpecimenAuto extends OpMode {
     public static double robot_length = 15.75;
     public static double robot_width = 13.75;
 
-    public static double pos = -470;
+    public static double specimen_low_pos = 550;
     public static double target_angle = 135;
     public static double sample_x = 24.5;
     public static double sample_y = 37;
@@ -31,6 +31,8 @@ public class SpecimenAuto extends OpMode {
     //36.2
     public static double target_x = 37.2; //36.2
     public static double target_y = 72;
+
+    public static boolean distance_recalibration = true;
 
     Point target;
     Point get_specimen_target;
@@ -65,7 +67,7 @@ public class SpecimenAuto extends OpMode {
         manage,
         deposit,
         goToSample,
-        manageDepositState,
+        //manageDepositState,
         spitSample
     }
 
@@ -157,7 +159,7 @@ public class SpecimenAuto extends OpMode {
 
                 if (timer.milliseconds() >= 310){
                     manipulator.openClaw();
-                    if (deposit_state < 2){
+                    if (deposit_state < 2 && distance_recalibration){
                         // Why set heading -5?
                         // odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), -5);
                         odometry.opt.setPos(24-sensors.get_front_dist()-robot_length/2, odometry.opt.get_y(), 0);
@@ -200,7 +202,9 @@ public class SpecimenAuto extends OpMode {
                     wheelControl.drive(-0.3, 0, 0, 0, power);
                 }
                 else{
-                    odometry.opt.setX(sensors.get_front_dist()+robot_length/2);
+                    if (distance_recalibration) {
+                        odometry.opt.setPos(sensors.get_front_dist()+robot_length/2, odometry.opt.get_y(), 0);
+                    }
                     wheelControl.drive(0, 0, 0, 0, 0);
                     manipulator.closeClaw();
 
@@ -234,12 +238,12 @@ public class SpecimenAuto extends OpMode {
             case intakeSample:
                 lift.toLowChamber();
                 if (timer.milliseconds() >= 500){
-                    horizontalSlides.setPosition(pos);
+                    horizontalSlides.setPosition(specimen_low_pos);
                 }
                 intake.intake();
                 intake.down();
 
-                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-pos) <= 15){
+                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-specimen_low_pos) <= 15){
                     intakeState++;
                 }
                 if (intakeState > 0 && timer.milliseconds()>2000) {
@@ -258,7 +262,7 @@ public class SpecimenAuto extends OpMode {
                 if (timer.milliseconds() < 500){
                     horizontalSlides.setPosition(-200);
                 } else {
-                    horizontalSlides.setPosition(pos);
+                    horizontalSlides.setPosition(specimen_low_pos);
                 }
 
                 if (horizontalSlides.horizontalSlidesMotor.getCurrentPosition() <= 15){

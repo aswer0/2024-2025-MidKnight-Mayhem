@@ -13,9 +13,6 @@ import org.opencv.core.Point;
 @Config
 @TeleOp
 public class GVFTest extends OpMode {
-    public static double target_x = 40;
-    public static  double target_y = 105;
-
     Odometry odometry;
     Path path;
     VectorField vf;
