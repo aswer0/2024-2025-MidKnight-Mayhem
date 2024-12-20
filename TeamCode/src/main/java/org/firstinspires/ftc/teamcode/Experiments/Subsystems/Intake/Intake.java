@@ -50,7 +50,7 @@ public class Intake {
         setPower(-1);
     }
     public void reverse() {
-        setPower(1);
+        setPower(0.8);
     }
     public void stop() {
         setPower(0);
@@ -62,6 +62,7 @@ public class Intake {
     }
     public void up() {setPivot(UP_POS);}
     public void down() {setPivot(DOWN_POS);}
+    public void reverseDown() {setPivot(0.55);}
 
     public void update(boolean posessingObject) {
         hasCorrectObject = ((alliance == Alliance.red ? intakeSensor.getNormalizedColors().red > 120 : intakeSensor.getNormalizedColors().blue > 80) || (intakeSensor.getNormalizedColors().red > 120 && intakeSensor.getNormalizedColors().green > 120)) && intakeSensor.getDistance(DistanceUnit.INCH) < 2.5;

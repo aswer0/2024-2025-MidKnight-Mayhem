@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
@@ -28,6 +29,7 @@ public class FinalTeleOp extends OpMode {
     WheelControl drive;
     Alliance alliance = Alliance.red;
 
+    Servo sweeper;
     Lift outtakeSlides;
     Manipulator manipulator;
     boolean clawOpen = true;
@@ -58,6 +60,8 @@ public class FinalTeleOp extends OpMode {
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
 
+        sweeper = hardwareMap.get(Servo.class, "sweeper");
+        sweeper.setPosition(0);
         intake = new Intake(hardwareMap);
         intakeSlides = new HorizontalSlides(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
@@ -93,6 +97,8 @@ public class FinalTeleOp extends OpMode {
         currentState.rotate = -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x)*0.8; // Drive rotate
         currentState.reAlignFieldOriented = gamepad1.options; // realign Field Oriented & to red
         currentState.toggleAlliance = gamepad1.share;
+        currentState.decreasePower = gamepad1.left_bumper;
+        currentState.increasePower = gamepad1.right_bumper;
 
         currentState.toLowChamber = gamepad2.cross; // toLowChamber
         currentState.toHighChamber = gamepad2.square; // high chamber
@@ -121,6 +127,8 @@ public class FinalTeleOp extends OpMode {
             gamepad1.setLedColor(0,0,1,Gamepad.LED_DURATION_CONTINUOUS);
             alliance = Alliance.blue;
         }
+        if(!previousState.decreasePower && currentState.decreasePower) drivePower = 0.3;
+        if(!previousState.increasePower && currentState.increasePower) drivePower = 1;
         switch(outtakeState) {
             case inactive:
                 // Outtake presets
@@ -149,7 +157,7 @@ public class FinalTeleOp extends OpMode {
                     }
                     clawOpen = !clawOpen;
                 }
-                if(!previousState.depositSpecimen && currentState.depositSpecimen && !clawOpen) {
+                if (!previousState.depositSpecimen && currentState.depositSpecimen && !clawOpen) {
                     autoDepositLimit = outtakeSlides.leftSlide.getCurrentPosition() - 300;
                     outtakeLastPosition = outtakeSlides.leftSlide.getCurrentPosition();
                     outtakeState = OuttakeState.depositingSpecimen;
@@ -201,6 +209,13 @@ public class FinalTeleOp extends OpMode {
             intakeSlides.trySetPower(previousState.intakeSlidesInput);
         } else if (intakeSlides.horizontalSlidesMotor.getPower() != 0 && intakeSlides.getState() == HorizontalSlides.State.userControlled) { // in the dead zone and not running to target
             intakeSlides.trySetPower(0);
+        }
+
+        if (gamepad2.left_bumper) {
+            sweeper.setPosition(0.5);
+        }
+        else {
+            sweeper.setPosition(0);
         }
 
         //manual intake
@@ -271,6 +286,8 @@ public class FinalTeleOp extends OpMode {
         public double rotate = 0;
         public boolean reAlignFieldOriented = false;
         public boolean toggleAlliance = false;
+        public boolean increasePower = false;
+        public boolean decreasePower = false;
         // Preset Outtake Slides
         public boolean toLowChamber = false;
         public boolean toHighChamber = false;

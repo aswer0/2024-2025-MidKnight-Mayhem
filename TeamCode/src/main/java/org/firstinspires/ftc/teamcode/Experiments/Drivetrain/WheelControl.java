@@ -3,14 +3,18 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
 import android.sax.StartElementListener;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.sun.source.doctree.StartElementTree;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.utils;
+
+import java.util.Optional;
 
 //
 public class WheelControl {
@@ -98,41 +102,35 @@ public class WheelControl {
     }
 
     public void change_mode(DcMotor.ZeroPowerBehavior mode){
-        if (mode == DcMotor.ZeroPowerBehavior.BRAKE){
-            this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        }
-        else if (mode == DcMotor.ZeroPowerBehavior.FLOAT){
-            this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            this.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            this.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            this.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        }
+        this.BR.setZeroPowerBehavior(mode);
+        this.FR.setZeroPowerBehavior(mode);
+        this.BL.setZeroPowerBehavior(mode);
+        this.FL.setZeroPowerBehavior(mode);
     }
 
    public void correction_drive(double left_stick_y, double left_stick_x, double rotate, double angle, double powerLevel){
-       if (rotate != 0){
+        if(rotate != 0) {
+            target_angle = odometry.opt.get_heading_unnorm();
+            this.drive(
+                left_stick_y, left_stick_x,
+                rotate,
+                angle,
+                powerLevel
+            );
+        }
+
+       else {
            this.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
            this.drive(
-                   -left_stick_y, left_stick_x,
-                   driveCorrection.set_correction(target_angle),
-                   angle,
-                   powerLevel
-           );
-           target_angle += rotate*0.1;
-       }
-       else{
-           this.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
-
-           this.drive(
-                   -left_stick_y, left_stick_x,
+                   left_stick_y, left_stick_x,
                    driveCorrection.stable_correction(target_angle),
                    angle,
                    powerLevel
            );
+           TelemetryPacket packet = new TelemetryPacket();
+           packet.put("Target angle", target_angle);
+           (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
        }
    }
 }
