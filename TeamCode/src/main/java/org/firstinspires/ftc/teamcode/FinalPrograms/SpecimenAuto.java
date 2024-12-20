@@ -133,7 +133,8 @@ public class SpecimenAuto extends OpMode {
                     manipulator.openClaw();
                 }
                 if (timer.milliseconds() >= 400){
-                    if (deposit_state >= 2){
+                    // im not sure if it will intake 3 times then move to go to specimen state, check this
+                    if (deposit_state >= 2 && deposit_state < 5){
                         timer.reset();
                         state = State.intakeSample;
                     }
@@ -170,13 +171,18 @@ public class SpecimenAuto extends OpMode {
                     manipulator.closeClaw();
 
                     timer.reset();
-                    target.y -= 2;
+                    target.y -= 1; // this has to be tuned better for more space on the right
                     state = State.pid;
                 }
 
                 break;
 
             case intakeSample:
+                // im not sure if it will intake 3 times then move to go to specimen state, check this
+                if (deposit_state > 5){
+                    state = State.goToSpecimen;
+                }
+
                 path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
 
                 intake.down();
@@ -219,6 +225,8 @@ public class SpecimenAuto extends OpMode {
                     intake_sample_y -= 8;
                     intake_sample_x += 0.5;
                     target_angle_intake += 4;
+                    deposit_state++;
+
                     horizontalSlides.setPosition(-100);
                     state = State.intakeSample;
                 }
