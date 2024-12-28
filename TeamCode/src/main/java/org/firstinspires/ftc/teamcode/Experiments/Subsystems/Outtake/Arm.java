@@ -14,7 +14,7 @@ public class Arm {
     public static Preset outtakeSpecimen = new Preset(0,0,0);
     public static Preset outtakeSample = new Preset(0,0,0);
     public static Preset intakeSpecimen = new Preset(0,0,0);
-    public static Preset transferSample = new Preset(0,0,0);
+    public static Preset intakeSample = new Preset(0,0,0);
 
 
     public Arm(HardwareMap hardwareMap) {
@@ -38,8 +38,8 @@ public class Arm {
     public void intakeSpecimen() {
         applyPreset(intakeSpecimen);
     }
-    public void transferSample() {
-        applyPreset(transferSample);
+    public void intakeSample() {
+        applyPreset(intakeSample);
     }
     public static class Preset {
         double oAF;

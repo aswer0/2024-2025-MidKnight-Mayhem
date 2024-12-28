@@ -21,6 +21,8 @@ public class Lift {
     public static double highChamberPos=1300;
     public static double lowBasketPos=90;
     public static double lowChamberPos=90;
+    public static double intakeSpecimenPos=0;
+    public static double intakeSamplePos=0;
 
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
@@ -76,6 +78,12 @@ public class Lift {
 
     public void toLowChamber() {
         setPosition(lowChamberPos);
+    }
+    public void intakeSpecimen() {
+        setPosition(intakeSpecimenPos);
+    }
+    public void intakeSample() {
+        setPosition(intakeSamplePos);
     }
 
     public void setPosition(double position, boolean changeState) {
