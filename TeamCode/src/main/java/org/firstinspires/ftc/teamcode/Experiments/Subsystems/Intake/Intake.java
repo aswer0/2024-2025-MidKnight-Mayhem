@@ -25,6 +25,8 @@ public class Intake {
     public Servo intakePivotLeft;
     public Servo intakePivotRight;
 
+    public Servo sweeper;
+
     public RevColorSensorV3 intakeSensor;
     public boolean intaking = false;
     public boolean hasCorrectObject = false;
@@ -35,6 +37,7 @@ public class Intake {
         intakeServo2 = hardwareMap.get(CRServo.class,"iS2");
         intakePivotLeft = hardwareMap.get(Servo.class,"iPL"); //from intake side
         intakePivotRight = hardwareMap.get(Servo.class,"iPR");
+        sweeper = hardwareMap.get(Servo.class, "sweeper");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class,"iS");
         intakeSensor.enableLed(false);
     }
@@ -63,6 +66,9 @@ public class Intake {
     public void up() {setPivot(UP_POS);}
     public void down() {setPivot(DOWN_POS);}
     public void reverseDown() {setPivot(0.55);}
+
+    public void sweeperIn() {sweeper.setPosition(0);}
+    public void sweeperOut() {sweeper.setPosition(0.5);}
 
     public void update(boolean posessingObject) {
         hasCorrectObject = ((alliance == Alliance.red ? intakeSensor.getNormalizedColors().red > 120 : intakeSensor.getNormalizedColors().blue > 80) || (intakeSensor.getNormalizedColors().red > 120 && intakeSensor.getNormalizedColors().green > 120)) && intakeSensor.getDistance(DistanceUnit.INCH) < 2.5;

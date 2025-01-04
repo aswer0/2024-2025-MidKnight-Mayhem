@@ -30,7 +30,6 @@ public class FinalTeleOp extends OpMode {
     WheelControl drive;
     Alliance alliance = Alliance.red;
 
-    Servo sweeper;
     Lift outtakeSlides;
     Manipulator manipulator;
     Arm arm;
@@ -63,8 +62,6 @@ public class FinalTeleOp extends OpMode {
         outtakeSlides.brakeSlides(true);
         arm = new Arm(hardwareMap);
 
-        sweeper = hardwareMap.get(Servo.class, "sweeper");
-        sweeper.setPosition(0);
         intake = new Intake(hardwareMap);
         intakeSlides = new HorizontalSlides(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
@@ -196,10 +193,9 @@ public class FinalTeleOp extends OpMode {
         }
 
         if (gamepad2.left_bumper) {
-            sweeper.setPosition(0.5);
-        }
-        else {
-            sweeper.setPosition(0);
+            intake.sweeperOut();
+        } else {
+            intake.sweeperIn();
         }
 
         //manual intake

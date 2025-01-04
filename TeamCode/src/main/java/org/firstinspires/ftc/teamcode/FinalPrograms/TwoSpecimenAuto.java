@@ -98,6 +98,7 @@ public class TwoSpecimenAuto extends OpMode {
 
     @Override
     public void loop() {
+        intake.sweeperIn();
         odometry.opt.update();
 
         switch (state) {
