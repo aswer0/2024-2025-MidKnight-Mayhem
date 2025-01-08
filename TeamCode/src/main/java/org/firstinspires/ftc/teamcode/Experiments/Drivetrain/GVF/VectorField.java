@@ -14,10 +14,12 @@ public class VectorField {
 
     // Robot tuning
     double max_speed = 0.7;
-    double min_speed = 0.5;
+    double min_speed = 0.4;
     double max_turn_speed = 20;
     double angle_to_power = 50;
     double corr_weight = 0.1;
+    double stop_speed = 0.05;
+    double decay_rate = 0.001;
 
     // End decel: deceleration rate
     double end_decel = 0.02;
@@ -34,6 +36,9 @@ public class VectorField {
     public double xp = end_decel, xi = 0, xd = 0.001;
     public double yp = end_decel, yi = 0, yd = 0.001;
     public double hp = 0.0065, hi = 0, hd = 0.00004;
+
+    public double x_error;
+    public double y_error;
 
     PIDController x_PID;
     PIDController y_PID;
@@ -144,7 +149,7 @@ public class VectorField {
             return Utils.scale_v(Utils.sub_v(path.final_point, get_pos()), speed);
         }
         Point orth = Utils.sub_v(get_closest(), get_pos());
-        orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
+        orth = Utils.scale_v(orth, corr_weight*Utils.len_v(orth));
         Point tangent = Utils.scale_v(path.derivative(D), 1);
         return Utils.scale_v(Utils.add_v(orth, tangent), speed);
     }
@@ -153,20 +158,26 @@ public class VectorField {
     public void move_to_point(Point p, double target_angle, double max_speed) {
         PID = true;
 
-        double x_error = x_PID.calculate(get_x(), p.x);
-        double y_error = y_PID.calculate(get_y(), p.y);
+        x_error = x_PID.calculate(get_x(), p.x);
+        y_error = y_PID.calculate(get_y(), p.y);
         double head_error = h_PID.calculate(get_heading(), target_angle);
 
-        speed = Math.max(max_speed, Utils.length(new Point(x_error, y_error)));
-        x_error *= speed/max_speed;
-        y_error *= speed/max_speed;
+        double old_speed = Utils.len_v(new Point(x_error, y_error));
+        double temp_speed = Math.min(max_speed, Utils.len_v(new Point(x_error, y_error)));
+
+        if (temp_speed < stop_speed) {
+            speed = Math.max(Math.min(speed, stop_speed) - decay_rate, 0);
+        } else speed = temp_speed;
+
+        x_error *= speed/old_speed;
+        y_error *= speed/old_speed;
 
         velocity = new Point(x_error, y_error);
 
         turn_speed = head_error;
 
         // Drive
-        drive.drive(-velocity.x, -velocity.y, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
     }
 
     // Move with GVF and PID at the end
@@ -176,6 +187,7 @@ public class VectorField {
             move_to_point(path.final_point, end_heading, max_speed);
         }
 
+        PID = false;
         double drive_speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
         speed = Math.min(drive_speed, get_end_speed(path.final_point));
         velocity = move_vector(speed);
@@ -188,6 +200,6 @@ public class VectorField {
         set_turn_speed(target_angle);
 
         // Drive according to calculations
-        drive.drive(-velocity.x, -velocity.y, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
     }
 }

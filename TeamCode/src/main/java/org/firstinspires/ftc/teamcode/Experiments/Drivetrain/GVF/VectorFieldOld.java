@@ -79,7 +79,7 @@ public class VectorFieldOld {
 
     // y position of robot
     public double get_y() {
-        return odometry.opt.get_y();
+        return 2*72-odometry.opt.get_y();
     }
 
     // Heading of robot
@@ -188,6 +188,7 @@ public class VectorFieldOld {
             move_to_point(path.final_point, end_heading, max_speed);
         }
 
+        PID = false;
         double drive_speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
         speed = Math.min(drive_speed, get_end_speed(path.final_point));
         velocity = move_vector(speed);
