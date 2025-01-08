@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 
 @Config
 public class Intake {
@@ -31,8 +32,10 @@ public class Intake {
     public boolean intaking = false;
     public boolean hasCorrectObject = false;
     public Alliance alliance = Alliance.red;
+    public Sensors sensors;
 
-    public Intake(HardwareMap hardwareMap) {
+    public Intake(HardwareMap hardwareMap, Sensors sensors) {
+        this.sensors = sensors;
         intakeServo1 = hardwareMap.get(CRServo.class,"iS1"); //left looking from intake side
         intakeServo2 = hardwareMap.get(CRServo.class,"iS2");
         intakePivotLeft = hardwareMap.get(Servo.class,"iPL"); //from intake side
@@ -70,8 +73,22 @@ public class Intake {
     public void sweeperIn() {sweeper.setPosition(0);}
     public void sweeperOut() {sweeper.setPosition(0.5);}
 
+    public boolean smartIntake() {
+        int intakeColor = sensors.getIntakeColor();
+        if (alliance==Alliance.red) {
+            return intakeColor == 1 || intakeColor == 2;
+//            if (intakeColor == 1 || intakeColor == 2) {
+//                return true;
+//            } else {
+//
+//            }
+        } else {
+            return intakeColor == 3 || intakeColor == 2;
+        }
+    }
+
     public void update(boolean posessingObject) {
-        hasCorrectObject = ((alliance == Alliance.red ? intakeSensor.getNormalizedColors().red > 120 : intakeSensor.getNormalizedColors().blue > 80) || (intakeSensor.getNormalizedColors().red > 120 && intakeSensor.getNormalizedColors().green > 120)) && intakeSensor.getDistance(DistanceUnit.INCH) < 2.5;
+        //hasCorrectObject = ((alliance == Alliance.red ? intakeSensor.getNormalizedColors().red > 120 : intakeSensor.getNormalizedColors().blue > 80) || (intakeSensor.getNormalizedColors().red > 120 && intakeSensor.getNormalizedColors().green > 120)) && intakeSensor.getDistance(DistanceUnit.INCH) < 2.5;
         // TODO: Alliance detection
         if(intaking && hasCorrectObject) {
             //stop();

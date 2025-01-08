@@ -70,7 +70,7 @@ public class SampleAuto extends OpMode {
         lift = new Lift(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
 
-        intake = new Intake(hardwareMap);
+        intake = new Intake(hardwareMap, sensors);
 
         manipulator.closeClaw();
     }

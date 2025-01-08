@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import org.opencv.core.Point;
 
 @Autonomous
@@ -58,7 +59,7 @@ public class RedRightGVF extends OpMode {
         lift = new Lift(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
 
-        intake = new Intake(hardwareMap);
+        intake = new Intake(hardwareMap, new Sensors(hardwareMap, telemetry));
 
         manipulator.closeClaw();
     }
