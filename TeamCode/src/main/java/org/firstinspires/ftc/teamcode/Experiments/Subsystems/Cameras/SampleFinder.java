@@ -23,6 +23,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Config
@@ -54,6 +55,14 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     /** If the contour is inside the center line */
     public boolean insideContour = false;
 
+    public ArrayList<Contour> contours;
+
+    public class Contour {
+        public boolean colored;
+        public double size;
+
+    }
+
     FtcDashboard dashboard;
     public SampleFinder(Alliance alliance) {
         this.alliance = alliance;
@@ -66,47 +75,48 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
         // copy it to avoid affecting future processors
-        Mat mat = new Mat();
-        frame.copyTo(mat);
+        Mat coloredMat = new Mat();
+        frame.copyTo(coloredMat);
         TelemetryPacket telemetryPacket = new TelemetryPacket();
         // convert to hsv
-        Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(coloredMat, coloredMat, Imgproc.COLOR_RGB2HSV);
         // filter for (red/blue) or yellow
         Mat filteredMat = new Mat();
         if(alliance == Alliance.red) {
             // Filter from x to 180, or 0 to x because red wraps around
             Mat temp = new Mat();
-            Core.inRange(mat, redLowerBound, new Scalar(180, redUpperBound.val[1], redUpperBound.val[2]), temp);
-            Core.inRange(mat, new Scalar(0, redLowerBound.val[1], redLowerBound.val[2]), redUpperBound, filteredMat);
+            Core.inRange(coloredMat, redLowerBound, new Scalar(180, redUpperBound.val[1], redUpperBound.val[2]), temp);
+            Core.inRange(coloredMat, new Scalar(0, redLowerBound.val[1], redLowerBound.val[2]), redUpperBound, filteredMat);
             Core.add(filteredMat, temp, filteredMat);
             temp.release();
         } else { // Filter for blue
-            Core.inRange(mat, blueLowerBound, blueUpperBound, filteredMat);
+            Core.inRange(coloredMat, blueLowerBound, blueUpperBound, filteredMat);
         }
-        if(filterYellow) { // filter for yellow if set then logical OR with ^
-            Mat yellowMat = new Mat();
-            Core.inRange(mat, yellowLowerBound, yellowUpperBound, yellowMat);
-            Core.add(filteredMat, yellowMat, filteredMat);
-            yellowMat.release();
-        }
-        filteredMat.copyTo(mat);
+        Mat yellowMat = new Mat();
+        Core.inRange(frame, yellowLowerBound, yellowUpperBound, yellowMat);
+        filteredMat.copyTo(coloredMat);
         filteredMat.release();
 
         // Get Contours
-        ArrayList<MatOfPoint> contours = new ArrayList<>();
+        ArrayList<MatOfPoint> coloredContours = new ArrayList<>();
         Mat hierarchy = new Mat();
-        Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(coloredMat, coloredContours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        hierarchy.release();
+        hierarchy = new Mat();
+        ArrayList<MatOfPoint> yellowContours = new ArrayList<>();
+        Imgproc.findContours(yellowMat, yellowContours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         hierarchy.release();
 
 
         double nearestDistance = Double.POSITIVE_INFINITY;
         insideContour = false;
-        for(int i = 0; i < contours.size(); i++ ) {
+        ArrayList<Contour> processedContours = new ArrayList<>();
+        for(int i = 0; i < coloredContours.size(); i++ ) {
             // Process contours here
 
-            if(Imgproc.contourArea(contours.get(i)) < areaThreshold) continue;
-            Imgproc.drawContours(frame, contours, i, new Scalar(255,0,255), 3);
-            Moments moments = Imgproc.moments(contours.get(i));
+            if(Imgproc.contourArea(coloredContours.get(i)) < areaThreshold) continue;
+            Imgproc.drawContours(frame, coloredContours, i, new Scalar(255,0,255), 3);
+            Moments moments = Imgproc.moments(coloredContours.get(i));
 
             // Get centroids of such contours and compute nearest distance of such contours
             double cX = moments.m10/moments.m00;
@@ -115,7 +125,40 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)) nearestDistance = cX - centerLine;
 
             // Check if center line intersects the contour
-            Point[] points = contours.get(i).toArray();
+            Point[] points = coloredContours.get(i).toArray();
+            boolean leftSideIntersects = false;
+            boolean rightSideIntersects = false;
+            for (Point point : points) {
+                leftSideIntersects = leftSideIntersects || point.x - centerLine <= 0;
+                rightSideIntersects = rightSideIntersects || point.x - centerLine >= 0;
+
+                insideContour = insideContour || (leftSideIntersects && rightSideIntersects);
+                if (insideContour) break;
+            }
+            Contour contour = new Contour();
+            contour.colored = true;
+            contour.size = Imgproc.contourArea(coloredContours.get(i));
+            processedContours.add(contour);
+        }
+        for(int i = 0; i < yellowContours.size(); i++ ) {
+            // Process contours here
+
+            if(Imgproc.contourArea(yellowContours.get(i)) < areaThreshold) continue;
+            Imgproc.drawContours(frame, yellowContours, i, new Scalar(255,0,255), 3);
+            Moments moments = Imgproc.moments(yellowContours.get(i));
+
+            // Get centroids of such contours and compute nearest distance of such contours
+            double cX = moments.m10/moments.m00;
+            double cY = moments.m01/moments.m00;
+            Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
+            if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)) nearestDistance = cX - centerLine;
+            Contour contour = new Contour();
+            contour.colored = true;
+            contour.size = Imgproc.contourArea(yellowContours.get(i));
+            processedContours.add(contour);
+            if(!filterYellow) continue;
+            // Check if center line intersects the contour
+            Point[] points = yellowContours.get(i).toArray();
             boolean leftSideIntersects = false;
             boolean rightSideIntersects = false;
             for (Point point : points) {
@@ -126,9 +169,12 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
                 if (insideContour) break;
             }
         }
+        this.contours = processedContours;
+        yellowMat.release();
         Imgproc.drawMarker(frame, new Point(320,240), new Scalar(0,255,255));
         telemetryPacket.put("Nearest Distance", nearestDistance);
         telemetryPacket.put("Inside Contour", insideContour);
+        telemetryPacket.put("Num Contours", contours.size());
         this.nearestSampleDistance = nearestDistance;
 
         dashboard.sendTelemetryPacket(telemetryPacket);
@@ -136,7 +182,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         Bitmap bitmap = Bitmap.createBitmap(frame.width(),  frame.height(), Bitmap.Config.RGB_565);
         Utils.matToBitmap(frame, bitmap);
         lastFrame.set(bitmap);
-        mat.release();
+        coloredMat.release();
         return null;
     }
     @Override

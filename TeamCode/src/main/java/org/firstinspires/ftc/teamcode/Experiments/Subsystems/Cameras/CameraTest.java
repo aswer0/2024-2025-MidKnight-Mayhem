@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Experiments.Subsystems.Cameras;
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import java.util.List;
 
 @TeleOp
+@Config
 public class CameraTest extends OpMode {
     SampleFinder processor;
     CameraName camera;
@@ -38,6 +40,8 @@ public class CameraTest extends OpMode {
 
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad previousGamepad2 = new Gamepad();
+
+    public static boolean filterYellow = true;
 
     @Override
     public void init() {
@@ -65,6 +69,7 @@ public class CameraTest extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
+        processor.filterYellow = filterYellow;
 
         previousGamepad1.copy(currentGamepad1);
         previousGamepad2.copy(currentGamepad2);

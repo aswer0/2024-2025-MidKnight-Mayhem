@@ -28,25 +28,22 @@ public class SampleAuto extends OpMode {
     WheelControl wheelControl;
     Path path;
 
-    SampleAuto.State state = SampleAuto.State.startPID;
+    SampleAuto.State state = State.setup;
     Lift lift;
     Manipulator manipulator;
-    double deposit_state = 0;
 
     Intake intake;
 
     enum State {
-        startPID,
-        goToSpecimen,
-        pickupSpecimen,
-        followPathBack,
-        deposit
+        setup,
+        deposit_sample,
+        intake_sample,
+        hang
     }
 
     @Override
     public void init() {
-        start_target = new Point(36.2, 66);
-        get_specimen_target = new Point(36.2, 66);
+        start_target = new Point(7.875, 96);
 
         Point[] follow_path = {
                 new Point(7.875, 21.3),
@@ -61,9 +58,9 @@ public class SampleAuto extends OpMode {
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
-        odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 7.875, 96, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 0, 0.7);
+        path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, -180, 0.7);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -79,76 +76,11 @@ public class SampleAuto extends OpMode {
     public void loop() {
         odometry.opt.update();
 
-        switch (state){
-            case startPID:
-                manipulator.closeClaw();
-                lift.toHighChamber();
-
-                path.follow_pid_to_point(start_target, 0);
-
-                if (sensors.atChamber()){
-                    timer.reset();
-                    state = State.deposit;
-                }
-
-                break;
-
-            case deposit:
-                lift.setPosition(550);
-
-                if (timer.milliseconds() >= 300){
-                    manipulator.openClaw();
-                    if (deposit_state == 0 || deposit_state == 1){
-                        state = State.goToSpecimen;
-                    }
-                }
-
-                break;
-
-            case goToSpecimen:
-                path.update( 185);
-                lift.toLowChamber();
-
-                if (sensors.get_front_dist() >= 2.5){
-                    timer.reset();
-                    state = State.pickupSpecimen;
-                }
-
-                break;
-
-            case pickupSpecimen:
-                path.stop();
-
-                if (timer.milliseconds() >= 250){
-                    manipulator.closeClaw();
-
-                    timer.reset();
-
-                    get_specimen_target.y += 1.2;
-                    state = State.followPathBack;
-                }
-
-                break;
-
-            case followPathBack:
-                path.retrace(true);
-                lift.toHighChamber();
-
-                if (sensors.atChamber()){
-                    state = State.deposit;
-                }
-
-                break;
+        switch (state) {
+            case setup:
+                path.pid_to_point(start_target, );
 
         }
-
-        telemetry.addData("X position: ", odometry.opt.get_x());
-        telemetry.addData("Y position: ", odometry.opt.get_y());
-        telemetry.addData("Heading: ", odometry.opt.get_heading());
-        telemetry.addData("D value: ", path.get_d());
-        telemetry.addData("Motor position: ", lift.getPosition());
-        telemetry.addData("State: ", state);
-        telemetry.addData("Front Distance", sensors.get_front_dist());
 
         lift.update();
         intake.up();
