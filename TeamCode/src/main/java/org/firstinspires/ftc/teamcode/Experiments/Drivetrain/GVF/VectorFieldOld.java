@@ -150,7 +150,7 @@ public class VectorFieldOld {
             return Utils.scale_v(Utils.sub_v(path.final_point, get_pos()), speed);
         }
         Point orth = Utils.sub_v(get_closest(), get_pos());
-        orth = Utils.scale_v(orth, corr_weight*Utils.len_v(orth));
+        orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
         Point tangent = Utils.scale_v(path.derivative(D), 1);
         return Utils.scale_v(Utils.add_v(orth, tangent), speed);
     }
@@ -163,8 +163,8 @@ public class VectorFieldOld {
         y_error = y_PID.calculate(get_y(), p.y);
         double head_error = h_PID.calculate(get_heading(), target_angle);
 
-        double old_speed = Utils.len_v(new Point(x_error, y_error));
-        double temp_speed = Math.min(max_speed, Utils.len_v(new Point(x_error, y_error)));
+        double old_speed = Utils.length(new Point(x_error, y_error));
+        double temp_speed = Math.min(max_speed, Utils.length(new Point(x_error, y_error)));
 
         if (temp_speed < stop_speed) {
             speed = Math.max(Math.min(speed, stop_speed) - decay_rate, 0);

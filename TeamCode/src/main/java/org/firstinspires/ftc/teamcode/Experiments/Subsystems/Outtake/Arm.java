@@ -10,11 +10,12 @@ public class Arm {
     Servo oAN;
     Servo oPL;
     Servo oPR;
+    Servo tClaw;
 
-    public static Preset outtakeSpecimen = new Preset(0.9,0.1,0.38);
-    public static Preset outtakeSample = new Preset(0,0,0.5);
-    public static Preset intakeSpecimen = new Preset(0,0,0.5);
-    public static Preset intakeSample = new Preset(0,0,0.5);
+    public static Preset outtakeSpecimen = new Preset(0.9,0.1,0.38, 0.5);
+    public static Preset outtakeSample = new Preset(0,0,0.5, 0.5);
+    public static Preset intakeSpecimen = new Preset(0,0,0.5, 0.5);
+    public static Preset intakeSample = new Preset(0,0,0.5, 0.5);
 
 
     public Arm(HardwareMap hardwareMap) {
@@ -22,12 +23,14 @@ public class Arm {
         this.oAN = hardwareMap.get(Servo.class, "oAN");
         this.oPL = hardwareMap.get(Servo.class, "oPL");
         this.oPR = hardwareMap.get(Servo.class, "oPR");
+        this.tClaw = hardwareMap.get(Servo.class, "tClaw");
     }
     public void applyPreset(Preset preset) {
         oAF.setPosition(preset.oAF);
         oAN.setPosition(preset.oAN);
         oPL.setPosition(preset.oP);
         oPR.setPosition(1-preset.oP);
+        tClaw.setPosition(preset.tClaw);
     }
     public void outtakeSpecimen() {
         applyPreset(outtakeSpecimen);
@@ -45,10 +48,12 @@ public class Arm {
         public double oAF;
         public double oAN;
         public double oP;
-        public Preset(double oAF, double oAN, double oP) {
+        public double tClaw;
+        public Preset(double oAF, double oAN, double oP, double tClaw) {
             this.oAF = oAF;
             this.oAN = oAN;
             this.oP = oP;
+            this.tClaw = tClaw;
         }
     }
 }
