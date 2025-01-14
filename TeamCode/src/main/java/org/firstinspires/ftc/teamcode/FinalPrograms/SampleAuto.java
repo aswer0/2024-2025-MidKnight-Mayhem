@@ -76,12 +76,6 @@ public class SampleAuto extends OpMode {
     public void loop() {
         odometry.opt.update();
 
-        switch (state) {
-            case setup:
-                path.pid_to_point(start_target, );
-
-        }
-
         lift.update();
         intake.up();
         telemetry.update();
