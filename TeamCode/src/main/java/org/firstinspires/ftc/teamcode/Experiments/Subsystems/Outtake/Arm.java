@@ -11,10 +11,10 @@ public class Arm {
     Servo oPL;
     Servo oPR;
 
-    public static Preset outtakeSpecimen = new Preset(0,0,0);
-    public static Preset outtakeSample = new Preset(0,0,0);
-    public static Preset intakeSpecimen = new Preset(0,0,0);
-    public static Preset intakeSample = new Preset(0,0,0);
+    public static Preset outtakeSpecimen = new Preset(0.9,0.1,0.38);
+    public static Preset outtakeSample = new Preset(0,0,0.5);
+    public static Preset intakeSpecimen = new Preset(0,0,0.5);
+    public static Preset intakeSample = new Preset(0,0,0.5);
 
 
     public Arm(HardwareMap hardwareMap) {
@@ -42,9 +42,9 @@ public class Arm {
         applyPreset(intakeSample);
     }
     public static class Preset {
-        double oAF;
-        double oAN;
-        double oP;
+        public double oAF;
+        public double oAN;
+        public double oP;
         public Preset(double oAF, double oAN, double oP) {
             this.oAF = oAF;
             this.oAN = oAN;
