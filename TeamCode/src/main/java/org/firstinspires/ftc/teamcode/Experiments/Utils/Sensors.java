@@ -14,14 +14,14 @@ import java.util.ArrayList;
 public class Sensors {
     Telemetry telemetry;
     DistanceSensor frontDistanceSensor;
-    RevColorSensorV3 iS;
+    RevColorSensorV3 intakeSensor;
     public static double chamberThreshold = 5.5;
     Double[] distSensorReads = {0.0, 0.0, 0.0, 0.0, 0.0};
     int updateCounter=0;
 
     public Sensors(HardwareMap hardwareMap, Telemetry telemetry)  {
         frontDistanceSensor = hardwareMap.get(DistanceSensor.class, "fDS");
-        iS = hardwareMap.get(RevColorSensorV3.class, "iS");
+        intakeSensor = hardwareMap.get(RevColorSensorV3.class, "iS");
         this.telemetry = telemetry;
 
     }
@@ -46,6 +46,23 @@ public class Sensors {
     }
 
     public boolean sampleIn() {
-        return iS.getDistance(DistanceUnit.CM) <2.5;
+        return intakeSensor.getDistance(DistanceUnit.CM) <2.5;
+    }
+
+    public int getIntakeColor() {
+        int redValue = intakeSensor.red();
+        int greenValue = intakeSensor.green();
+        int blueValue = intakeSensor.blue();
+        //if(true) return ((double)redValue + greenValue + blueValue)/3 > 125 ? 2 : 0;
+
+        if (blueValue > 450) { //blue
+            return 3;
+        } else if (blueValue > 200 && redValue > 300 && 250 < greenValue && greenValue < 500) { //yellow
+            return 2;
+        } else if (blueValue > 300 && redValue > 400 && greenValue < 600) { //blue
+            return 3;
+        } else { //none
+            return 0;
+        }
     }
 }

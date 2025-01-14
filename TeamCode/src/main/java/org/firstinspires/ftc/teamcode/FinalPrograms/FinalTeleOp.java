@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 
 import java.util.List;
 
@@ -60,9 +61,9 @@ public class FinalTeleOp extends OpMode {
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
-        arm = new Arm(hardwareMap);
+//        arm = new Arm(hardwareMap);
 
-        intake = new Intake(hardwareMap);
+        intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
         manipulator.openClaw();
@@ -122,6 +123,7 @@ public class FinalTeleOp extends OpMode {
         drive.correction_drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
             alliance = Alliance.red;
+            intake.alliance = alliance;
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 180);
         }
@@ -132,6 +134,8 @@ public class FinalTeleOp extends OpMode {
         if(!previousState.toggleAlliance && currentState.toggleAlliance) {
             gamepad1.setLedColor(0,0,1,Gamepad.LED_DURATION_CONTINUOUS);
             alliance = Alliance.blue;
+            intake.alliance = alliance;
+
         }
         if(!previousState.decreasePower && currentState.decreasePower) drivePower = 0.3;
         if(!previousState.increasePower && currentState.increasePower) drivePower = 1;
@@ -153,19 +157,19 @@ public class FinalTeleOp extends OpMode {
         }
 
         // claw rpesets
-        if(!previousState.intakeSample && currentState.intakeSample) {
-            arm.intakeSample();
-            outtakeSlides.intakeSample();
-        } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
-            arm.intakeSpecimen();
-            outtakeSlides.intakeSpecimen();
-        } else if (!previousState.outtakeSample && currentState.outtakeSample) {
-            outtakeSlides.toHighBasket();
-            arm.outtakeSample();
-        } else if (!previousState.outtakeSpecimen && currentState.outtakeSpecimen) {
-            outtakeSlides.toHighChamber();
-            arm.outtakeSpecimen();
-        }
+//        if(!previousState.intakeSample && currentState.intakeSample) {
+//            arm.intakeSample();
+//            outtakeSlides.intakeSample();
+//        } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
+//            arm.intakeSpecimen();
+//            outtakeSlides.intakeSpecimen();
+//        } else if (!previousState.outtakeSample && currentState.outtakeSample) {
+//            outtakeSlides.toHighBasket();
+//            arm.outtakeSample();
+//        } else if (!previousState.outtakeSpecimen && currentState.outtakeSpecimen) {
+//            outtakeSlides.toHighChamber();
+//            arm.outtakeSpecimen();
+//        }
 
         if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
             if (clawOpen) {

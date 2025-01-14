@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
 import org.opencv.core.Point;
 
-public class VectorField {
+public class VectorFieldOld {
     // Robot controls
     public Odometry odometry;
     WheelControl drive;
@@ -33,9 +34,9 @@ public class VectorField {
     public boolean PID = false;
     public double error = 0;
 
-    public double xp = end_decel, xi = 0, xd = 0.001;
-    public double yp = end_decel, yi = 0, yd = 0.001;
-    public double hp = 0.0065, hi = 0, hd = 0.00004;
+    public double xp = end_decel, xi = 0, xd = 0.0004;
+    public double yp = end_decel, yi = 0, yd = 0.0004;
+    public double hp = 0.0065, hi = 0, hd = 0.0004;
 
     public double x_error;
     public double y_error;
@@ -45,10 +46,10 @@ public class VectorField {
     PIDController h_PID;
 
     // Constructor
-    public VectorField(WheelControl w,
-                       Odometry o,
-                       Path p,
-                       double end_heading) {
+    public VectorFieldOld(WheelControl w,
+                          Odometry o,
+                          Path p,
+                          double end_heading) {
         // Inputs
         this.odometry = o;
         this.path = p;
@@ -73,12 +74,12 @@ public class VectorField {
 
     // x position of robot
     public double get_x() {
-        return odometry.opt.get_x();
+        return -odometry.opt.get_x();
     }
 
     // y position of robot
     public double get_y() {
-        return odometry.opt.get_y();
+        return 2*72-odometry.opt.get_y();
     }
 
     // Heading of robot

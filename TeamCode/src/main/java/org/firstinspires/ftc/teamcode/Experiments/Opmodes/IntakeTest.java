@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 
 @TeleOp
 public class IntakeTest extends OpMode {
@@ -26,7 +27,7 @@ public class IntakeTest extends OpMode {
         //servo1 = hardwareMap.get(CRServo.class, "1");
         //servo2 = hardwareMap.get(CRServo.class, "2");
         intakeSlides = new HorizontalSlides(hardwareMap);
-        intake = new Intake(hardwareMap);
+        intake = new Intake(hardwareMap, new Sensors(hardwareMap, telemetry));
 
         intakeTimer = new ElapsedTime();
     }

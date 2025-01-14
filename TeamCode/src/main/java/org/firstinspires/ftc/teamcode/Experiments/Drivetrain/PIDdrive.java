@@ -14,6 +14,8 @@ public class PIDdrive {
     Odometry odometry;
     HardwareMap hardwareMap;
 
+    boolean continue_follow = true;
+
     PIDController heading;
     PIDController x_pos;
     PIDController y_pos;
@@ -41,7 +43,7 @@ public class PIDdrive {
 
             double target_angle = Math.toDegrees(Math.atan2(dy, dx));
 
-            if (!this.at_point(this.path[i], collision_dist)){
+            if (!this.at_point(this.path[i], collision_dist) && this.continue_follow){
                 this.pid_to_point(this.path[i], target_angle, power);
             }
             else{

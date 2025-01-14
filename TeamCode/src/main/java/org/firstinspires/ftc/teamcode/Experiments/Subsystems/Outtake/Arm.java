@@ -27,7 +27,7 @@ public class Arm {
         oAF.setPosition(preset.oAF);
         oAN.setPosition(preset.oAN);
         oPL.setPosition(preset.oP);
-        oPR.setPosition(preset.oP);
+        oPR.setPosition(1-preset.oP);
     }
     public void outtakeSpecimen() {
         applyPreset(outtakeSpecimen);
