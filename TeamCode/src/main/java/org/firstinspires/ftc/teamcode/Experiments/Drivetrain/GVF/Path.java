@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import org.opencv.core.Point;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Path {
     BezierCurve[] F;
@@ -21,7 +20,7 @@ public class Path {
         this.n_bz = cp.length;
 
         //add piecewise bezier curve
-        ArrayList<BezierCurve> temp_F = new ArrayList<BezierCurve>();
+        ArrayList<BezierCurve> temp_F = new ArrayList<>();
         for (int i = 0; i < this.n_bz; i++){
             temp_F.add(new BezierCurve(cp[i]));
         }

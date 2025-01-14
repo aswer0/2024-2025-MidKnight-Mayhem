@@ -17,8 +17,7 @@ public class VectorFieldOld {
     double max_speed = 0.7;
     double min_speed = 0.4;
     double max_turn_speed = 20;
-    double angle_to_power = 50;
-    double corr_weight = 0.1;
+    double corr_weight = 1;
     double stop_speed = 0.05;
     double decay_rate = 0.001;
 
@@ -33,10 +32,11 @@ public class VectorFieldOld {
     public double turn_speed;
     public boolean PID = false;
     public double error = 0;
+    public double target_angle;
 
     public double xp = end_decel, xi = 0, xd = 0.0004;
     public double yp = end_decel, yi = 0, yd = 0.0004;
-    public double hp = 0.0065, hi = 0, hd = 0.0004;
+    public double hp = 0.01, hi = 0, hd = 0.0004;
 
     public double x_error;
     public double y_error;
@@ -79,7 +79,7 @@ public class VectorFieldOld {
 
     // y position of robot
     public double get_y() {
-        return 2*72-odometry.opt.get_y();
+        return 2*path.forward(0).y-odometry.opt.get_y();
     }
 
     // Heading of robot
@@ -138,7 +138,7 @@ public class VectorFieldOld {
     }
 
     public void set_turn_speed(double target_angle) {
-        turn_speed = turn_angle(get_heading(), target_angle)/angle_to_power;
+        turn_speed = turn_angle(get_heading(), target_angle)*hp;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
     }
@@ -146,11 +146,8 @@ public class VectorFieldOld {
     // Robot's move vector to path
     public Point move_vector(double speed) {
         update_closest(0, 50, 5, 1);
-        if (D > D_from_end(3)) {
-            return Utils.scale_v(Utils.sub_v(path.final_point, get_pos()), speed);
-        }
         Point orth = Utils.sub_v(get_closest(), get_pos());
-        orth = Utils.scale_v(orth, corr_weight*Utils.length(orth));
+        orth = Utils.scale_v(orth, corr_weight*Utils.len_v(orth));
         Point tangent = Utils.scale_v(path.derivative(D), 1);
         return Utils.scale_v(Utils.add_v(orth, tangent), speed);
     }
@@ -163,8 +160,8 @@ public class VectorFieldOld {
         y_error = y_PID.calculate(get_y(), p.y);
         double head_error = h_PID.calculate(get_heading(), target_angle);
 
-        double old_speed = Utils.length(new Point(x_error, y_error));
-        double temp_speed = Math.min(max_speed, Utils.length(new Point(x_error, y_error)));
+        double old_speed = Utils.len_v(new Point(x_error, y_error));
+        double temp_speed = Math.min(max_speed, Utils.len_v(new Point(x_error, y_error)));
 
         if (temp_speed < stop_speed) {
             speed = Math.max(Math.min(speed, stop_speed) - decay_rate, 0);
@@ -197,7 +194,7 @@ public class VectorFieldOld {
         error = Utils.dist(get_pos(), path.forward(D));
 
         // Angle
-        double target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
+        target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
         set_turn_speed(target_angle);
 
         // Drive according to calculations

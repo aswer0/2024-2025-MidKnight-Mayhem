@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import org.opencv.core.Point;
-import java.util.ArrayList;
 
 public class BezierCurve {
     // Declare control points as (x, y)
@@ -23,7 +22,7 @@ public class BezierCurve {
     public double est_arclen(double step) {
         double len = 0;
         for (double i = 0; i < 1; i += step) {
-            len += Utils.length(Utils.sub_v(this.forward(i+step), this.forward(i)));
+            len += Utils.len_v(Utils.sub_v(this.forward(i+step), this.forward(i)));
         }
         return len;
     }
@@ -63,6 +62,7 @@ public class BezierCurve {
     }
 
     // Sign of the derivative of the distance from point to curve
+    // Useful for finding the closest point on the curve to a given position
     public int dDdt_sign(Point p, double t) {
         return (int)Math.signum(Utils.sub_v(forward(t), p).dot(derivative(t)));
     }

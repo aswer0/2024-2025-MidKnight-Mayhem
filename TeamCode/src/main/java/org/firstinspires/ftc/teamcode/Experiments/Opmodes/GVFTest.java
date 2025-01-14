@@ -6,8 +6,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorFieldOld;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import org.opencv.core.Point;
 
 @Config
@@ -15,7 +17,7 @@ import org.opencv.core.Point;
 public class GVFTest extends OpMode {
     Odometry odometry;
     Path path;
-    VectorField vf;
+    VectorFieldOld vf;
     WheelControl wheelControl;
 
     @Override
@@ -24,9 +26,8 @@ public class GVFTest extends OpMode {
         Point[][] cp = {
                 {
                         new Point(0, 72),
-                        new Point(20, 90),
-                        new Point(16.4, 123.6),
-                        new Point(40, 115),
+                        new Point(10, 3),
+                        new Point(64, 30)
                 }
         };
 
@@ -34,21 +35,28 @@ public class GVFTest extends OpMode {
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(cp);
-        vf = new VectorField(wheelControl, odometry, path, -90);
+        vf = new VectorFieldOld(wheelControl, odometry, path, -90);
     }
 
     @Override
     public void loop() {
         odometry.opt.update();
         vf.move();
-        //vf.pid_to_point(new Point(35, 100), -90, 0.4);
-        telemetry.addData("xPos", odometry.opt.get_x());
-        telemetry.addData("yPos", odometry.opt.get_y());
-        telemetry.addData("heading", Math.toDegrees(odometry.opt.get_heading()));
-        telemetry.addData("vf_xPos", vf.odometry.opt.get_x());
-        telemetry.addData("turn_speed", vf.turn_speed);
-        telemetry.addData("speed", vf.speed);
-        telemetry.addData("D", vf.D);
-        telemetry.addData("PID", vf.PID);
+        //wheelControl.drive(0.2, -0.2,0, 0, 0.5);
+        TelemetryPacket telemetry = new TelemetryPacket();
+        //vf.move_to_point(new Point(28, 72), 0, 0.4);
+        telemetry.put("targetAngle", vf.target_angle);
+        telemetry.put("heading", vf.get_heading());
+        telemetry.put("vf_xPos", vf.get_x());
+        telemetry.put("vf_yPos", vf.get_y());
+        telemetry.put("turn_speed", vf.turn_speed);
+        telemetry.put("speed", vf.speed);
+        telemetry.put("D", vf.D);
+        telemetry.put("PID", vf.PID);
+        telemetry.put("X Error", vf.x_error);
+        telemetry.put("Y Error", vf.y_error);
+        telemetry.put("Closest", vf.get_closest());
+        telemetry.put("Velocity", vf.velocity);
+        (FtcDashboard.getInstance()).sendTelemetryPacket(telemetry);
     }
 }
