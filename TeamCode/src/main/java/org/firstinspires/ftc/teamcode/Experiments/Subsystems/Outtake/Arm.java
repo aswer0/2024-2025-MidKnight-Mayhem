@@ -17,6 +17,8 @@ public class Arm {
     public static Preset outtakeSample = new Preset(0,0,0.5);
     public static Preset intakeSpecimen = new Preset(0.1,0.4,0.8);
     public static Preset intakeSample = new Preset(0,0,0.5);
+    public static Preset idlePosition = new Preset(0.1,0.7,0.69);
+    public static Preset autoStartPosition = new Preset(0.9,0.7,0.75);
 
     public static double clawClosePos = 0.485;
     public static double clawOpenPos = 0.7;
@@ -48,6 +50,12 @@ public class Arm {
     }
     public void intakeSample() {
         applyPreset(intakeSample);
+    }
+    public void toIdlePosition() {
+        applyPreset(idlePosition);
+    }
+    public void toAutoStartPosition() {
+        applyPreset(autoStartPosition);
     }
 
     public void openClaw() {
