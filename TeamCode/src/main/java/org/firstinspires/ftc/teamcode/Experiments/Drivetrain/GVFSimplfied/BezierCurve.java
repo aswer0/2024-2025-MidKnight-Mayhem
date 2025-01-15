@@ -77,7 +77,7 @@ public class BezierCurve {
         for (int i=0; i<epochs; i++){
             double t = arc_length_param(initial);
             Point p = derivative(initial);
-            double deriv = 2*(t-d)*Utils.length(new Point(p.x, p.y));
+            double deriv = 2*(t-d)*Utils.len_v(new Point(p.x, p.y));
 
             initial = initial-learning_rate*deriv;
         }
@@ -99,13 +99,13 @@ public class BezierCurve {
             double dy = p.y;
 
             if (i == 0 || i == num_steps){
-                total_length += Utils.length(new Point(dx, dy));
+                total_length += Utils.len_v(new Point(dx, dy));
             }
             else if (i % 2 == 1){
-                total_length += 4 * Utils.length(new Point(dx, dy));
+                total_length += 4 * Utils.len_v(new Point(dx, dy));
             }
             else{
-                total_length += 2 * Utils.length(new Point(dx, dy));
+                total_length += 2 * Utils.len_v(new Point(dx, dy));
             }
         }
 

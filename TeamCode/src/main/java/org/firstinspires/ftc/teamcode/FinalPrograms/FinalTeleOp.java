@@ -16,7 +16,6 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSl
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 
@@ -32,7 +31,6 @@ public class FinalTeleOp extends OpMode {
     Alliance alliance = Alliance.red;
 
     Lift outtakeSlides;
-    Manipulator manipulator;
     Arm arm;
     boolean clawOpen = true;
     double autoGrabGracePeriod = 0;
@@ -65,8 +63,7 @@ public class FinalTeleOp extends OpMode {
 
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
-        manipulator = new Manipulator(hardwareMap);
-        manipulator.openClaw();
+        arm.openClaw();
         gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
         gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
 
@@ -168,26 +165,18 @@ public class FinalTeleOp extends OpMode {
             arm.outtakeSample();
         } else if (!previousState.outtakeSpecimen && currentState.outtakeSpecimen) {
             outtakeSlides.toHighChamber();
-            arm.outtakeSpecimen();
+            arm.outtakeSpecimen1();
         }
 
         if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
             if (clawOpen) {
-                manipulator.closeClaw();
+                arm.closeClaw();
             } else {
-                manipulator.openClaw();;
+                arm.openClaw();;
                 autoGrabGracePeriod = getRuntime() + 0.25;
             }
             clawOpen = !clawOpen;
         }
-        // Autograb (only when the slides are low enough) TODO by lm2
-//        if(manipulator.clawHasObject() && clawOpen
-//                && outtakeSlides.leftSlide.getCurrentPosition() < 200
-//                && autoGrabGracePeriod - getRuntime() < 0) {
-//            manipulator.closeClaw();
-//            autoGrabGracePeriod = getRuntime() + 0.25;
-//            clawOpen = false;
-//        }
 
         //manual horizontal extension
         if(Math.abs(previousState.intakeSlidesInput) > 0.1) {

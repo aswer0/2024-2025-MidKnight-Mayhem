@@ -12,17 +12,20 @@ public class Arm {
     Servo pivot_right;
     Servo tClaw;
 
-    public static Preset outtakeSpecimen = new Preset(0.9,0.1,0.38, 0.5);
-    public static Preset outtakeSample = new Preset(0,0,0.5, 0.5);
-    public static Preset intakeSpecimen = new Preset(0,0,0.5, 0.5);
-    public static Preset intakeSample = new Preset(0,0,0.5, 0.5);
+    public static Preset outtakeSpecimen1 = new Preset(0.9,0.4,0.45);
+    public static Preset outtakeSpecimen2 = new Preset(0.9,0.4,0.35);
+    public static Preset outtakeSample = new Preset(0,0,0.5);
+    public static Preset intakeSpecimen = new Preset(0.1,0.45,0.8);
+    public static Preset intakeSample = new Preset(0,0,0.5);
 
+    public static double clawClosePos = 0.485;
+    public static double clawOpenPos = 0.7;
 
     public Arm(HardwareMap hardwareMap) {
-        this.outtake_arm_far = hardwareMap.get(Servo.class, "outtake_arm_far");
-        this.outtake_arm_near  = hardwareMap.get(Servo.class, "outtake_arm_near ");
-        this.pivot_left = hardwareMap.get(Servo.class, "pivot_left");
-        this.pivot_right = hardwareMap.get(Servo.class, "pivot_right");
+        this.outtake_arm_far = hardwareMap.get(Servo.class, "oAF");
+        this.outtake_arm_near  = hardwareMap.get(Servo.class, "oAN");
+        this.pivot_left = hardwareMap.get(Servo.class, "oPL");
+        this.pivot_right = hardwareMap.get(Servo.class, "oPR ");
         this.tClaw = hardwareMap.get(Servo.class, "tClaw");
     }
     public void applyPreset(Preset preset) {
@@ -30,10 +33,12 @@ public class Arm {
         outtake_arm_near .setPosition(preset.outtake_arm_near );
         pivot_left.setPosition(preset.oP);
         pivot_right.setPosition(1-preset.oP);
-        tClaw.setPosition(preset.tClaw);
     }
-    public void outtakeSpecimen() {
-        applyPreset(outtakeSpecimen);
+    public void outtakeSpecimen1() {
+        applyPreset(outtakeSpecimen1);
+    }
+    public void outtakeSpecimen2() {
+        applyPreset(outtakeSpecimen2);
     }
     public void outtakeSample() {
         applyPreset(outtakeSample);
@@ -44,16 +49,24 @@ public class Arm {
     public void intakeSample() {
         applyPreset(intakeSample);
     }
+
+    public void openClaw() {
+        tClaw.setPosition(clawOpenPos);
+    }
+    public void closeClaw() {
+        tClaw.setPosition(clawClosePos);
+    }
+
     public static class Preset {
         public double outtake_arm_far;
         public double outtake_arm_near ;
         public double oP;
-        public double tClaw;
-        public Preset(double outtake_arm_far, double outtake_arm_near , double oP, double tClaw) {
+        //public double tClaw;
+        public Preset(double outtake_arm_far, double outtake_arm_near , double oP) { //double tClaw
             this.outtake_arm_far = outtake_arm_far;
             this.outtake_arm_near  = outtake_arm_near ;
             this.oP = oP;
-            this.tClaw = tClaw;
+            //this.tClaw = tClaw;
         }
     }
 }
