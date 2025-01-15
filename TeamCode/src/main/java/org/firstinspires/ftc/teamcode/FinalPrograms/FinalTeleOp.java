@@ -61,7 +61,7 @@ public class FinalTeleOp extends OpMode {
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
-//        arm = new Arm(hardwareMap);
+        arm = new Arm(hardwareMap);
 
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
@@ -157,19 +157,19 @@ public class FinalTeleOp extends OpMode {
         }
 
         // claw rpesets
-//        if(!previousState.intakeSample && currentState.intakeSample) {
-//            arm.intakeSample();
-//            outtakeSlides.intakeSample();
-//        } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
-//            arm.intakeSpecimen();
-//            outtakeSlides.intakeSpecimen();
-//        } else if (!previousState.outtakeSample && currentState.outtakeSample) {
-//            outtakeSlides.toHighBasket();
-//            arm.outtakeSample();
-//        } else if (!previousState.outtakeSpecimen && currentState.outtakeSpecimen) {
-//            outtakeSlides.toHighChamber();
-//            arm.outtakeSpecimen();
-//        }
+        if(!previousState.intakeSample && currentState.intakeSample) {
+            arm.intakeSample();
+            outtakeSlides.intakeSample();
+        } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
+            arm.intakeSpecimen();
+            outtakeSlides.intakeSpecimen();
+        } else if (!previousState.outtakeSample && currentState.outtakeSample) {
+            outtakeSlides.toHighBasket();
+            arm.outtakeSample();
+        } else if (!previousState.outtakeSpecimen && currentState.outtakeSpecimen) {
+            outtakeSlides.toHighChamber();
+            arm.outtakeSpecimen();
+        }
 
         if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
             if (clawOpen) {
