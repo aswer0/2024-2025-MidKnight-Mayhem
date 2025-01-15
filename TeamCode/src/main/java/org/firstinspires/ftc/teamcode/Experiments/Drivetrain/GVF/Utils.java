@@ -27,16 +27,16 @@ public class Utils {
         return new Point(a.x/b, a.y/b);
     }
 
-    public static double length(Point v) {
+    public static double len_v(Point v) {
         return Math.sqrt(v.x*v.x+v.y*v.y);
     }
 
     public static double dist(Point a, Point b) {
-        return Utils.length(Utils.sub_v(a, b));
+        return Utils.len_v(Utils.sub_v(a, b));
     }
 
-    public static Point scale_v(Point v, double len) {
-        double scale_factor = len/length(v);
+    public static Point scale_v(Point v, double new_len) {
+        double scale_factor = new_len/ len_v(v);
         return new Point(v.x*scale_factor, v.y*scale_factor);
     }
 

@@ -6,10 +6,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
 public class Arm {
-    Servo oAF;
-    Servo oAN;
-    Servo oPL;
-    Servo oPR;
+    Servo outtake_arm_far;
+    Servo outtake_arm_near ;
+    Servo pivot_left;
+    Servo pivot_right;
     Servo tClaw;
 
     public static Preset outtakeSpecimen = new Preset(0.9,0.1,0.38, 0.5);
@@ -19,17 +19,17 @@ public class Arm {
 
 
     public Arm(HardwareMap hardwareMap) {
-        this.oAF = hardwareMap.get(Servo.class, "oAF");
-        this.oAN = hardwareMap.get(Servo.class, "oAN");
-        this.oPL = hardwareMap.get(Servo.class, "oPL");
-        this.oPR = hardwareMap.get(Servo.class, "oPR");
+        this.outtake_arm_far = hardwareMap.get(Servo.class, "outtake_arm_far");
+        this.outtake_arm_near  = hardwareMap.get(Servo.class, "outtake_arm_near ");
+        this.pivot_left = hardwareMap.get(Servo.class, "pivot_left");
+        this.pivot_right = hardwareMap.get(Servo.class, "pivot_right");
         this.tClaw = hardwareMap.get(Servo.class, "tClaw");
     }
     public void applyPreset(Preset preset) {
-        oAF.setPosition(preset.oAF);
-        oAN.setPosition(preset.oAN);
-        oPL.setPosition(preset.oP);
-        oPR.setPosition(1-preset.oP);
+        outtake_arm_far.setPosition(preset.outtake_arm_far);
+        outtake_arm_near .setPosition(preset.outtake_arm_near );
+        pivot_left.setPosition(preset.oP);
+        pivot_right.setPosition(1-preset.oP);
         tClaw.setPosition(preset.tClaw);
     }
     public void outtakeSpecimen() {
@@ -45,13 +45,13 @@ public class Arm {
         applyPreset(intakeSample);
     }
     public static class Preset {
-        public double oAF;
-        public double oAN;
+        public double outtake_arm_far;
+        public double outtake_arm_near ;
         public double oP;
         public double tClaw;
-        public Preset(double oAF, double oAN, double oP, double tClaw) {
-            this.oAF = oAF;
-            this.oAN = oAN;
+        public Preset(double outtake_arm_far, double outtake_arm_near , double oP, double tClaw) {
+            this.outtake_arm_far = outtake_arm_far;
+            this.outtake_arm_near  = outtake_arm_near ;
             this.oP = oP;
             this.tClaw = tClaw;
         }

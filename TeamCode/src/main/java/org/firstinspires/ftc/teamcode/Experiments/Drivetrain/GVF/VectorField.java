@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
+import static org.firstinspires.ftc.teamcode.Experiments.Opmodes.GVFSimplifiedTest.target_angle;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
@@ -16,7 +18,6 @@ public class VectorField {
     double max_speed = 0.7;
     double min_speed = 0.4;
     double max_turn_speed = 20;
-    double angle_to_power = 50;
     double corr_weight = 0.1;
     double stop_speed = 0.05;
     double decay_rate = 0.001;
@@ -35,7 +36,7 @@ public class VectorField {
 
     public double xp = end_decel, xi = 0, xd = 0.001;
     public double yp = end_decel, yi = 0, yd = 0.001;
-    public double hp = 0.0065, hi = 0, hd = 0.00004;
+    public double hp = 0.01, hi = 0, hd = 0.00004;
 
     public double x_error;
     public double y_error;
@@ -137,7 +138,7 @@ public class VectorField {
     }
 
     public void set_turn_speed(double target_angle) {
-        turn_speed = turn_angle(get_heading(), target_angle)/angle_to_power;
+        turn_speed = turn_angle(get_heading(), target_angle)*hp;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
     }
@@ -196,7 +197,7 @@ public class VectorField {
         error = Utils.dist(get_pos(), path.forward(D));
 
         // Angle
-        double target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
+        target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
         set_turn_speed(target_angle);
 
         // Drive according to calculations
