@@ -62,6 +62,7 @@ public class VectorField {
         drive.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        // Set PID controllers
         x_PID = new PIDController(xp, xi, xd);
         y_PID = new PIDController(yp, yi, yd);
         h_PID = new PIDController(hp, hi, hd);
