@@ -79,6 +79,7 @@ public class SpecimenAuto extends OpMode {
         target = new Point(target_x, target_y);
         //retune specemine target
         get_specimen_target = new Point(12.875, 28);
+        //maybe retune this
         get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
