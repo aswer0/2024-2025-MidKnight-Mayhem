@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
@@ -80,6 +81,7 @@ public class SpecimenAuto extends OpMode {
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
+
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 180, power);
@@ -133,7 +135,6 @@ public class SpecimenAuto extends OpMode {
                     manipulator.openClaw();
                 }
                 if (timer.milliseconds() >= 400){
-                    // im not sure if it will intake 3 times then move to go to specimen state, check this
                     if (deposit_state >= 2 && deposit_state < 5){
                         timer.reset();
                         state = State.intakeSample;
