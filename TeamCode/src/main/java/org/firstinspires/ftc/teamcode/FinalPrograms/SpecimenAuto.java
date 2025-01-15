@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
@@ -54,6 +55,7 @@ public class SpecimenAuto extends OpMode {
     Manipulator manipulator;
     Intake intake;
     HorizontalSlides horizontalSlides;
+    Arm arm;
 
     enum State {
         pid,
@@ -75,12 +77,12 @@ public class SpecimenAuto extends OpMode {
         };
 
         target = new Point(target_x, target_y);
+        //retune specemine target
         get_specimen_target = new Point(12.875, 28);
         get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
-
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
@@ -92,6 +94,7 @@ public class SpecimenAuto extends OpMode {
         manipulator = new Manipulator(hardwareMap);
         intake = new Intake(hardwareMap, sensors);
         horizontalSlides = new HorizontalSlides(hardwareMap);
+        arm = new Arm(hardwareMap);
 
         manipulator.closeClaw();
     }
@@ -108,8 +111,8 @@ public class SpecimenAuto extends OpMode {
         switch (state) {
             case pid:
                 intake.up();
-                manipulator.closeClaw();
-                lift.toHighChamber();
+                arm.closeClaw();
+                arm.outtakeSpecimen1();
 
                 path.follow_pid_to_point(target, 0);
 
@@ -129,10 +132,9 @@ public class SpecimenAuto extends OpMode {
 
             case deposit:
                 intake.up();
-                lift.setPosition(pos);
 
-                if (timer.milliseconds() >= 310) {
-                    manipulator.openClaw();
+                if (timer.milliseconds() >= 200) {
+                    arm.outtakeSpecimen2();
                 }
                 if (timer.milliseconds() >= 400){
                     if (deposit_state >= 2 && deposit_state < 5){
@@ -149,13 +151,10 @@ public class SpecimenAuto extends OpMode {
 
             case goToSpecimen:
                 intake.up();
+                arm.intakeSpecimen();
                 path.follow_pid_to_point(get_specimen_target, 179);
 
-                if (timer.milliseconds() > 500){
-                    lift.toLowChamber();
-                }
-
-                if (path.at_point(get_specimen_target, 5)) { //4
+                if (path.at_point(get_specimen_target, 5)) {
                     wheelControl.drive(0, 0, 0, 0, 0.7);
                     state = State.pickupSpecimen;
                 }
@@ -172,15 +171,14 @@ public class SpecimenAuto extends OpMode {
                     manipulator.closeClaw();
 
                     timer.reset();
-                    target.y -= 1; // this has to be tuned better for more space on the right
+                    target.y -= 1;
                     state = State.pid;
                 }
 
                 break;
 
             case intakeSample:
-                // im not sure if it will intake 3 times then move to go to specimen state, check this
-                if (deposit_state > 5){
+                if (deposit_state > 4){
                     state = State.goToSpecimen;
                 }
 
