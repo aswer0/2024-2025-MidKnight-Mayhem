@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
@@ -33,11 +30,7 @@ public class FinalTeleOp extends OpMode {
     Lift outtakeSlides;
     Arm arm;
     boolean clawOpen = true;
-    double autoGrabGracePeriod = 0;
-    double autoDepositLimit = Double.POSITIVE_INFINITY;
-    OuttakeState outtakeState = OuttakeState.inactive;
-    double outtakeLastPosition = 0;
-    double outtakeDepositBy = 0.5;
+    double flipArmBy = Double.POSITIVE_INFINITY;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -98,15 +91,15 @@ public class FinalTeleOp extends OpMode {
         currentState.decreasePower = gamepad1.left_bumper;
         currentState.increasePower = gamepad1.right_bumper;
 
-        currentState.toLowChamber = gamepad2.cross; // toLowChamber
-        currentState.toHighChamber = gamepad2.square; // high chamber
-        currentState.toLowBasket = gamepad2.circle; // low basket
-        currentState.toHighBasket = gamepad2.triangle; // high basket
+        currentState.toLowChamber = gamepad2.dpad_down;
+        currentState.toHighChamber = gamepad2.dpad_left;
+        currentState.toLowBasket = gamepad2.dpad_right;
+        currentState.toHighBasket = gamepad2.dpad_up;
 
-        currentState.intakeSpecimen = gamepad2.dpad_down;
-        currentState.intakeSample = gamepad2.dpad_up;
-        currentState.outtakeSpecimen = gamepad2.dpad_left;
-        currentState.outtakeSample = gamepad2.dpad_right;
+        currentState.intakeSpecimen = gamepad2.cross;
+        currentState.intakeSample = gamepad2.triangle;
+        currentState.outtakeSpecimen1 = gamepad2.square;
+        currentState.outtakeSpecimen2 = gamepad2.circle;
 
         currentState.toggleOuttake = gamepad2.right_bumper; // toggle outtake
         currentState.outtakeSlidesInput = -gamepad2.left_stick_y; // outtake slides
@@ -160,20 +153,25 @@ public class FinalTeleOp extends OpMode {
         } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
             arm.intakeSpecimen();
             outtakeSlides.intakeSpecimen();
-        } else if (!previousState.outtakeSample && currentState.outtakeSample) {
+        } else if (!previousState.outtakeSpecimen2 && currentState.outtakeSpecimen2) {
             outtakeSlides.toHighBasket();
-            arm.outtakeSample();
-        } else if (!previousState.outtakeSpecimen && currentState.outtakeSpecimen) {
+            arm.outtakeSpecimen2();
+        } else if (!previousState.outtakeSpecimen1 && currentState.outtakeSpecimen1) {
+//            outtakeSlides.toHighChamber();
+//            arm.outtakeSpecimen1();
+            clawOpen = false;
+            arm.closeClaw();
+            flipArmBy = getRuntime() + 0.4;
+        }
+        if(getRuntime() > flipArmBy) {
             outtakeSlides.toHighChamber();
             arm.outtakeSpecimen1();
         }
-
         if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
             if (clawOpen) {
                 arm.closeClaw();
             } else {
                 arm.openClaw();;
-                autoGrabGracePeriod = getRuntime() + 0.25;
             }
             clawOpen = !clawOpen;
         }
@@ -267,8 +265,8 @@ public class FinalTeleOp extends OpMode {
         public boolean toLowBasket = false;
         public boolean toHighBasket = false;
         // Claw Presets
-        public boolean outtakeSpecimen;
-        public boolean outtakeSample;
+        public boolean outtakeSpecimen1;
+        public boolean outtakeSpecimen2;
         public boolean intakeSample;
         public boolean intakeSpecimen;
         // Outtake stuff

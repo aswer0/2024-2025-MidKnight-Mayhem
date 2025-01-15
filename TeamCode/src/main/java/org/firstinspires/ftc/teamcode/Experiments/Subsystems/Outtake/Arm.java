@@ -12,10 +12,10 @@ public class Arm {
     Servo pivot_right;
     Servo tClaw;
 
-    public static Preset outtakeSpecimen1 = new Preset(0.9,0.4,0.45);
-    public static Preset outtakeSpecimen2 = new Preset(0.9,0.4,0.35);
+    public static Preset outtakeSpecimen1 = new Preset(0.9,0.4,0.35);
+    public static Preset outtakeSpecimen2 = new Preset(0.9,0.4,0.27);
     public static Preset outtakeSample = new Preset(0,0,0.5);
-    public static Preset intakeSpecimen = new Preset(0.1,0.45,0.8);
+    public static Preset intakeSpecimen = new Preset(0.1,0.4,0.8);
     public static Preset intakeSample = new Preset(0,0,0.5);
 
     public static double clawClosePos = 0.485;
