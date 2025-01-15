@@ -28,15 +28,19 @@ public class ArmPresetTest extends OpMode {
             case outtakeSample:
                 arm.outtakeSample();
                 break;
-            case outtakeSpecimen:
-                arm.outtakeSpecimen();
+            case outtakeSpecimen1:
+                arm.outtakeSpecimen1();
+                break;
+            case outtakeSpecimen2:
+                arm.outtakeSpecimen2();
                 break;
         }
     }
     public enum ArmPreset {
         intakeSpecimen,
         intakeSample,
-        outtakeSpecimen,
+        outtakeSpecimen1,
+        outtakeSpecimen2,
         outtakeSample
     }
 }
