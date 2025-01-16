@@ -12,6 +12,7 @@ import java.util.Optional;
 public class DriveCorrection {
     public static double stable_hp = 0.00013, stable_hi = 0, stable_hd = 0.001;
     public static double set_hp = 0.1, set_hi = 0, set_hd = 0.001;
+    public static double tolerance = 0.15;
 
     Odometry odometry;
 
@@ -26,7 +27,11 @@ public class DriveCorrection {
     }
 
     public double stable_correction(double target_angle){
-        return stable_correction.calculate(odometry.opt.get_heading_unnorm(), target_angle);
+        double error =stable_correction.calculate(odometry.opt.get_heading_unnorm(), target_angle);
+        if (error <= tolerance){
+            return 0.0;
+        }
+        return error;
     }
 
     public double set_correction(double target_angle){
