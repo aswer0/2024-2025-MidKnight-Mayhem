@@ -164,6 +164,7 @@ public class FinalTeleOp extends OpMode {
             flipArmBy = getRuntime() + 0.4;
         }
         if(getRuntime() > flipArmBy) {
+            flipArmBy = Double.POSITIVE_INFINITY;
             outtakeSlides.toHighChamber();
             arm.outtakeSpecimen1();
         }
