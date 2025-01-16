@@ -48,7 +48,7 @@ public class FinalTeleOp extends OpMode {
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 180, 0, 0, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
@@ -57,6 +57,7 @@ public class FinalTeleOp extends OpMode {
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
         arm.openClaw();
+        arm.toIdlePosition();
         gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
         gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
 
@@ -97,7 +98,7 @@ public class FinalTeleOp extends OpMode {
         currentState.toHighBasket = gamepad2.dpad_up;
 
         currentState.intakeSpecimen = gamepad2.cross;
-        currentState.intakeSample = gamepad2.triangle;
+        currentState.toIdlePosition = gamepad2.triangle;
         currentState.outtakeSpecimen1 = gamepad2.square;
         currentState.outtakeSpecimen2 = gamepad2.circle;
 
@@ -115,7 +116,7 @@ public class FinalTeleOp extends OpMode {
             alliance = Alliance.red;
             intake.alliance = alliance;
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
-            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 180);
+            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
         }
         if(!previousState.resetOuttakeSlides && currentState.resetOuttakeSlides) {
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -147,9 +148,8 @@ public class FinalTeleOp extends OpMode {
         }
 
         // claw rpesets
-        if(!previousState.intakeSample && currentState.intakeSample) {
-            arm.intakeSample();
-            outtakeSlides.intakeSample();
+        if(!previousState.toIdlePosition && currentState.toIdlePosition) {
+            arm.toIdlePosition();
         } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
             arm.intakeSpecimen();
             outtakeSlides.intakeSpecimen();
@@ -164,6 +164,7 @@ public class FinalTeleOp extends OpMode {
             flipArmBy = getRuntime() + 0.4;
         }
         if(getRuntime() > flipArmBy) {
+            flipArmBy = Double.POSITIVE_INFINITY;
             outtakeSlides.toHighChamber();
             arm.outtakeSpecimen1();
         }
@@ -267,7 +268,7 @@ public class FinalTeleOp extends OpMode {
         // Claw Presets
         public boolean outtakeSpecimen1;
         public boolean outtakeSpecimen2;
-        public boolean intakeSample;
+        public boolean toIdlePosition;
         public boolean intakeSpecimen;
         // Outtake stuff
         public boolean toggleOuttake = false; // will either be claw or bucket based on context
