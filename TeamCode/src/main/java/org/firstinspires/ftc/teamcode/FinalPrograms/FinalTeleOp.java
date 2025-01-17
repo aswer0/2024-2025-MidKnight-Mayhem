@@ -36,6 +36,8 @@ public class FinalTeleOp extends OpMode {
     HorizontalSlides intakeSlides;
     IntakingState intakeState = IntakingState.inactive;
 
+    Sensors sensors;
+
     List<LynxModule> allHubs;
 
     double drivePower=1;
@@ -60,6 +62,7 @@ public class FinalTeleOp extends OpMode {
         arm.toIdlePosition();
         gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
         gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
+        sensors = new Sensors(hardwareMap, telemetry);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
@@ -91,6 +94,7 @@ public class FinalTeleOp extends OpMode {
         currentState.toggleAlliance = gamepad1.share;
         currentState.decreasePower = gamepad1.left_bumper;
         currentState.increasePower = gamepad1.right_bumper;
+        currentState.focusMode = gamepad1.left_trigger > 0.5;
 
         currentState.toLowChamber = gamepad2.dpad_down;
         currentState.toHighChamber = gamepad2.dpad_left;
@@ -111,7 +115,7 @@ public class FinalTeleOp extends OpMode {
         currentState.depositSpecimen = gamepad2.left_bumper; // deposit specimen
         currentState.startHang = gamepad2.share;
         // Drive
-        drive.correction_drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower);
+        drive.correction_drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower*(currentState.focusMode? Math.max(1, Math.min(0, 0.2*sensors.get_average_front_dist() - 1 )) : 1));
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
             alliance = Alliance.red;
             intake.alliance = alliance;
@@ -260,6 +264,7 @@ public class FinalTeleOp extends OpMode {
         public boolean toggleAlliance = false;
         public boolean increasePower = false;
         public boolean decreasePower = false;
+        public boolean focusMode = false; // slows down you get close to the rungs
         // Preset Outtake Slides
         public boolean toLowChamber = false;
         public boolean toHighChamber = false;
