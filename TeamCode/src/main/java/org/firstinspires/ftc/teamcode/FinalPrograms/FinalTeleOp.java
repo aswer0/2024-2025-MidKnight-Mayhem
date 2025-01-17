@@ -165,7 +165,7 @@ public class FinalTeleOp extends OpMode {
 //            arm.outtakeSpecimen1();
             clawOpen = false;
             arm.closeClaw();
-            flipArmBy = getRuntime() + 0.4;
+            flipArmBy = getRuntime() + 0.25;
         }
         if(getRuntime() > flipArmBy) {
             flipArmBy = Double.POSITIVE_INFINITY;
@@ -199,7 +199,7 @@ public class FinalTeleOp extends OpMode {
             intake.down();
             intake.intake();
         } else if (currentState.intakeInput<-0.7){
-            intake.down();
+            intake.reverseDown();
             if (intakeTimer.milliseconds()>150) {
                 intake.reverse();
             }
