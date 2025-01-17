@@ -118,7 +118,6 @@ public class TwoSpecimenAuto extends OpMode {
                 intake.up();
                 lift.setPosition(pos);
 
-                //here
                 if (timer.milliseconds() >= 310) {
                     manipulator.openClaw();
                 }

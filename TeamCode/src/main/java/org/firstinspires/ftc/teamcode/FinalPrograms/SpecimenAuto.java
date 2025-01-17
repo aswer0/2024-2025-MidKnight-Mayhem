@@ -170,7 +170,9 @@ public class SpecimenAuto extends OpMode {
             case pickupSpecimen:
                 intake.up();
 
+                //need retuning distance for arm
                 if (sensors.get_back_dist() >= 2.5) {
+                    //maybe doing diagonal instead cause faster
                     wheelControl.drive(0.3, 0, 0, 0, 0.7);
                 } else {
                     wheelControl.drive(0, 0, 0, 0, 0);

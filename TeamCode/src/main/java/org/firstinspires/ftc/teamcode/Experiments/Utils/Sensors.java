@@ -24,6 +24,8 @@ public class Sensors {
 
     public Sensors(HardwareMap hardwareMap, Telemetry telemetry)  {
         frontDistanceSensor = hardwareMap.get(DistanceSensor.class, "fDS");
+
+        //need new config
         backDistanceSensor = hardwareMap.get(DistanceSensor.class, "bDS");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class, "iS");
         this.telemetry = telemetry;
