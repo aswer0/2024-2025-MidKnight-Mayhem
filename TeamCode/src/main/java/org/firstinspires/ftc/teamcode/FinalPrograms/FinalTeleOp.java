@@ -202,7 +202,7 @@ public class FinalTeleOp extends OpMode {
             intake.down();
             if (intakeTimer.milliseconds()>150) {
                 intake.reverse();
-            }
+            };
         } else {
             intakeTimer.reset();
             intake.setPower(0);
