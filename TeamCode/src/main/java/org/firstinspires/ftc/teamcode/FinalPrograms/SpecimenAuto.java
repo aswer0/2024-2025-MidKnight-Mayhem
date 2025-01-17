@@ -97,7 +97,7 @@ public class SpecimenAuto extends OpMode {
         horizontalSlides = new HorizontalSlides(hardwareMap);
         arm = new Arm(hardwareMap);
 
-        manipulator.closeClaw();
+        arm.toAutoStartPosition();
     }
 
     @Override
