@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Config
 public class Manipulator {
-    public static double claw_pos_close = 0.485;
-    public static double claw_pos_open = 0.7;
+    public static double claw_pos_close = 0.38;
+    public static double claw_pos_open = 0.15;
 
     public Servo armPitch;
     public Servo bucketPitch;
@@ -28,7 +28,7 @@ public class Manipulator {
        // this.armPitch = hardwareMap.get(Servo.class, "armPitch");
         //this.bucketPitch = hardwareMap.get(Servo.class, "bucketPitch");
         //this.flap = hardwareMap.get(Servo.class, "flap");
-        this.claw = hardwareMap.get(Servo.class, "tClaw");
+        this.claw = hardwareMap.get(Servo.class, "claw");
 
         //outtakeDistanceSensor = hardwareMap.get(DistanceSensor.class, "outtakeDistanceSensor");
         //clawColorSensor = hardwareMap.get(RevColorSensorV3.class, "clawColorSensor");
