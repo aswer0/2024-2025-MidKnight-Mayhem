@@ -165,7 +165,6 @@ public class TwoSpecimenAuto extends OpMode {
         telemetry.addData("Y position: ", odometry.opt.get_y());
         telemetry.addData("Heading: ", odometry.opt.get_heading());
         telemetry.addData("D value: ", path.get_d());
-        telemetry.addData("Deposit State", deposit_state);
         telemetry.addData("Motor position: ", lift.getPosition());
         telemetry.addData("State: ", state);
         telemetry.addData("Front Distance", sensors.get_front_dist());
