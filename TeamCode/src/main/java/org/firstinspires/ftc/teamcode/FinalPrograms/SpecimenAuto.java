@@ -110,7 +110,7 @@ public class SpecimenAuto extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
-
+        lift.setPosition(0);
         switch (state) {
             case pid:
                 intake.up();

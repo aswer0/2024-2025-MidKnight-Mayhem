@@ -34,7 +34,7 @@ public class FinalTeleOp extends OpMode {
 
     Intake intake;
     HorizontalSlides intakeSlides;
-    IntakingState intakeState = IntakingState.inactive;
+    OuttakeState hangState = OuttakeState.hangingStage1;
 
     Sensors sensors;
 
@@ -208,7 +208,15 @@ public class FinalTeleOp extends OpMode {
             intake.setPower(0);
             intake.up();
         }
-
+        if(!previousState.startHang && currentState.startHang) {
+            if(hangState == OuttakeState.hangingStage1) {
+                outtakeSlides.setPosition(2150);
+                hangState = OuttakeState.hangingStage2;
+            } else {
+                outtakeSlides.setPosition(1500);
+                hangState = OuttakeState.hangingStage1;
+            }
+        }
         //Intake
         // TODO uncomment after LM1
 //        switch(intakeState) {
@@ -297,9 +305,8 @@ public class FinalTeleOp extends OpMode {
     }
 
     enum OuttakeState {
-        inactive,
-        depositingSpecimen, // break if it is 300 below, or derivative is zero for 0.5 seconds.
-        hangingStage1
+        hangingStage1,
+        hangingStage2
     }
     
 }

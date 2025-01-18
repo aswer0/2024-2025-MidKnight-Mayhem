@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 public class Intake {
     public static boolean outputDebugInfo = false;
 
-    public static double DOWN_POS=0.47;
+    public static double DOWN_POS=0.485;
     public static double UP_POS=0.9;
 
     public CRServo intakeServo1;
@@ -56,7 +56,7 @@ public class Intake {
         setPower(-1);
     }
     public void reverse() {
-        setPower(0.6);
+        setPower(0.75);
     }
     public void stop() {
         setPower(0);
