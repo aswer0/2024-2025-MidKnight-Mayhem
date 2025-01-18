@@ -199,6 +199,7 @@ public class ClawSpecimenAuto extends OpMode {
                 } else {
                     wheelControl.drive(0,0,0,0,0);
                 }
+                
 
                 intake.down();
                 intake.intake();
