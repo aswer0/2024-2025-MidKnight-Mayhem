@@ -30,7 +30,7 @@ public class ClawSpecimenAuto extends OpMode {
 
     public static double horizontal_pos = -450;
     public static double target_angle_intake = 140;
-    public static double target_angle_spit = 36;
+    public static double target_angle_spit = 30;
 
     public static double power = 0.7;
 
@@ -194,7 +194,11 @@ public class ClawSpecimenAuto extends OpMode {
                     state = State.goToSpecimen;
                 }
 
-                path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
+                if (odometry.opt.get_heading()<(target_angle_intake-5)) {
+                    path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
+                } else {
+                    wheelControl.drive(0,0,0,0,0);
+                }
 
                 intake.down();
                 intake.intake();
@@ -204,8 +208,6 @@ public class ClawSpecimenAuto extends OpMode {
 
                 if (timer.milliseconds()>2500){
                     timer.reset();
-                    intake.intake();
-                    intake.reverseDown();
                     state = State.setupSpitSample;
                 }
 
@@ -239,6 +241,7 @@ public class ClawSpecimenAuto extends OpMode {
                     deposit_state++;
 
                     horizontalSlides.setPosition(-100);
+                    timer.reset();
                     state = State.intakeSample;
                 }
 
