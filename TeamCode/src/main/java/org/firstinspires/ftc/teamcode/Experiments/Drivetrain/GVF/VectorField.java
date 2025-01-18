@@ -118,10 +118,12 @@ public class VectorField {
         if (D > path.n_bz) D = path.n_bz;
     }
 
+    // Calculates D (parameter) value that is approximately "dist" distance from end
     public double D_from_end(double dist) {
         return path.n_bz-dist/path.F[path.n_bz-1].est_arclen;
     }
 
+    // Calculates distance to endpoint
     public double dist_to_end() {
         return Utils.dist(path.final_point, get_pos());
     }
@@ -134,10 +136,12 @@ public class VectorField {
         return turn_angle;
     }
 
+    // Gets speed when approaching end
     public double get_end_speed(Point p) {
         return end_decel*Utils.dist(get_pos(), p);
     }
 
+    // Calculates turn speed based on target angle
     public void set_turn_speed(double target_angle) {
         turn_speed = turn_angle(get_heading(), target_angle)*hp;
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
