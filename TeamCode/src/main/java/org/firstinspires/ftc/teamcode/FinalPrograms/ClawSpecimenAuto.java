@@ -83,7 +83,7 @@ public class ClawSpecimenAuto extends OpMode {
                 new Point(60.9, 23.3),
         };
 
-        bcpath = new BCPath(new Point[][]{follow_path});
+        //bcpath = new BCPath(new Point[][]{follow_path});
 
         target = new Point(target_x, target_y);
         get_specimen_target = new Point(12.875, 28);
@@ -95,7 +95,7 @@ public class ClawSpecimenAuto extends OpMode {
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 180, power);
-        vf = new VectorField(wheelControl, odometry, bcpath, 180);
+        //vf = new VectorField(wheelControl, odometry, bcpath, 180);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
