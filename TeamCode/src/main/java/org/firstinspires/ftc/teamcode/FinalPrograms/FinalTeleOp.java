@@ -59,7 +59,6 @@ public class FinalTeleOp extends OpMode {
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
         arm.openClaw();
-        arm.toIdlePosition();
         gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
         gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
         sensors = new Sensors(hardwareMap, telemetry);
@@ -69,7 +68,11 @@ public class FinalTeleOp extends OpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
     }
-
+    @Override
+    public void start() {
+        outtakeSlides.setPosition(-200);
+        arm.toIdlePosition();
+    }
     @Override
     public void loop() {
         // TODO beginHang, intake by LM2,
@@ -143,7 +146,7 @@ public class FinalTeleOp extends OpMode {
         } else if (!previousState.toLowChamber && currentState.toLowChamber) {
             outtakeSlides.toLowChamber();
         } else if (!previousState.toHighChamber && currentState.toHighChamber) {
-            outtakeSlides.toHighChamber();
+            outtakeSlides.setPosition(1300);
         }
         if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
             outtakeSlides.trySetPower(currentState.outtakeSlidesInput*1);
@@ -213,7 +216,7 @@ public class FinalTeleOp extends OpMode {
                 outtakeSlides.setPosition(2150);
                 hangState = OuttakeState.hangingStage2;
             } else {
-                outtakeSlides.setPosition(1500);
+                outtakeSlides.setPosition(1700);
                 hangState = OuttakeState.hangingStage1;
             }
         }
