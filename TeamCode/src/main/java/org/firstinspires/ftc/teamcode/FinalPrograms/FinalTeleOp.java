@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSl
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 
@@ -31,6 +32,7 @@ public class FinalTeleOp extends OpMode {
     Arm arm;
     boolean clawOpen = true;
     double flipArmBy = Double.POSITIVE_INFINITY;
+    Manipulator oldClaw;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -55,10 +57,12 @@ public class FinalTeleOp extends OpMode {
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
         arm = new Arm(hardwareMap);
+        oldClaw = new Manipulator(hardwareMap);
 
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
         arm.openClaw();
+        arm.toIdlePosition();
         gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
         gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
         sensors = new Sensors(hardwareMap, telemetry);
@@ -98,6 +102,7 @@ public class FinalTeleOp extends OpMode {
         currentState.decreasePower = gamepad1.left_bumper;
         currentState.increasePower = gamepad1.right_bumper;
         currentState.focusMode = gamepad1.left_trigger > 0.5;
+        currentState.goForward = gamepad1.right_trigger > 0.5;
 
         currentState.toLowChamber = gamepad2.dpad_down;
         currentState.toHighChamber = gamepad2.dpad_left;
@@ -117,6 +122,7 @@ public class FinalTeleOp extends OpMode {
         currentState.intakeInput = gamepad2.right_trigger-gamepad2.left_trigger; // intake input
         currentState.depositSpecimen = gamepad2.left_bumper; // deposit specimen
         currentState.startHang = gamepad2.share;
+
         // Drive
         drive.correction_drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower*(currentState.focusMode? Math.max(1, Math.min(0, 0.2*sensors.get_average_front_dist() - 1 )) : 1));
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
@@ -134,6 +140,9 @@ public class FinalTeleOp extends OpMode {
             alliance = Alliance.blue;
             intake.alliance = alliance;
 
+        }
+        if(currentState.goForward) {
+            drive.correction_drive(1,0,0,0,0.5);
         }
         if(!previousState.decreasePower && currentState.decreasePower) drivePower = 0.3;
         if(!previousState.increasePower && currentState.increasePower) drivePower = 1;
@@ -168,6 +177,7 @@ public class FinalTeleOp extends OpMode {
 //            arm.outtakeSpecimen1();
             clawOpen = false;
             arm.closeClaw();
+            oldClaw.closeClaw();
             flipArmBy = getRuntime() + 0.25;
         }
         if(getRuntime() > flipArmBy) {
@@ -178,8 +188,10 @@ public class FinalTeleOp extends OpMode {
         if(!previousState.toggleOuttake && currentState.toggleOuttake) { // TODO bucket logic
             if (clawOpen) {
                 arm.closeClaw();
+                oldClaw.closeClaw();
             } else {
-                arm.openClaw();;
+                arm.openClaw();
+                oldClaw.openClaw();
             }
             clawOpen = !clawOpen;
         }
@@ -276,6 +288,7 @@ public class FinalTeleOp extends OpMode {
         public boolean increasePower = false;
         public boolean decreasePower = false;
         public boolean focusMode = false; // slows down you get close to the rungs
+        public boolean goForward = false;
         // Preset Outtake Slides
         public boolean toLowChamber = false;
         public boolean toHighChamber = false;
