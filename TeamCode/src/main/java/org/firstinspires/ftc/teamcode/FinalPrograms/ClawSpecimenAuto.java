@@ -28,11 +28,11 @@ public class ClawSpecimenAuto extends OpMode {
     public static double intake_sample_x = 24;
     public static double intake_sample_y = 35;
 
-    public static double pos = 550;
+    public static double pos = 650;
 
     public static double horizontal_pos = -450;
     public static double target_angle_intake = 140;
-    public static double target_angle_spit = 30;
+    public static double target_angle_spit = 22;
 
     public static double power = 0.7;
 
@@ -124,7 +124,11 @@ public class ClawSpecimenAuto extends OpMode {
                 intake.up();
                 intake.stop();
                 manipulator.closeClaw();
-                lift.setPosition(1300);
+                if(deposit_state == 0) {
+                    lift.setPosition(1300 + 20);
+                } else {
+                    lift.setPosition(1300);
+                }
 
                 path.follow_pid_to_point(target, 0);
                 //vf.move_to_point(target, 0, 0.7);
@@ -146,9 +150,13 @@ public class ClawSpecimenAuto extends OpMode {
             case deposit:
                 intake.stop();
                 intake.up();
-                lift.setPosition(pos);
+                if(deposit_state == 1) {
+                    lift.setPosition(pos + 20);
+                } else {
+                    lift.setPosition(pos);
+                }
 
-                if (timer.milliseconds() >= 310) {
+                if (timer.milliseconds() >= 200) {
                     manipulator.openClaw();
                 }
                 if (timer.milliseconds() >= 400){
