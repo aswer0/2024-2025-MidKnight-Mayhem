@@ -38,7 +38,7 @@ public class SampleAuto extends OpMode {
     Manipulator manipulator;
 
     Intake intake;
-    Arm arm;
+    //Arm arm;
 
     enum State {
         pid,
@@ -83,7 +83,7 @@ public class SampleAuto extends OpMode {
         manipulator = new Manipulator(hardwareMap);
 
         intake = new Intake(hardwareMap, sensors);
-        arm = new Arm(hardwareMap);
+        //arm = new Arm(hardwareMap);
 
         manipulator.closeClaw();
     }
@@ -95,8 +95,9 @@ public class SampleAuto extends OpMode {
             case pid:
                 intake.up();
                 intake.stop();
-                arm.closeClaw();
-                // go to sample arm position here
+                manipulator.closeClaw();
+                lift.setPosition(1600);
+
                 vf.move_to_point(deposit_sample_target, 135, 0.5);
 
                 if (vf.dist_to_end() < 1 || timer.milliseconds() > 5000) {
@@ -105,9 +106,18 @@ public class SampleAuto extends OpMode {
                 }
 
             case deposit_sample:
-                // deposit here ig
+                if (timer.milliseconds() > 100) {
+                    manipulator.openClaw();
+                }
+
+                if (timer.milliseconds() > 1000) {
+                    timer.reset();
+                    state = State.hang;
+                }
 
             case hang:
+                manipulator.closeClaw();
+                lift.setPosition(1200);
                 vf.move_to_point(hang_target, -90, 0.5);
         }
         lift.update();
