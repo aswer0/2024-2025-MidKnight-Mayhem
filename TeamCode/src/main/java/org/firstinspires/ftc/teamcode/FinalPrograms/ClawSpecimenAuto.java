@@ -56,8 +56,10 @@ public class ClawSpecimenAuto extends OpMode {
     HorizontalSlides horizontalSlides;
     Arm arm;
 
-    // pid -> deposit -> goToSpecimen, intakeSample
-    //
+    // pid -> deposit -> goToSpecimen / intakeSample (pick up from lines)
+    // goToSpecimen -> pickupSpecimen -> pid
+    // intakeSample -> goToSpecimen (if done w/ samples) / setupSpitSample
+    // setupSpitSample -> spitSample
     enum State {
         pid,
         goToSpecimen,
@@ -182,7 +184,7 @@ public class ClawSpecimenAuto extends OpMode {
                     manipulator.closeClaw();
 
                     timer.reset();
-                    target.y -= 1; // this has to be tuned better for more space on the right
+                    target.y -= 1.5; // this has to be tuned better for more space on the right
                     state = State.pid;
                 }
 
@@ -199,7 +201,6 @@ public class ClawSpecimenAuto extends OpMode {
                 } else {
                     wheelControl.drive(0,0,0,0,0);
                 }
-                
 
                 intake.down();
                 intake.intake();
