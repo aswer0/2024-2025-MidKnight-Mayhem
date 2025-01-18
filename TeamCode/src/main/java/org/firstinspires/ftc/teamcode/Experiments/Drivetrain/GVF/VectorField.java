@@ -179,7 +179,7 @@ public class VectorField {
         turn_speed = head_error;
 
         // Drive
-        drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
+        drive.drive(-velocity.y, -velocity.x, turn_speed, Math.toRadians(get_heading()), 1);
     }
 
     // Move with GVF and PID at the end
@@ -202,6 +202,6 @@ public class VectorField {
         set_turn_speed(target_angle);
 
         // Drive according to calculations
-        drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
+        drive.drive(-velocity.y, -velocity.x, turn_speed, Math.toRadians(get_heading()), 1);
     }
 }
