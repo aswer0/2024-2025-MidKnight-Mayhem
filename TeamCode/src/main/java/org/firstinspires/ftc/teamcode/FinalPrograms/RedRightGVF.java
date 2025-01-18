@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Utils;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
@@ -49,7 +49,7 @@ public class RedRightGVF extends OpMode {
                         new Point(64, 45)
                 }
         };
-        Path hang_path = new Path(hang_path_cp);
+        BCPath hang_path = new BCPath(hang_path_cp);
         specimen_target = new Point(35.5, 66);
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");

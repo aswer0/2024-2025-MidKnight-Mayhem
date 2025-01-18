@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorFieldOld;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -16,7 +16,7 @@ import org.opencv.core.Point;
 @TeleOp
 public class GVFTest extends OpMode {
     Odometry odometry;
-    Path path;
+    BCPath path;
     VectorFieldOld vf;
     WheelControl wheelControl;
 
@@ -34,7 +34,7 @@ public class GVFTest extends OpMode {
         odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
-        path = new Path(cp);
+        path = new BCPath(cp);
         vf = new VectorFieldOld(wheelControl, odometry, path, -90);
     }
 

@@ -12,7 +12,7 @@ public class VectorField {
     // Robot controls
     public Odometry odometry;
     WheelControl drive;
-    Path path;
+    BCPath path;
 
     // Robot tuning
     double max_speed = 0.7;
@@ -48,7 +48,7 @@ public class VectorField {
     // Constructor
     public VectorField(WheelControl w,
                        Odometry o,
-                       Path p,
+                       BCPath p,
                        double end_heading) {
         // Inputs
         this.odometry = o;

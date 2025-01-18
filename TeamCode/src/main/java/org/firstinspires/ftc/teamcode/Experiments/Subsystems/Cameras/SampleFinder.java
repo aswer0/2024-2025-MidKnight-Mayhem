@@ -82,7 +82,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         Imgproc.cvtColor(coloredMat, coloredMat, Imgproc.COLOR_RGB2HSV);
         // filter for (red/blue) or yellow
         Mat filteredMat = new Mat();
-        if(alliance == Alliance.red) {
+        if (alliance == Alliance.red) {
             // Filter from x to 180, or 0 to x because red wraps around
             Mat temp = new Mat();
             Core.inRange(coloredMat, redLowerBound, new Scalar(180, redUpperBound.val[1], redUpperBound.val[2]), temp);

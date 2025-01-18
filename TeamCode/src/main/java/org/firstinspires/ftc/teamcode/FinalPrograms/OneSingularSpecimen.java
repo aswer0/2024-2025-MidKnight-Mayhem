@@ -1,13 +1,11 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Path;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
@@ -23,7 +21,7 @@ public class OneSingularSpecimen extends OpMode {
     ElapsedTime timer;
 
     Point[][] cp = {{}};
-    Path path = new Path(cp);
+    BCPath path = new BCPath(cp);
 
     Point specimen_target;
     Point park_target;
