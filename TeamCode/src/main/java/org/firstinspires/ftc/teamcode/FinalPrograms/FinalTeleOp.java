@@ -32,6 +32,7 @@ public class FinalTeleOp extends OpMode {
     Arm arm;
     boolean clawOpen = true;
     double flipArmBy = Double.POSITIVE_INFINITY;
+    boolean haveSetToIdle = false;
     Manipulator oldClaw;
 
     Intake intake;
@@ -62,7 +63,6 @@ public class FinalTeleOp extends OpMode {
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
         arm.openClaw();
-        arm.toIdlePosition();
         gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
         gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
         sensors = new Sensors(hardwareMap, telemetry);
@@ -74,7 +74,7 @@ public class FinalTeleOp extends OpMode {
     }
     @Override
     public void start() {
-        outtakeSlides.setPosition(-200);
+        intakeSlides.setPosition(-200);
         arm.toIdlePosition();
     }
     @Override
@@ -85,7 +85,10 @@ public class FinalTeleOp extends OpMode {
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
-
+        if(!haveSetToIdle && outtakeSlides.leftSlide.getCurrentPosition() < -150) {
+            haveSetToIdle = true;
+            arm.toIdlePosition();
+        }
         // Updates
         odometry.opt.update();
         outtakeSlides.update();
