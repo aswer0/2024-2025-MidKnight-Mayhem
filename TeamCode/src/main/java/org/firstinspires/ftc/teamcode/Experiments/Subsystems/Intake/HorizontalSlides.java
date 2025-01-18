@@ -18,7 +18,7 @@ public class HorizontalSlides {
     final static int MAX = 0;
 
     public DcMotorEx horizontalSlidesMotor;
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.055,0,-0.0005,0);
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.03,0,-0,0);
     public PIDFController pidController = new PIDFController(coefficients);
     public enum State {
         userControlled,
