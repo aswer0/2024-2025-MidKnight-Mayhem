@@ -53,11 +53,12 @@ public class FinalTeleOp extends OpMode {
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
+        odometry = new Odometry(hardwareMap, 180, 0, 0, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
         arm = new Arm(hardwareMap);
+        arm.toIdlePosition();
         oldClaw = new Manipulator(hardwareMap);
 
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
@@ -74,8 +75,8 @@ public class FinalTeleOp extends OpMode {
     }
     @Override
     public void start() {
-        intakeSlides.setPosition(-200);
-        arm.toIdlePosition();
+//        intakeSlides.setPosition(-200);
+//        outtakeSlides.setPosition(200);
     }
     @Override
     public void loop() {
@@ -85,10 +86,11 @@ public class FinalTeleOp extends OpMode {
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
-        if(!haveSetToIdle && outtakeSlides.leftSlide.getCurrentPosition() < -150) {
-            haveSetToIdle = true;
-            arm.toIdlePosition();
-        }
+//        if(!haveSetToIdle && intakeSlides.horizontalSlidesMotor.getCurrentPosition() < -150 && outtakeSlides.leftSlide.getCurrentPosition() > 150) {
+//            haveSetToIdle = true;
+//            arm.toIdlePosition();
+//            intakeSlides.setPosition(-10);
+//        }
         // Updates
         odometry.opt.update();
         outtakeSlides.update();
@@ -132,7 +134,7 @@ public class FinalTeleOp extends OpMode {
             alliance = Alliance.red;
             intake.alliance = alliance;
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
-            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
+            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 180);
         }
         if(!previousState.resetOuttakeSlides && currentState.resetOuttakeSlides) {
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -152,13 +154,13 @@ public class FinalTeleOp extends OpMode {
 
 
         if(!previousState.toLowBasket && currentState.toLowBasket) {
-            outtakeSlides.toLowBasket();
+            outtakeSlides.setPosition(200);
         } else if(!previousState.toHighBasket && currentState.toHighBasket) {
-            outtakeSlides.toHighBasket();
+            outtakeSlides.setPosition(1350);
         } else if (!previousState.toLowChamber && currentState.toLowChamber) {
-            outtakeSlides.toLowChamber();
+            outtakeSlides.setPosition(200);
         } else if (!previousState.toHighChamber && currentState.toHighChamber) {
-            outtakeSlides.setPosition(1300);
+            outtakeSlides.setPosition(1350);
         }
         if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
             outtakeSlides.trySetPower(currentState.outtakeSlidesInput*1);
