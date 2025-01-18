@@ -15,7 +15,7 @@ public class Lift {
     public static boolean outputDebugInfo = false;
 
     public static int MIN = 0;
-    public static int MAX = 1500;
+    public static int MAX = 2500;
 
     public static double highBasketPos=0;
     public static double highChamberPos=0;

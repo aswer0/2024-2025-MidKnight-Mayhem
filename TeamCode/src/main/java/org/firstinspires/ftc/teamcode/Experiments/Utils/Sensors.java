@@ -8,19 +8,23 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.ArrayList;
-
 @Config
 public class Sensors {
     Telemetry telemetry;
     DistanceSensor frontDistanceSensor;
+    DistanceSensor backDistanceSensor;
+
     RevColorSensorV3 intakeSensor;
     public static double chamberThreshold = 5.5;
+    public static double ArmDistchamberThreshold = 6;
     Double[] distSensorReads = {0.0, 0.0, 0.0, 0.0, 0.0};
     int updateCounter=0;
 
     public Sensors(HardwareMap hardwareMap, Telemetry telemetry)  {
         frontDistanceSensor = hardwareMap.get(DistanceSensor.class, "fDS");
+
+        //need new config
+        backDistanceSensor = hardwareMap.get(DistanceSensor.class, "bDS");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class, "iS");
         this.telemetry = telemetry;
 
@@ -34,9 +38,15 @@ public class Sensors {
     public boolean atChamber() {
         return get_front_dist() < chamberThreshold;
     }
+    public boolean atArmDistChamber() {
+        return get_front_dist() < ArmDistchamberThreshold;
+    }
 
     public double get_front_dist(){
         return frontDistanceSensor.getDistance(DistanceUnit.INCH);
+    }
+    public double get_back_dist(){
+        return backDistanceSensor.getDistance(DistanceUnit.INCH);
     }
 
     public double get_average_front_dist(){

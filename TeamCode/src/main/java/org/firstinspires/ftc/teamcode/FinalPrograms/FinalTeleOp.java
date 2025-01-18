@@ -34,7 +34,7 @@ public class FinalTeleOp extends OpMode {
 
     Intake intake;
     HorizontalSlides intakeSlides;
-    IntakingState intakeState = IntakingState.inactive;
+    OuttakeState hangState = OuttakeState.hangingStage1;
 
     Sensors sensors;
 
@@ -165,7 +165,7 @@ public class FinalTeleOp extends OpMode {
 //            arm.outtakeSpecimen1();
             clawOpen = false;
             arm.closeClaw();
-            flipArmBy = getRuntime() + 0.4;
+            flipArmBy = getRuntime() + 0.25;
         }
         if(getRuntime() > flipArmBy) {
             flipArmBy = Double.POSITIVE_INFINITY;
@@ -199,7 +199,7 @@ public class FinalTeleOp extends OpMode {
             intake.down();
             intake.intake();
         } else if (currentState.intakeInput<-0.7){
-            intake.down();
+            intake.reverseDown();
             if (intakeTimer.milliseconds()>150) {
                 intake.reverse();
             }
@@ -208,7 +208,15 @@ public class FinalTeleOp extends OpMode {
             intake.setPower(0);
             intake.up();
         }
-
+        if(!previousState.startHang && currentState.startHang) {
+            if(hangState == OuttakeState.hangingStage1) {
+                outtakeSlides.setPosition(2150);
+                hangState = OuttakeState.hangingStage2;
+            } else {
+                outtakeSlides.setPosition(1500);
+                hangState = OuttakeState.hangingStage1;
+            }
+        }
         //Intake
         // TODO uncomment after LM1
 //        switch(intakeState) {
@@ -297,9 +305,8 @@ public class FinalTeleOp extends OpMode {
     }
 
     enum OuttakeState {
-        inactive,
-        depositingSpecimen, // break if it is 300 below, or derivative is zero for 0.5 seconds.
-        hangingStage1
+        hangingStage1,
+        hangingStage2
     }
     
 }
