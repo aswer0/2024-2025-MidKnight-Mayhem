@@ -162,6 +162,7 @@ public class SpecimenAuto extends OpMode {
 
                 if (path.at_point(get_specimen_target, 7)) {
                     wheelControl.drive(0, 0, 0, 0, 0.7);
+                    timer.reset();
                     state = State.pickupSpecimen;
                 }
 
@@ -174,13 +175,16 @@ public class SpecimenAuto extends OpMode {
                 if (sensors.get_back_dist() >= 2.5) {
                     //maybe doing diagonal instead cause faster
                     wheelControl.drive(0.3, 0, 0, 0, 0.7);
+                    timer.reset();
                 } else {
                     wheelControl.drive(0, 0, 0, 0, 0);
                     manipulator.closeClaw();
 
-                    timer.reset();
-                    target.y -= 1;
-                    state = State.pid;
+                    if (timer.milliseconds() > 200) {
+                        timer.reset();
+                        target.y -= 1;
+                        state = State.pid;
+                    }
                 }
 
                 break;
@@ -192,6 +196,7 @@ public class SpecimenAuto extends OpMode {
 
                 path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
 
+                arm.toIdlePosition();
                 intake.down();
                 intake.intake();
                 if (timer.milliseconds()>1000) {
