@@ -106,7 +106,7 @@ public class FinalTeleOp extends OpMode {
         currentState.decreasePower = gamepad1.left_bumper;
         currentState.increasePower = gamepad1.right_bumper;
         currentState.focusMode = gamepad1.left_trigger > 0.5;
-        currentState.goForward = gamepad1.right_trigger > 0.5;
+        currentState.goForward = false; //gamepad1.right_trigger > 0.5;
 
         currentState.toLowChamber = gamepad2.dpad_down;
         currentState.toHighChamber = gamepad2.dpad_left;
@@ -133,7 +133,7 @@ public class FinalTeleOp extends OpMode {
             alliance = Alliance.red;
             intake.alliance = alliance;
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
-            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
+            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 180);
         }
         if(!previousState.resetOuttakeSlides && currentState.resetOuttakeSlides) {
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -232,7 +232,7 @@ public class FinalTeleOp extends OpMode {
                 outtakeSlides.setPosition(2150);
                 hangState = OuttakeState.hangingStage2;
             } else {
-                outtakeSlides.setPosition(1700);
+                outtakeSlides.setPosition(1500);
                 hangState = OuttakeState.hangingStage1;
             }
         }

@@ -194,7 +194,7 @@ public class ClawSpecimenAuto extends OpMode {
                 intake.up();
                 intake.stop();
 
-                if (sensors.get_front_dist() >= 2.5) {
+                if (sensors.get_front_dist() >= 2.7 || timer.milliseconds() < 3000) {
                     wheelControl.drive(-0.3, 0, 0, 0, 0.7);
                 } else {
                     wheelControl.drive(0, 0, 0, 0, 0);
