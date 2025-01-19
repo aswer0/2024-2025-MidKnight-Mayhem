@@ -81,7 +81,7 @@ public class ClawSpecimenAuto extends OpMode {
                 new Point(18.8, 14.7),
                 new Point(65.3, 55.2),
                 new Point(60.9, 23.3),
-        };
+        }; 
 
         //bcpath = new BCPath(new Point[][]{follow_path});
 
