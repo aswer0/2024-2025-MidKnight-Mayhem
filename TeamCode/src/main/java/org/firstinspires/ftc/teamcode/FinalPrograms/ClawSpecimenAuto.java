@@ -64,6 +64,7 @@ public class ClawSpecimenAuto extends OpMode {
     // goToSpecimen -> pickupSpecimen -> pid
     // intakeSample -> goToSpecimen (if done w/ samples) / setupSpitSample
     // setupSpitSample -> spitSample
+
     enum State {
         pid,
         goToSpecimen,
@@ -77,13 +78,11 @@ public class ClawSpecimenAuto extends OpMode {
     @Override
     public void init() {
         Point[] follow_path = {
-                new Point(40.2, 68.7),
-                new Point(18.8, 14.7),
-                new Point(65.3, 55.2),
-                new Point(60.9, 23.3),
-        }; 
-
-        //bcpath = new BCPath(new Point[][]{follow_path});
+                new Point(target_x, target_y),
+                new Point(33.7, 50.6),
+                new Point(35, 25),
+                new Point(11, 28),
+        };
 
         target = new Point(target_x, target_y);
         get_specimen_target = new Point(12.875, 28);
@@ -95,7 +94,6 @@ public class ClawSpecimenAuto extends OpMode {
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 180, power);
-        //vf = new VectorField(wheelControl, odometry, bcpath, 180);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -131,7 +129,6 @@ public class ClawSpecimenAuto extends OpMode {
                 }
 
                 path.follow_pid_to_point(target, 0);
-                //vf.move_to_point(target, 0, 0.7);
 
                 if (sensors.atChamber() && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
                     deposit_state++;
@@ -177,7 +174,6 @@ public class ClawSpecimenAuto extends OpMode {
                 intake.up();
                 intake.stop();
                 path.follow_pid_to_point(get_specimen_target, 179);
-                //vf.move_to_point(get_specimen_target, 180, 0.7);
 
                 if (timer.milliseconds() > 500){
                     lift.setPosition(90);
@@ -215,7 +211,6 @@ public class ClawSpecimenAuto extends OpMode {
 
                 if (odometry.opt.get_heading()<(target_angle_intake-5)) {
                     path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
-                    //vf.move_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake, 0.7);
                 } else {
                     wheelControl.drive(0,0,0,0,0);
                 }
@@ -237,7 +232,6 @@ public class ClawSpecimenAuto extends OpMode {
                 intake.intake();
                 intake.reverseDown();
                 path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
-                //vf.move_to_point(new Point(30, 30), target_angle_spit, 0.8);
                 horizontalSlides.setPosition(-300);
 
                 if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){
