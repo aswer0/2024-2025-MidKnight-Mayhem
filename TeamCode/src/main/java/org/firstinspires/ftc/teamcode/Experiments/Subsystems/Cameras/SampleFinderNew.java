@@ -50,11 +50,11 @@ public class SampleFinderNew implements VisionProcessor, CameraStreamSource {
 //
     public Point pix_to_irl(double x, double y) throws Exception {
         if (y >= 0) throw new Exception("y position of pixel cannot be >0 (above horizon)");
-        double horiz_focus_dist = this.res_w/(2*Math.tan(fov_w/2));
+        double horiz_focus_dist = this.res_w/(2*Math.tan(this.fov_w/2));
         double focus_hypot = Math.hypot(horiz_focus_dist, x);
         double sin_horiz = x/focus_hypot;
         double cos_horiz = horiz_focus_dist/focus_hypot;
-        double dist_from_cam = Math.abs(cam_h*this.res_h/(2*y*Math.tan(fov_h/2)));
+        double dist_from_cam = Math.abs(this.cam_h*this.res_h/(2*y*Math.tan(this.fov_h/2)));
         return new Point(dist_from_cam*sin_horiz, dist_from_cam*cos_horiz);
     }
 

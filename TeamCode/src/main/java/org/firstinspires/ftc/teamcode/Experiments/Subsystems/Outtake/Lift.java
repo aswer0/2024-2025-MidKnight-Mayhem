@@ -30,6 +30,7 @@ public class Lift {
     public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.005,0, 0, 0.1);
 
     public PIDFController motorController = new PIDFController(coefficients);;
+    public double cap = Double.POSITIVE_INFINITY;
 
     public enum State {
         userControlled,
@@ -87,12 +88,20 @@ public class Lift {
     }
 
     public void setPosition(double position, boolean changeState) {
+        setPosition(position, changeState, Double.POSITIVE_INFINITY);
+    }
+    public void setPosition(double position, boolean changeState, double cap) {
         if(changeState) state = State.runToPosition;
+        this.cap = cap;
         this.position = position;
     }
     public void setPosition(double position) {
         setPosition(position, true);
     }
+    public void setPosition(double position, double cap) {
+        setPosition(position, true, cap);
+    }
+
     public void setPower(double power) {
         state = State.userControlled;
         leftSlide.setPower(power);
@@ -116,7 +125,7 @@ public class Lift {
     }
     public void update() {
         if (state == State.runToPosition) {
-            double input = motorController.update(leftSlide.getCurrentPosition() - position);
+            double input = Math.min(motorController.update(leftSlide.getCurrentPosition() - position), cap);
             leftSlide.setPower(input);
             rightSlide.setPower(input);
         }

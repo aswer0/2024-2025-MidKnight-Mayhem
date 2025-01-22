@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -26,11 +28,11 @@ public class ClawSpecimenAuto extends OpMode {
     public static double intake_sample_x = 24;
     public static double intake_sample_y = 35;
 
-    public static double pos = 550;
+    public static double pos = 650;
 
     public static double horizontal_pos = -450;
     public static double target_angle_intake = 140;
-    public static double target_angle_spit = 30;
+    public static double target_angle_spit = 22;
 
     public static double power = 0.7;
 
@@ -48,6 +50,8 @@ public class ClawSpecimenAuto extends OpMode {
     Odometry odometry;
     WheelControl wheelControl;
     Path path;
+    BCPath bcpath;
+    VectorField vf;
 
     State state = State.pid;
     Lift lift;
@@ -60,6 +64,7 @@ public class ClawSpecimenAuto extends OpMode {
     // goToSpecimen -> pickupSpecimen -> pid
     // intakeSample -> goToSpecimen (if done w/ samples) / setupSpitSample
     // setupSpitSample -> spitSample
+
     enum State {
         pid,
         goToSpecimen,
@@ -73,10 +78,10 @@ public class ClawSpecimenAuto extends OpMode {
     @Override
     public void init() {
         Point[] follow_path = {
-                new Point(40.2, 68.7),
-                new Point(18.8, 14.7),
-                new Point(65.3, 55.2),
-                new Point(60.9, 23.3),
+                new Point(target_x, target_y),
+                new Point(33.7, 50.6),
+                new Point(35, 25),
+                new Point(11, 28),
         };
 
         target = new Point(target_x, target_y);
@@ -117,7 +122,11 @@ public class ClawSpecimenAuto extends OpMode {
                 intake.up();
                 intake.stop();
                 manipulator.closeClaw();
-                lift.setPosition(1300);
+                if(deposit_state == 0) {
+                    lift.setPosition(1300 + 20);
+                } else {
+                    lift.setPosition(1300);
+                }
 
                 path.follow_pid_to_point(target, 0);
 
@@ -138,9 +147,13 @@ public class ClawSpecimenAuto extends OpMode {
             case deposit:
                 intake.stop();
                 intake.up();
-                lift.setPosition(pos);
+                if(deposit_state == 1) {
+                    lift.setPosition(pos + 20);
+                } else {
+                    lift.setPosition(pos);
+                }
 
-                if (timer.milliseconds() >= 310) {
+                if (timer.milliseconds() >= 200) {
                     manipulator.openClaw();
                 }
                 if (timer.milliseconds() >= 400){
@@ -177,7 +190,7 @@ public class ClawSpecimenAuto extends OpMode {
                 intake.up();
                 intake.stop();
 
-                if (sensors.get_front_dist() >= 2.5) {
+                if (sensors.get_front_dist() >= 2.7 || timer.milliseconds() < 3000) {
                     wheelControl.drive(-0.3, 0, 0, 0, 0.7);
                 } else {
                     wheelControl.drive(0, 0, 0, 0, 0);

@@ -172,7 +172,7 @@ public class SpecimenAuto extends OpMode {
                 intake.up();
 
                 //need retuning distance for arm
-                if (sensors.get_back_dist() >= 2.5) {
+                if (sensors.get_back_dist() >= 2.7 || timer.milliseconds() > 3000) {
                     //maybe doing diagonal instead cause faster
                     wheelControl.drive(0.3, 0, 0, 0, 0.7);
                     timer.reset();

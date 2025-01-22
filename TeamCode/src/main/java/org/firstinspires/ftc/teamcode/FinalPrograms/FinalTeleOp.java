@@ -53,17 +53,15 @@ public class FinalTeleOp extends OpMode {
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 180, 0, 0, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
         arm = new Arm(hardwareMap);
-        arm.toIdlePosition();
         oldClaw = new Manipulator(hardwareMap);
 
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
-        arm.openClaw();
         gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
         gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
         sensors = new Sensors(hardwareMap, telemetry);
@@ -75,8 +73,10 @@ public class FinalTeleOp extends OpMode {
     }
     @Override
     public void start() {
-//        intakeSlides.setPosition(-200);
-//        outtakeSlides.setPosition(200);
+        //intakeSlides.setPosition(-200);
+        arm.toIdlePosition();
+        arm.openClaw();
+        oldClaw.openClaw();
     }
     @Override
     public void loop() {
@@ -86,10 +86,9 @@ public class FinalTeleOp extends OpMode {
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
-//        if(!haveSetToIdle && intakeSlides.horizontalSlidesMotor.getCurrentPosition() < -150 && outtakeSlides.leftSlide.getCurrentPosition() > 150) {
+//        if(!haveSetToIdle && outtakeSlides.leftSlide.getCurrentPosition() < -150) {
 //            haveSetToIdle = true;
 //            arm.toIdlePosition();
-//            intakeSlides.setPosition(-10);
 //        }
         // Updates
         odometry.opt.update();
@@ -107,7 +106,7 @@ public class FinalTeleOp extends OpMode {
         currentState.decreasePower = gamepad1.left_bumper;
         currentState.increasePower = gamepad1.right_bumper;
         currentState.focusMode = gamepad1.left_trigger > 0.5;
-        currentState.goForward = gamepad1.right_trigger > 0.5;
+        currentState.goForward = false; //gamepad1.right_trigger > 0.5;
 
         currentState.toLowChamber = gamepad2.dpad_down;
         currentState.toHighChamber = gamepad2.dpad_left;
@@ -154,13 +153,13 @@ public class FinalTeleOp extends OpMode {
 
 
         if(!previousState.toLowBasket && currentState.toLowBasket) {
-            outtakeSlides.setPosition(200);
+            outtakeSlides.toLowBasket();
         } else if(!previousState.toHighBasket && currentState.toHighBasket) {
-            outtakeSlides.setPosition(1350);
+            outtakeSlides.toHighBasket();
         } else if (!previousState.toLowChamber && currentState.toLowChamber) {
-            outtakeSlides.setPosition(200);
+            outtakeSlides.toLowChamber();
         } else if (!previousState.toHighChamber && currentState.toHighChamber) {
-            outtakeSlides.setPosition(1350);
+            outtakeSlides.setPosition(1300);
         }
         if(Math.abs(currentState.outtakeSlidesInput) > 0.4) {
             outtakeSlides.trySetPower(currentState.outtakeSlidesInput*1);
@@ -233,7 +232,7 @@ public class FinalTeleOp extends OpMode {
                 outtakeSlides.setPosition(2150);
                 hangState = OuttakeState.hangingStage2;
             } else {
-                outtakeSlides.setPosition(1700);
+                outtakeSlides.setPosition(1500);
                 hangState = OuttakeState.hangingStage1;
             }
         }

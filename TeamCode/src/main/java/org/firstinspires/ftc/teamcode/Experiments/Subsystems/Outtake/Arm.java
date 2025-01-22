@@ -14,7 +14,7 @@ public class Arm {
 
     public static Preset outtakeSpecimen1 = new Preset(0.9,0.4,0.3);
     public static Preset outtakeSpecimen2 = new Preset(0.9,0.55,0.21);
-    public static Preset outtakeSample = new Preset(0,0,0.5);
+    public static Preset outtakeSample = new Preset(0.9,0.4,0.3);
     public static Preset intakeSpecimen = new Preset(0.1,0.4,0.79);
     public static Preset intakeSample = new Preset(0,0,0.5);
     public static Preset idlePosition = new Preset(0.1,0.7,0.64);

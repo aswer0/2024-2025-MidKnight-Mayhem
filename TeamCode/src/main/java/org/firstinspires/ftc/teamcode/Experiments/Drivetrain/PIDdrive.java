@@ -36,8 +36,16 @@ public class PIDdrive {
         y_pos = new PIDController(yp, yi, yd);
     }
 
-    public void update(double power, double collision_dist){
-        for (int i=0; i<this.N;){
+    public void update(double power, double collision_dist, boolean reverse){
+        int start_i = 0;
+        int start_N = this.N;
+
+        if (reverse){
+            start_i = this.N-1;
+            start_N = 0;
+        }
+
+        for (int i=start_i; i<start_N;){
             double dx = this.path[i].x-this.odometry.opt.get_x();
             double dy = this.path[i].y-this.odometry.opt.get_y();
 
@@ -47,11 +55,19 @@ public class PIDdrive {
                 this.pid_to_point(this.path[i], target_angle, power);
             }
             else{
-                i++;
+
+                if (reverse) {
+                    i--;
+                }
+                else{
+                    i++;
+                }
+
             }
         }
     }
 
+    //use daniels PID
     public void pid_to_point(Point p, double target_angle, double power){
         double x_error = x_pos.calculate(this.odometry.opt.get_x(), p.x);
         double y_error = y_pos.calculate(this.odometry.opt.get_y(), p.y);

@@ -2,21 +2,21 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import org.opencv.core.Point;
 import java.util.ArrayList;
 
-public class Path {
+public class BCPath {
     BezierCurve[] F;
     int n_bz;
     double est_arclen;
     Point final_point;
 
     // Path constructor with Bezier curves
-    public Path(BezierCurve[] F){
+    public BCPath(BezierCurve[] F){
         this.F = F;
         this.n_bz = F.length;
         this.est_arclen = est_arclen();
     }
 
     // Path constructor with control points
-    public Path(Point[][] cp){
+    public BCPath(Point[][] cp){
         this.n_bz = cp.length;
 
         //add piecewise bezier curve

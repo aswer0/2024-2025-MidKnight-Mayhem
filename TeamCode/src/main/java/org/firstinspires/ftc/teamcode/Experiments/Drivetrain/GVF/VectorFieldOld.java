@@ -11,7 +11,7 @@ public class VectorFieldOld {
     // Robot controls
     public Odometry odometry;
     WheelControl drive;
-    Path path;
+    BCPath path;
 
     // Robot tuning
     double max_speed = 0.7;
@@ -48,7 +48,7 @@ public class VectorFieldOld {
     // Constructor
     public VectorFieldOld(WheelControl w,
                           Odometry o,
-                          Path p,
+                          BCPath p,
                           double end_heading) {
         // Inputs
         this.odometry = o;
@@ -175,7 +175,7 @@ public class VectorFieldOld {
         turn_speed = head_error;
 
         // Drive
-        drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
+        //drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
     }
 
     // Move with GVF and PID at the end
@@ -198,6 +198,6 @@ public class VectorFieldOld {
         set_turn_speed(target_angle);
 
         // Drive according to calculations
-        drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
+        //drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
     }
 }
