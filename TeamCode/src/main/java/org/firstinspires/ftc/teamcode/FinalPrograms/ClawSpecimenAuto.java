@@ -158,7 +158,7 @@ public class ClawSpecimenAuto extends OpMode {
                 }
                 if (timer.milliseconds() >= 400){
                     // im not sure if it will intake 3 times then move to go to specimen state, check this
-                    if (deposit_state >= 2 && deposit_state < 5){
+                    if (deposit_state >= 2 && deposit_state < 6){
                         timer.reset();
                         state = State.intakeSample;
                     }
@@ -205,7 +205,7 @@ public class ClawSpecimenAuto extends OpMode {
 
             case intakeSample:
                 // im not sure if it will intake 3 times then move to go to specimen state, check this
-                if (deposit_state > 3){
+                if (deposit_state > 4){
                     state = State.goToSpecimen;
                 }
 
@@ -221,7 +221,7 @@ public class ClawSpecimenAuto extends OpMode {
                     horizontalSlides.setPosition(horizontal_pos);
                 }
 
-                if (timer.milliseconds()>2500){
+                if (timer.milliseconds()>1500){ //original 2500
                     timer.reset();
                     state = State.setupSpitSample;
                 }
@@ -234,7 +234,7 @@ public class ClawSpecimenAuto extends OpMode {
                 path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
                 horizontalSlides.setPosition(-300);
 
-                if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){
+                if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){ //original 1000
                     wheelControl.drive(0,0,0,0, 0);
                     timer.reset();
                     state = State.spitSample;
@@ -249,10 +249,10 @@ public class ClawSpecimenAuto extends OpMode {
                     intake.reverse();
                 }
 
-                if (timer.milliseconds() >= 600){
+                if (timer.milliseconds() >= 250){ //original 600
                     intake_sample_y -= 8;
                     intake_sample_x += 0.5;
-                    target_angle_intake += 4;
+                    target_angle_intake += 2.5;
                     deposit_state++;
 
                     horizontalSlides.setPosition(-100);

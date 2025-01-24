@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
@@ -27,18 +29,18 @@ public class SpecimenAuto extends OpMode {
     public static double intake_sample_x = 24;
     public static double intake_sample_y = 35;
 
-    public static double pos = 550;
+    public static double pos = 650;
+    public static double dist_thresh = 1;
+    public static double intake_dist_thresh = 3.5;
 
-    public static double horizontal_pos = -470;
+    public static double horizontal_pos = -450;
     public static double target_angle_intake = 140;
-    public static double target_angle_spit = 45;
+    public static double target_angle_spit = 22;
 
     public static double power = 0.7;
-    public static double arm_pow = 0.7;
-    public static double arm_for = 0.3;
 
-    public static double target_x = 36.5; //36.2
-    public static double target_y = 72;
+    public static double target_x = 50; //36.2
+    public static double target_y = 75;
     double deposit_state = 0;
 
     Point target;
@@ -54,10 +56,14 @@ public class SpecimenAuto extends OpMode {
 
     State state = State.pid;
     Lift lift;
-    Manipulator manipulator;
     Intake intake;
     HorizontalSlides horizontalSlides;
     Arm arm;
+
+    // pid -> deposit -> goToSpecimen / intakeSample (pick up from lines)
+    // goToSpecimen -> pickupSpecimen -> pid
+    // intakeSample -> goToSpecimen (if done w/ samples) / setupSpitSample
+    // setupSpitSample -> spitSample
 
     enum State {
         pid,
@@ -72,16 +78,14 @@ public class SpecimenAuto extends OpMode {
     @Override
     public void init() {
         Point[] follow_path = {
-                new Point(40.2, 68.7),
-                new Point(18.8, 14.7),
-                new Point(65.3, 55.2),
-                new Point(60.9, 23.3),
+                new Point(target_x, target_y),
+                new Point(33.7, 50.6),
+                new Point(35, 25),
+                new Point(11, 28),
         };
 
         target = new Point(target_x, target_y);
-        //retune specemine target
-        get_specimen_target = new Point(15, 28);
-        //maybe retune this
+        get_specimen_target = new Point(12.875, 28);
         get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
@@ -94,12 +98,13 @@ public class SpecimenAuto extends OpMode {
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
         lift = new Lift(hardwareMap);
-        manipulator = new Manipulator(hardwareMap);
         intake = new Intake(hardwareMap, sensors);
         horizontalSlides = new HorizontalSlides(hardwareMap);
         arm = new Arm(hardwareMap);
-
         arm.toAutoStartPosition();
+        arm.closeClaw();
+
+        
     }
 
     @Override
@@ -110,16 +115,19 @@ public class SpecimenAuto extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
-        lift.setPosition(0);
+
         switch (state) {
             case pid:
                 intake.up();
-                arm.closeClaw();
+                intake.stop();
                 arm.outtakeSpecimen1();
+                arm.closeClaw();
+
+                lift.toHighChamber();
 
                 path.follow_pid_to_point(target, 0);
 
-                if (sensors.atArmDistChamber() && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
+                if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
                     deposit_state++;
                     timer.reset();
                     state = State.deposit;
@@ -134,21 +142,20 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case deposit:
+                intake.stop();
                 intake.up();
 
-                if (timer.milliseconds() >= 200) {
-                    arm.outtakeSpecimen2();
-                    wheelControl.drive(-arm_for, 0, 0, 0, arm_pow);
-                }
-                if (timer.milliseconds() >= 500){
-                    if (deposit_state >= 2 && deposit_state < 5){
+                arm.openClaw();
+                arm.outtakeSpecimen1();
+
+                if (timer.milliseconds() >= 400){
+                    // im not sure if it will intake 3 times then move to go to specimen state, check this
+                    if (deposit_state >= 2 && deposit_state < 6){
                         timer.reset();
-                        arm.openClaw();
                         state = State.intakeSample;
                     }
                     else {
                         timer.reset();
-                        arm.openClaw();
                         state = State.goToSpecimen;
                     }
                 }
@@ -157,12 +164,16 @@ public class SpecimenAuto extends OpMode {
 
             case goToSpecimen:
                 intake.up();
-                arm.intakeSpecimen();
+                intake.stop();
                 path.follow_pid_to_point(get_specimen_target, 0);
 
-                if (path.at_point(get_specimen_target, 7)) {
+                if (timer.milliseconds() > 500){
+                    lift.intakeSpecimen();
+                    arm.intakeSpecimen();
+                }
+
+                if (path.at_point(get_specimen_target, 5)) { //4
                     wheelControl.drive(0, 0, 0, 0, 0.7);
-                    timer.reset();
                     state = State.pickupSpecimen;
                 }
 
@@ -170,43 +181,42 @@ public class SpecimenAuto extends OpMode {
 
             case pickupSpecimen:
                 intake.up();
+                intake.stop();
+                arm.intakeSpecimen();
 
-                //need retuning distance for arm
-                if (sensors.get_back_dist() >= 2.7 || timer.milliseconds() > 3000) {
-                    //maybe doing diagonal instead cause faster
-                    wheelControl.drive(0.3, 0, 0, 0, 0.7);
-                    timer.reset();
+                if (sensors.get_back_dist() >= intake_dist_thresh || timer.milliseconds() < 3000) {
+                    wheelControl.drive(-0.5, 0, 0, 0, 0.7);
                 } else {
                     wheelControl.drive(0, 0, 0, 0, 0);
-                    manipulator.closeClaw();
+                    arm.closeClaw();
 
-                    if (timer.milliseconds() > 200) {
-                        timer.reset();
-                        target.y -= 1;
-                        state = State.pid;
-                    }
+                    timer.reset();
+                    target.y -= 1.5; // this has to be tuned better for more space on the right
+                    state = State.pid;
                 }
 
                 break;
 
             case intakeSample:
+                // im not sure if it will intake 3 times then move to go to specimen state, check this
                 if (deposit_state > 4){
                     state = State.goToSpecimen;
                 }
 
-                path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
+                if (odometry.opt.get_heading()<(target_angle_intake-5)) {
+                    path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
+                } else {
+                    wheelControl.drive(0,0,0,0,0);
+                }
 
-                arm.toIdlePosition();
                 intake.down();
                 intake.intake();
                 if (timer.milliseconds()>1000) {
                     horizontalSlides.setPosition(horizontal_pos);
                 }
 
-                if (timer.milliseconds()>2500){
+                if (timer.milliseconds()>1500){ //original 2500
                     timer.reset();
-                    intake.intake();
-                    intake.reverseDown();
                     state = State.setupSpitSample;
                 }
 
@@ -218,8 +228,8 @@ public class SpecimenAuto extends OpMode {
                 path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
                 horizontalSlides.setPosition(-300);
 
-                if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){
-                    wheelControl.drive(0,0,0,0, 0.00001);
+                if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){ //original 1000
+                    wheelControl.drive(0,0,0,0, 0);
                     timer.reset();
                     state = State.spitSample;
                 }
@@ -233,13 +243,14 @@ public class SpecimenAuto extends OpMode {
                     intake.reverse();
                 }
 
-                if (timer.milliseconds() >= 600){
+                if (timer.milliseconds() >= 250){ //original 600
                     intake_sample_y -= 8;
                     intake_sample_x += 0.5;
-                    target_angle_intake += 4;
+                    target_angle_intake += 2.5;
                     deposit_state++;
 
                     horizontalSlides.setPosition(-100);
+                    timer.reset();
                     state = State.intakeSample;
                 }
 
