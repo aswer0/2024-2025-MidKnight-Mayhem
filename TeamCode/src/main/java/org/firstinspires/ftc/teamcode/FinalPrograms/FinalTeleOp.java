@@ -174,7 +174,7 @@ public class FinalTeleOp extends OpMode {
             arm.intakeSpecimen();
             outtakeSlides.intakeSpecimen();
         } else if (!previousState.outtakeSpecimen2 && currentState.outtakeSpecimen2) {
-            outtakeSlides.toHighBasket();
+            outtakeSlides.toHighChamber();
             arm.outtakeSpecimen2();
         } else if (!previousState.outtakeSpecimen1 && currentState.outtakeSpecimen1) {
 //            outtakeSlides.toHighChamber();
