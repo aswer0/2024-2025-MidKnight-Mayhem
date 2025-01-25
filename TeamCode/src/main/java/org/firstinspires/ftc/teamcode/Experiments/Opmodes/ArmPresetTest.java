@@ -5,19 +5,23 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 
 @TeleOp
 @Config
 public class ArmPresetTest extends OpMode {
     Arm arm;
+    Lift outtakeSlides;
     public static ArmPreset state = ArmPreset.intakeSample;
     @Override
     public void init() {
         arm = new Arm(hardwareMap);
+        outtakeSlides = new Lift(hardwareMap, true);
     }
 
     @Override
     public void loop() {
+        outtakeSlides.update();
         if (gamepad1.right_bumper) {
             arm.openClaw();
         } else {
@@ -40,7 +44,9 @@ public class ArmPresetTest extends OpMode {
                 arm.intakeSpecimen();
                 break;
             case outtakeSample:
+
                 arm.outtakeSample();
+                outtakeSlides.toHighBasket();
                 break;
             case outtakeSpecimen1:
                 arm.outtakeSpecimen1();
