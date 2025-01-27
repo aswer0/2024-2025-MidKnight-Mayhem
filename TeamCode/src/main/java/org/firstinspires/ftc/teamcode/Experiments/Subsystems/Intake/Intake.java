@@ -19,10 +19,15 @@ public class Intake {
     public static double DOWN_POS=0.485;
     public static double UP_POS=0.9;
 
+    public static double DOOR_OPEN_POS=0.5;
+    public static double DOOR_CLOSE_POS=0.5;
+
     public DcMotorEx intakeMotor;
 
     public Servo intakePivotLeft;
     public Servo intakePivotRight;
+
+    //public Servo intakeDoor;
 
     public Servo sweeper;
 
@@ -34,9 +39,10 @@ public class Intake {
 
     public Intake(HardwareMap hardwareMap, Sensors sensors) {
         this.sensors = sensors;
-        intakeMotor = hardwareMap.get(DcMotorEx.class,"iS1"); //left looking from intake side
+        intakeMotor = hardwareMap.get(DcMotorEx.class,"intakeMotor"); //left looking from intake side
         intakePivotLeft = hardwareMap.get(Servo.class,"iPL"); //from intake side
         intakePivotRight = hardwareMap.get(Servo.class,"iPR");
+        //intakeDoor = hardwareMap.get(Servo.class, "intakeDoor");
         sweeper = hardwareMap.get(Servo.class, "sweeper");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class,"iS");
         intakeSensor.enableLed(false);
@@ -49,10 +55,10 @@ public class Intake {
     }
 
     public void intake() {
-        setPower(-1);
+        setPower(1);
     }
     public void reverse() {
-        setPower(0.75);
+        setPower(-0.75);
     }
     public void stop() {
         setPower(0);
@@ -65,6 +71,9 @@ public class Intake {
     public void up() {setPivot(UP_POS);}
     public void down() {setPivot(DOWN_POS);}
     public void reverseDown() {setPivot(0.55);}
+
+    //public void openDoor() {intakeDoor.setPosition(DOOR_OPEN_POS);}
+    //public void closeDoor() {intakeDoor.setPosition(DOOR_CLOSE_POS);}
 
     public void sweeperIn() {sweeper.setPosition(0);}
     public void sweeperOut() {sweeper.setPosition(0.5);}
