@@ -96,7 +96,7 @@ public class SampleAuto extends OpMode {
                 intake.up();
                 intake.stop();
                 manipulator.closeClaw();
-                lift.setPosition(1600);
+                //lift.setPosition(1600);
 
                 vf.move_to_point(deposit_sample_target, 135, 0.5);
 

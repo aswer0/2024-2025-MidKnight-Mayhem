@@ -95,7 +95,7 @@ public class TestDrive extends OpMode {
         if (gamepad1.y) drive.FR.setPower(0.5);
 
         odometry.update();
-        drive.drive(gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, -gamepad1.right_stick_x, 0, powerLevel);
+        drive.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, -gamepad1.right_stick_x, 0, powerLevel);
 
         loopCounter += 1;
         totalLoopTime += timer.milliseconds();
