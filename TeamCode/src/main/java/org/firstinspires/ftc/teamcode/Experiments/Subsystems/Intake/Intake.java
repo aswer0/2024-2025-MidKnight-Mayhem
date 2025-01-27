@@ -4,7 +4,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -20,8 +19,7 @@ public class Intake {
     public static double DOWN_POS=0.485;
     public static double UP_POS=0.9;
 
-    public CRServo intakeServo1;
-    public CRServo intakeServo2;
+    public DcMotorEx intakeMotor;
 
     public Servo intakePivotLeft;
     public Servo intakePivotRight;
@@ -36,8 +34,7 @@ public class Intake {
 
     public Intake(HardwareMap hardwareMap, Sensors sensors) {
         this.sensors = sensors;
-        intakeServo1 = hardwareMap.get(CRServo.class,"iS1"); //left looking from intake side
-        intakeServo2 = hardwareMap.get(CRServo.class,"iS2");
+        intakeMotor = hardwareMap.get(DcMotorEx.class,"iS1"); //left looking from intake side
         intakePivotLeft = hardwareMap.get(Servo.class,"iPL"); //from intake side
         intakePivotRight = hardwareMap.get(Servo.class,"iPR");
         sweeper = hardwareMap.get(Servo.class, "sweeper");
@@ -48,8 +45,7 @@ public class Intake {
         this.alliance = alliance;
     }
     public void setPower(double power) {
-        intakeServo1.setPower(power);
-        intakeServo2.setPower(-power);
+        intakeMotor.setPower(power);
     }
 
     public void intake() {
