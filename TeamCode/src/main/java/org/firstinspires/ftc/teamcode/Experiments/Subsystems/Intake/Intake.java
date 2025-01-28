@@ -16,10 +16,10 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 public class Intake {
     public static boolean outputDebugInfo = false;
 
-    public static double DOWN_POS=0.485;
+    public static double DOWN_POS=0.685;
     public static double UP_POS=0.9;
 
-    public static double DOOR_OPEN_POS=0.5;
+    public static double DOOR_OPEN_POS=0.685;
     public static double DOOR_CLOSE_POS=0.5;
 
     public DcMotorEx intakeMotor;
@@ -58,7 +58,7 @@ public class Intake {
         setPower(1);
     }
     public void reverse() {
-        setPower(-0.75);
+        setPower(-1);
     }
     public void stop() {
         setPower(0);
@@ -70,7 +70,7 @@ public class Intake {
     }
     public void up() {setPivot(UP_POS);}
     public void down() {setPivot(DOWN_POS);}
-    public void reverseDown() {setPivot(0.55);}
+    public void reverseDown() {setPivot(0.78);}
 
     //public void openDoor() {intakeDoor.setPosition(DOOR_OPEN_POS);}
     //public void closeDoor() {intakeDoor.setPosition(DOOR_CLOSE_POS);}

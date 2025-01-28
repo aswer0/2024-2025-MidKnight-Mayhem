@@ -30,17 +30,19 @@ public class SpecimenAuto extends OpMode {
     public static double intake_sample_y = 35;
 
     public static double pos = 650;
-    public static double dist_thresh = 1;
-    public static double intake_dist_thresh = 3.5;
+    public static double dist_thresh = 2.5;
+    public static double intake_dist_thresh = 4;
 
     public static double horizontal_pos = -450;
     public static double target_angle_intake = 140;
     public static double target_angle_spit = 22;
 
-    public static double power = 0.7;
+    public static double power = 1;
+    public static double gvf_speed = 0.1;
+    public static double gvf_thresh = 13;
 
     public static double target_x = 50; //36.2
-    public static double target_y = 75;
+    public static double target_y = 85;
     double deposit_state = 0;
 
     Point target;
@@ -78,10 +80,10 @@ public class SpecimenAuto extends OpMode {
     @Override
     public void init() {
         Point[] follow_path = {
-                new Point(target_x, target_y),
-                new Point(33.7, 50.6),
-                new Point(35, 25),
-                new Point(11, 28),
+                new Point(11,28),
+                new Point(36.6, 23.5),
+                new Point(4.3, 79),
+                new Point(36.5, 75)
         };
 
         target = new Point(target_x, target_y);
@@ -93,7 +95,8 @@ public class SpecimenAuto extends OpMode {
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, 180, power);
+
+        path = new Path(follow_path, wheelControl, odometry, telemetry, gvf_speed, gvf_thresh, 180, power);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -125,8 +128,18 @@ public class SpecimenAuto extends OpMode {
 
                 lift.toHighChamber();
 
-                path.follow_pid_to_point(target, 0);
+                if (deposit_state == 0){
+                    if (timer.milliseconds() >= 100){
+                        path.follow_pid_to_point(target, 0);
+                    }
+                }
+                else{
+                    path.follow_pid_to_point(target, 0);
+                }
 
+                if (deposit_state >= 1){
+                    path.update(0);
+                }
                 if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
                     deposit_state++;
                     timer.reset();
@@ -148,6 +161,10 @@ public class SpecimenAuto extends OpMode {
                 arm.openClaw();
                 arm.outtakeSpecimen1();
 
+                if (timer.milliseconds() >= 125) {
+                    lift.setPosition(100);
+                }
+
                 if (timer.milliseconds() >= 400){
                     // im not sure if it will intake 3 times then move to go to specimen state, check this
                     if (deposit_state >= 2 && deposit_state < 6){
@@ -163,7 +180,7 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case goToSpecimen:
-                intake.up();
+                intake.down();
                 intake.stop();
                 path.follow_pid_to_point(get_specimen_target, 0);
 
@@ -180,12 +197,12 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case pickupSpecimen:
-                intake.up();
+                intake.down();
                 intake.stop();
                 arm.intakeSpecimen();
 
                 if (sensors.get_back_dist() >= intake_dist_thresh || timer.milliseconds() < 3000) {
-                    wheelControl.drive(-0.5, 0, 0, 0, 0.7);
+                    wheelControl.drive(0.5, 0, 0, 0, 0.7);
                 } else {
                     wheelControl.drive(0, 0, 0, 0, 0);
                     arm.closeClaw();
@@ -265,7 +282,7 @@ public class SpecimenAuto extends OpMode {
         telemetry.addData("Motor position: ", lift.getPosition());
         telemetry.addData("Horizontal Motor position: ", horizontalSlides.horizontalSlidesMotor.getCurrentPosition());
         telemetry.addData("State: ", state);
-        telemetry.addData("Front Distance", sensors.get_front_dist());
+        telemetry.addData("Back Distance", sensors.get_back_dist());
 
         lift.update();
         telemetry.update();

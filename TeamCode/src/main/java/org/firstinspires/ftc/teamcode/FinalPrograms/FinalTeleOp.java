@@ -77,6 +77,7 @@ public class FinalTeleOp extends OpMode {
         arm.toIdlePosition();
         arm.openClaw();
         oldClaw.openClaw();
+        intake.up();
     }
     @Override
     public void loop() {
@@ -170,16 +171,20 @@ public class FinalTeleOp extends OpMode {
         // claw rpesets
         if(!previousState.toIdlePosition && currentState.toIdlePosition) {
             arm.toIdlePosition();
+            intake.up();
         } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
             arm.intakeSpecimen();
             outtakeSlides.intakeSpecimen();
+            intake.down();
         } else if (!previousState.outtakeSpecimen2 && currentState.outtakeSpecimen2) {
             outtakeSlides.toHighChamber();
             arm.outtakeSpecimen2();
+            intake.up();
         } else if (!previousState.outtakeSpecimen1 && currentState.outtakeSpecimen1) {
 //            outtakeSlides.toHighChamber();
 //            arm.outtakeSpecimen1();
             clawOpen = false;
+            intake.up();
             arm.closeClaw();
             oldClaw.closeClaw();
             flipArmBy = getRuntime() + 0.25;
@@ -202,6 +207,7 @@ public class FinalTeleOp extends OpMode {
 
         //manual horizontal extension
         if(Math.abs(previousState.intakeSlidesInput) > 0.1) {
+            intake.reverseDown();
             intakeSlides.trySetPower(previousState.intakeSlidesInput);
         } else if (intakeSlides.horizontalSlidesMotor.getPower() != 0 && intakeSlides.getState() == HorizontalSlides.State.userControlled) { // in the dead zone and not running to target
             intakeSlides.trySetPower(0);
@@ -225,7 +231,7 @@ public class FinalTeleOp extends OpMode {
         } else {
             intakeTimer.reset();
             intake.setPower(0);
-            intake.up();
+            //intake.up();
         }
         if(!previousState.startHang && currentState.startHang) {
             if(hangState == OuttakeState.hangingStage1) {

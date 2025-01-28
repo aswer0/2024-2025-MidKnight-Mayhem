@@ -15,8 +15,8 @@ import java.util.ArrayList;
 
 @Config
 public class Path {
-    public static double xp = 0.04, xi = 0, xd = 0.001;
-    public static double yp = 0.04, yi = 0, yd = 0.001;
+    public static double xp = 0.06, xi = 0, xd = 0.001;
+    public static double yp = 0.06, yi = 0, yd = 0.001;
     public static double hp = 0.0065, hi = 0, hd = 0.00004;
 
     public static double follow_xp = 0.035, follow_xi = 0, follow_xd = 0.001;
