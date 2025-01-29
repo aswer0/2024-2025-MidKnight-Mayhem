@@ -19,8 +19,8 @@ public class Intake {
     public static double DOWN_POS=0.64;
     public static double UP_POS=0.9;
 
-    public static double DOOR_OPEN_POS=0.685;
-    public static double DOOR_CLOSE_POS=0.5;
+    public static double DOOR_OPEN_POS=0.8;
+    public static double DOOR_CLOSE_POS=0.4;
 
     public DcMotorEx intakeMotor;
 

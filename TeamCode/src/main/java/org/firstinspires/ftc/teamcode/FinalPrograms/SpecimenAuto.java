@@ -42,7 +42,7 @@ public class SpecimenAuto extends OpMode {
     public static double gvf_thresh = 13;
 
     public static double target_x = 50; //36.2
-    public static double target_y = 85;
+    public static double target_y = 90;
     double deposit_state = 0;
 
     Point target;
@@ -200,6 +200,7 @@ public class SpecimenAuto extends OpMode {
                 intake.down();
                 intake.stop();
                 arm.intakeSpecimen();
+                horizontalSlides.setPosition(0);
 
                 if (sensors.get_back_dist() >= intake_dist_thresh || timer.milliseconds() < 3000) {
                     wheelControl.drive(0.5, 0, 0, 0, 0.7);
@@ -228,11 +229,12 @@ public class SpecimenAuto extends OpMode {
 
                 intake.down();
                 intake.intake();
+
                 if (timer.milliseconds()>1000) {
                     horizontalSlides.setPosition(horizontal_pos);
                 }
 
-                if (timer.milliseconds()>1500){ //original 2500
+                if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2500){ //original 2500
                     timer.reset();
                     state = State.setupSpitSample;
                 }
@@ -243,7 +245,7 @@ public class SpecimenAuto extends OpMode {
                 intake.intake();
                 intake.reverseDown();
                 path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
-                horizontalSlides.setPosition(-300);
+                horizontalSlides.setPosition(0);
 
                 if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){ //original 1000
                     wheelControl.drive(0,0,0,0, 0);
@@ -255,12 +257,12 @@ public class SpecimenAuto extends OpMode {
 
             case spitSample:
                 if (timer.milliseconds()>0) horizontalSlides.setPosition(-470);
-                if (timer.milliseconds() >= 150){
+                if (intake.hasCorrectSample(false)){
                     intake.reverseDown();
                     intake.reverse();
                 }
 
-                if (timer.milliseconds() >= 250){ //original 600
+                if (!intake.hasCorrectSample(false) || timer.milliseconds() >= 1000){ //original 600
                     intake_sample_y -= 8;
                     intake_sample_x += 0.5;
                     target_angle_intake += 2.5;
