@@ -32,8 +32,6 @@ public class Intake {
     public Servo sweeper;
 
     public RevColorSensorV3 intakeSensor;
-    public boolean intaking = false;
-    public boolean hasCorrectColor = false;
     public static Alliance alliance = Alliance.red;
     public Sensors sensors;
 
@@ -80,6 +78,8 @@ public class Intake {
 
 
     public boolean smartIntake() {
+        boolean hasCorrectColor = hasCorrectSample(false);
+        boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 0.5;
         if(outputDebugInfo) {
             TelemetryPacket packet = new TelemetryPacket();
             packet.put("Intake/Red", intakeSensor.red() );
@@ -89,7 +89,22 @@ public class Intake {
             packet.put("Intake/hasCorrectColor", hasCorrectColor);
             (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
         }
-        boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 0.5;
+        // TODO: Alliance detection
+        if(hasObject && hasCorrectColor) {
+            stop();
+            closeDoor();
+            return true;
+        } else if(hasObject) {
+            intake();
+            openDoor();
+        } else {
+            intake();
+            openDoor();
+        }
+        return false;
+    }
+    public boolean hasCorrectSample(boolean detectYellow) {
+        boolean hasCorrectColor;
         if(alliance == Alliance.red) {
             hasCorrectColor = 53 < intakeSensor.red() && intakeSensor.red() < 74 &&
                     34 < intakeSensor.blue() && intakeSensor.blue() < 54 &&
@@ -99,23 +114,11 @@ public class Intake {
                     45 < intakeSensor.green() && intakeSensor.green() < 65 &&
                     85 < intakeSensor.blue() && intakeSensor.blue() < 105;
         }
-        if(false) {
+        if(detectYellow) {
             hasCorrectColor = hasCorrectColor || (83 < intakeSensor.red() && intakeSensor.red() < 103 &&
                     124 < intakeSensor.green() && intakeSensor.green() < 144 &&
                     55 < intakeSensor.blue() && intakeSensor.blue() < 75);
         }
-        // TODO: Alliance detection
-//        if(hasObject && hasCorrectColor) {
-//            stop();
-//            closeDoor();
-//            return true;
-//        } else if(hasObject) {
-//            intake();
-//            openDoor();
-//        } else {
-//            intake();
-//            openDoor();
-//        }
-        return false;
+        return hasCorrectColor;
     }
 }
