@@ -77,8 +77,8 @@ public class Intake {
     public void sweeperOut() {sweeper.setPosition(0.5);}
 
 
-    public boolean smartIntake() {
-        boolean hasCorrectColor = hasCorrectSample(false);
+    public boolean smartIntake(boolean detectYellow) {
+        boolean hasCorrectColor = hasCorrectSample(detectYellow);
         boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 2;
         if(outputDebugInfo) {
             TelemetryPacket packet = new TelemetryPacket();
