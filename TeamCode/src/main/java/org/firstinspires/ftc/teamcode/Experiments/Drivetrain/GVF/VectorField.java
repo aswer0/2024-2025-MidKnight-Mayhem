@@ -1,11 +1,10 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
-import static org.firstinspires.ftc.teamcode.Experiments.Opmodes.GVFSimplifiedTest.target_angle;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.opencv.core.Point;
 
 public class VectorField {
@@ -18,9 +17,13 @@ public class VectorField {
     double max_speed = 0.7;
     double min_speed = 0.4;
     double max_turn_speed = 20;
-    double corr_weight = 0.1;
     double stop_speed = 0.05;
-    double decay_rate = 0.001;
+    double speed_decay_rate = 0.001;
+    double path_corr = 0.1;
+    double PID_dist = 5;
+    double centripetal_corr = 0;
+    double centripetal_threshold = 10;
+    double accel_corr = 0;
 
     // End decel: deceleration rate
     double end_decel = 0.02;
@@ -128,6 +131,11 @@ public class VectorField {
         return Utils.dist(path.final_point, get_pos());
     }
 
+    // Distance to closest point on path
+    public double closest_dist() {
+        return Utils.dist(path.forward(D), get_pos());
+    }
+
     // Get turn angle
     public double turn_angle(double current, double target) {
         double turn_angle = target-current;
@@ -142,8 +150,8 @@ public class VectorField {
     }
 
     // Calculates turn speed based on target angle
-    public void set_turn_speed(double target_angle) {
-        turn_speed = turn_angle(get_heading(), target_angle)*hp;
+    public void set_turn_speed(double target) {
+        turn_speed = h_PID.calculate(get_heading(), target);
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
     }
@@ -151,19 +159,27 @@ public class VectorField {
     // Robot's move vector to path
     public Point move_vector(double speed) {
         update_closest(0, 50, 5, 1);
-        if (D > D_from_end(3)) {
-            return Utils.scale_v(Utils.sub_v(path.final_point, get_pos()), speed);
-        }
-        Point orth = Utils.sub_v(get_closest(), get_pos());
-        orth = Utils.scale_v(orth, corr_weight*Utils.len_v(orth));
+
+        // Orthogonal vector (correction)
+        Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
+
+        // Tangent vector (follower)
         Point tangent = Utils.scale_v(path.derivative(D), 1);
-        return Utils.scale_v(Utils.add_v(orth, tangent), speed);
+
+        // Centripetal
+        Point centripetal = new Point(0, 0);
+        if (closest_dist() < centripetal_threshold) {
+            double perp_angle = Utils.angle_v(tangent)+Math.PI/2;
+            double centripetal_len = path.curvature(D)*centripetal_corr;
+            centripetal = Utils.polar_to_rect(centripetal_len, perp_angle);
+        }
+
+        // Add everything
+        return Utils.scale_v(Utils.add_v(orth, tangent, centripetal), speed);
     }
 
     // Move to a point given coordinates and heading
     public void move_to_point(Point p, double target_angle, double max_speed) {
-        PID = true;
-
         x_error = x_PID.calculate(get_x(), p.x);
         y_error = y_PID.calculate(get_y(), p.y);
         double head_error = h_PID.calculate(get_heading(), target_angle);
@@ -172,7 +188,7 @@ public class VectorField {
         double temp_speed = Math.min(max_speed, Utils.len_v(new Point(x_error, y_error)));
 
         if (temp_speed < stop_speed) {
-            speed = Math.max(Math.min(speed, stop_speed) - decay_rate, 0);
+            speed = Math.max(Math.min(speed, stop_speed) - speed_decay_rate, 0);
         } else speed = temp_speed;
 
         x_error *= speed/old_speed;
@@ -186,24 +202,28 @@ public class VectorField {
         drive.drive(-velocity.y, -velocity.x, turn_speed, Math.toRadians(get_heading()), 1);
     }
 
-    // Move with GVF and PID at the end
+    public void set_drive_speed(double turn_speed) {
+        speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
+        speed = Math.min(speed, get_end_speed(path.final_point));
+    }
+
+    // Move with GVF
     public void move() {
         // PID at the end
-        if (D > D_from_end(5)) {
+        if (D > D_from_end(PID_dist)) {
+            PID = true;
             move_to_point(path.final_point, end_heading, max_speed);
+            return;
         }
 
+        // Otherwise, GVF
         PID = false;
-        double drive_speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
-        speed = Math.min(drive_speed, get_end_speed(path.final_point));
+        set_turn_speed(Utils.angle_v(path.derivative(D)));
+        set_drive_speed(turn_speed);
         velocity = move_vector(speed);
 
         // Error
         error = Utils.dist(get_pos(), path.forward(D));
-
-        // Angle
-        target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
-        set_turn_speed(target_angle);
 
         // Drive according to calculations
         drive.drive(-velocity.y, -velocity.x, turn_speed, Math.toRadians(get_heading()), 1);

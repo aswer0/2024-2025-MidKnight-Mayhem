@@ -56,6 +56,16 @@ public class BCPath {
         return F[i].derivative(t-i);
     }
 
+    public Point second_derivative(double t) {
+        int i = get_bz(t);
+        return F[i].second_derivative(t-i);
+    }
+
+    public double curvature(double t) {
+        int i = get_bz(t);
+        return F[i].curvature(t-i);
+    }
+
     public int dDdt_sign(Point p, double t) {
         int i = get_bz(t);
         return F[i].dDdt_sign(p,t-i);

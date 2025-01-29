@@ -42,7 +42,7 @@ public class GVFTest extends OpMode {
     public void loop() {
         odometry.opt.update();
         vf.move();
-        //wheelControl.drive(0.2, -0.2,0, 0, 0.5);
+        //wheelControl.drive(0.2, -0.2, 0, 0, 0.5);
         TelemetryPacket telemetry = new TelemetryPacket();
         //vf.move_to_point(new Point(28, 72), 0, 0.4);
         telemetry.put("targetAngle", vf.target_angle);

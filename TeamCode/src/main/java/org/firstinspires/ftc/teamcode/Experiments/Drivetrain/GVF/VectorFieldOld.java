@@ -84,7 +84,7 @@ public class VectorFieldOld {
 
     // Heading of robot
     public double get_heading() {
-        return odometry.opt.get_heading();
+        return -odometry.opt.get_heading();
     }
 
     // Gets position of robot
@@ -175,7 +175,7 @@ public class VectorFieldOld {
         turn_speed = head_error;
 
         // Drive
-        //drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
+        drive.drive(-velocity.y, -velocity.x, turn_speed, Math.toRadians(get_heading()), 1);
     }
 
     // Move with GVF and PID at the end
@@ -198,6 +198,6 @@ public class VectorFieldOld {
         set_turn_speed(target_angle);
 
         // Drive according to calculations
-        //drive.drive(-velocity.y, -velocity.x, turn_speed, -Math.toRadians(get_heading()), 1);
+        drive.drive(-velocity.y, -velocity.x, turn_speed, Math.toRadians(get_heading()), 1);
     }
 }

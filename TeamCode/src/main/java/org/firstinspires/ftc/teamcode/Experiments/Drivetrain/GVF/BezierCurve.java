@@ -47,7 +47,7 @@ public class BezierCurve {
         //calculate x and y of the bezier curve as a parametric
         double dx = 0.0;
         double dy = 0.0;
-        int cur_comb = 1;
+        int cur_comb = K;
         double coeff;
         int new_k = K-1;
         for (int i = 0; i <= new_k; i++) {
@@ -57,8 +57,30 @@ public class BezierCurve {
             cur_comb *= (new_k-i);
             cur_comb /= i+1;
         }
-        // final derivative change in x over change in y
         return new Point(dx, dy);
+    }
+
+    public Point second_derivative(double t){
+        //calculate x and y of the bezier curve as a parametric
+        double dx = 0.0;
+        double dy = 0.0;
+        int cur_comb = K*(K-1);
+        double coeff;
+        int new_k = K-2;
+        for (int i = 0; i <= new_k; i++) {
+            coeff = cur_comb*Math.pow(t, i)*Math.pow(1-t, new_k-i);
+            dx += coeff*(P[i+2].x-2*P[i+1].x+P[i].x);
+            dy += coeff*(P[i+2].y-2*P[i+1].y+P[i].y);
+            cur_comb *= (new_k-i);
+            cur_comb /= i+1;
+        }
+        return new Point(dx, dy);
+    }
+
+    public double curvature(double t) {
+        double d_slope = Utils.slope_v(derivative(t));
+        double second_d_slope = Utils.slope_v(second_derivative(t));
+        return second_d_slope/Math.pow(1+d_slope*d_slope, 1.5);
     }
 
     // Sign of the derivative of the distance from point to curve
