@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
-//
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import org.opencv.core.Point;
 
@@ -56,14 +57,13 @@ public class SpecimenAuto extends OpMode {
     WheelControl wheelControl;
     Path path;
 
-    BCPath bcpath;
-    VectorField follower;
-
     State state = State.pid;
     Lift lift;
     Intake intake;
     HorizontalSlides horizontalSlides;
     Arm arm;
+
+    Alliance alliance = Alliance.red;
 
     // pid -> deposit -> goToSpecimen / intakeSample (pick up from lines)
     // goToSpecimen -> pickupSpecimen -> pid
@@ -90,7 +90,7 @@ public class SpecimenAuto extends OpMode {
         };
 
         target = new Point(target_x, target_y);
-        get_specimen_target = new Point(12.875, 28);
+        get_specimen_target = new Point(12.875-2, 28);
         get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
@@ -101,9 +101,6 @@ public class SpecimenAuto extends OpMode {
 
         path = new Path(follow_path, wheelControl, odometry, telemetry, gvf_speed, gvf_thresh, 180, power);
 
-        bcpath = new BCPath(new Point[][]{follow_path});
-        follower = new VectorField(wheelControl, odometry, bcpath, 180);
-
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
         lift = new Lift(hardwareMap);
@@ -112,8 +109,17 @@ public class SpecimenAuto extends OpMode {
         arm = new Arm(hardwareMap);
         arm.toAutoStartPosition();
         arm.closeClaw();
+    }
 
-        
+    @Override
+    public void init_loop() {
+        if (gamepad1.left_bumper) {
+            alliance = Alliance.blue;
+        } else if (gamepad1.right_bumper) {
+            alliance = Alliance.red;
+        }
+
+        telemetry.addData("Alliance", alliance);
     }
 
     @Override
@@ -123,6 +129,7 @@ public class SpecimenAuto extends OpMode {
 
     @Override
     public void loop() {
+        intake.closeDoor();
         odometry.opt.update();
 
         switch (state) {
@@ -136,18 +143,21 @@ public class SpecimenAuto extends OpMode {
 
                 if (deposit_state == 0){
                     if (timer.milliseconds() >= 100){
-                        //path.follow_pid_to_point(target, 0);
-                        follower.move_to_point(target, 0, 0.7);
+                        path.follow_pid_to_point(target, 0);
                     }
                 }
-                else {
+                else{
                     //path.follow_pid_to_point(target, 0);
-                    follower.move_to_point(target, 0, 0.7);
+                    if (odometry.opt.get_y()<target_y-24) {
+                        path.follow_pid_to_point(new Point(target_x - 24, target_y + 10), 0);
+                    } else {
+                        path.follow_pid_to_point(target, 0);
+                    }
                 }
 
-                if (deposit_state >= 1){
-                    path.update(0);
-                }
+                //if (deposit_state >= 1){
+                //    path.update(0);
+                //}
                 if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
                     deposit_state++;
                     timer.reset();
@@ -190,8 +200,8 @@ public class SpecimenAuto extends OpMode {
             case goToSpecimen:
                 intake.down();
                 intake.stop();
-                //path.follow_pid_to_point(get_specimen_target, 0);
-                follower.move_to_point(get_specimen_target, 0, 0.7);
+                horizontalSlides.setPosition(0);
+                path.follow_pid_to_point(get_specimen_target, 0);
 
                 if (timer.milliseconds() > 500){
                     lift.intakeSpecimen();
@@ -231,8 +241,7 @@ public class SpecimenAuto extends OpMode {
                 }
 
                 if (odometry.opt.get_heading()<(target_angle_intake-5)) {
-                    //path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
-                    follower.move_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake, 0.7);
+                    path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
                 } else {
                     wheelControl.drive(0,0,0,0,0);
                 }
@@ -254,8 +263,7 @@ public class SpecimenAuto extends OpMode {
             case setupSpitSample:
                 intake.intake();
                 intake.reverseDown();
-                //path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
-                follower.move_to_point(new Point(30, 30), target_angle_spit, 0.7);
+                path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
                 horizontalSlides.setPosition(0);
 
                 if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){ //original 1000
@@ -274,7 +282,7 @@ public class SpecimenAuto extends OpMode {
                 }
 
                 if (!intake.hasCorrectSample(false) || timer.milliseconds() >= 1000){ //original 600
-                    intake_sample_y -= 8;
+                    intake_sample_y -= 9;
                     intake_sample_x += 0.5;
                     target_angle_intake += 2.5;
                     deposit_state++;
