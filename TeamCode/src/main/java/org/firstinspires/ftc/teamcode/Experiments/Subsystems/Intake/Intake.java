@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 public class Intake {
     public static boolean outputDebugInfo = false;
 
-    public static double DOWN_POS=0.685;
+    public static double DOWN_POS=0.64;
     public static double UP_POS=0.9;
 
     public static double DOOR_OPEN_POS=0.685;
@@ -27,14 +27,14 @@ public class Intake {
     public Servo intakePivotLeft;
     public Servo intakePivotRight;
 
-    //public Servo intakeDoor;
+    public Servo intakeDoor;
 
     public Servo sweeper;
 
     public RevColorSensorV3 intakeSensor;
     public boolean intaking = false;
-    public boolean hasCorrectObject = false;
-    public Alliance alliance = Alliance.red;
+    public boolean hasCorrectColor = false;
+    public static Alliance alliance = Alliance.red;
     public Sensors sensors;
 
     public Intake(HardwareMap hardwareMap, Sensors sensors) {
@@ -42,7 +42,7 @@ public class Intake {
         intakeMotor = hardwareMap.get(DcMotorEx.class,"intakeMotor"); //left looking from intake side
         intakePivotLeft = hardwareMap.get(Servo.class,"iPL"); //from intake side
         intakePivotRight = hardwareMap.get(Servo.class,"iPR");
-        //intakeDoor = hardwareMap.get(Servo.class, "intakeDoor");
+        intakeDoor = hardwareMap.get(Servo.class, "intakeDoor");
         sweeper = hardwareMap.get(Servo.class, "sweeper");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class,"iS");
         intakeSensor.enableLed(false);
@@ -72,49 +72,50 @@ public class Intake {
     public void down() {setPivot(DOWN_POS);}
     public void reverseDown() {setPivot(0.78);}
 
-    //public void openDoor() {intakeDoor.setPosition(DOOR_OPEN_POS);}
-    //public void closeDoor() {intakeDoor.setPosition(DOOR_CLOSE_POS);}
+    public void openDoor() {intakeDoor.setPosition(DOOR_OPEN_POS);}
+    public void closeDoor() {intakeDoor.setPosition(DOOR_CLOSE_POS);}
 
     public void sweeperIn() {sweeper.setPosition(0);}
     public void sweeperOut() {sweeper.setPosition(0.5);}
 
-    public boolean smartIntake() {
-        int intakeColor = sensors.getIntakeColor();
-        if (alliance==Alliance.red) {
-            return intakeColor == 1 || intakeColor == 2;
-//            if (intakeColor == 1 || intakeColor == 2) {
-//                return true;
-//            } else {
-//
-//            }
-        } else {
-            return intakeColor == 3 || intakeColor == 2;
-        }
-    }
 
-    public void update(boolean posessingObject) {
-        //hasCorrectObject = ((alliance == Alliance.red ? intakeSensor.getNormalizedColors().red > 120 : intakeSensor.getNormalizedColors().blue > 80) || (intakeSensor.getNormalizedColors().red > 120 && intakeSensor.getNormalizedColors().green > 120)) && intakeSensor.getDistance(DistanceUnit.INCH) < 2.5;
-        // TODO: Alliance detection
-        if(intaking && hasCorrectObject) {
-            //stop();
-        } else if(intaking) {
-            //intake();
-        } else if (!hasCorrectObject) { // bad object or no object, reverse both. TODO maybe make a distinction between both objects
-            //reverse();
-        } else {
-            //stop();
-        }
+    public boolean smartIntake() {
         if(outputDebugInfo) {
             TelemetryPacket packet = new TelemetryPacket();
             packet.put("Intake/Red", intakeSensor.red() );
             packet.put("Intake/Green", intakeSensor.green());
             packet.put("Intake/Blue", intakeSensor.blue());
             packet.put("Intake/Distance", intakeSensor.getDistance(DistanceUnit.INCH));
-            packet.put("Intake/hasCorrectObject", hasCorrectObject);
+            packet.put("Intake/hasCorrectColor", hasCorrectColor);
             (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
         }
-    }
-    public void update() {
-        update(false);
+        boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 0.5;
+        if(alliance == Alliance.red) {
+            hasCorrectColor = 53 < intakeSensor.red() && intakeSensor.red() < 74 &&
+                    34 < intakeSensor.blue() && intakeSensor.blue() < 54 &&
+                    47 < intakeSensor.green() && intakeSensor.green() < 67;
+        } else {
+            hasCorrectColor = 17 < intakeSensor.red() && intakeSensor.red() < 37 &&
+                    45 < intakeSensor.green() && intakeSensor.green() < 65 &&
+                    85 < intakeSensor.blue() && intakeSensor.blue() < 105;
+        }
+        if(false) {
+            hasCorrectColor = hasCorrectColor || (83 < intakeSensor.red() && intakeSensor.red() < 103 &&
+                    124 < intakeSensor.green() && intakeSensor.green() < 144 &&
+                    55 < intakeSensor.blue() && intakeSensor.blue() < 75);
+        }
+        // TODO: Alliance detection
+//        if(hasObject && hasCorrectColor) {
+//            stop();
+//            closeDoor();
+//            return true;
+//        } else if(hasObject) {
+//            intake();
+//            openDoor();
+//        } else {
+//            intake();
+//            openDoor();
+//        }
+        return false;
     }
 }
