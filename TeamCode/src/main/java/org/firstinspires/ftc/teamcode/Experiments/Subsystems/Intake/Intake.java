@@ -79,7 +79,7 @@ public class Intake {
 
     public boolean smartIntake() {
         boolean hasCorrectColor = hasCorrectSample(false);
-        boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 0.5;
+        boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 2;
         if(outputDebugInfo) {
             TelemetryPacket packet = new TelemetryPacket();
             packet.put("Intake/Red", intakeSensor.red() );
