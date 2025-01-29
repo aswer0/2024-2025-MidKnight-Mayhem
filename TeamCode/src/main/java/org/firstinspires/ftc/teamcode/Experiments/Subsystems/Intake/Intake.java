@@ -105,6 +105,8 @@ public class Intake {
     }
     public boolean hasCorrectSample(boolean detectYellow) {
         boolean hasCorrectColor;
+        boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 2;
+        if(!hasObject) return false;
         if(alliance == Alliance.red) {
             hasCorrectColor = 53 < intakeSensor.red() && intakeSensor.red() < 74 &&
                     34 < intakeSensor.blue() && intakeSensor.blue() < 54 &&
