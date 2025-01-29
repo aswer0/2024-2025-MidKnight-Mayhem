@@ -104,7 +104,7 @@ public class RedRightGVF extends OpMode {
         telemetry.put("Heading: ", odometry.opt.get_heading());
         telemetry.put("D: ", hang_gvf.D);
         telemetry.put("Speed: ", hang_gvf.speed);
-        telemetry.put("Velocity: ", hang_gvf.velocity);
+        telemetry.put("Velocity: ", hang_gvf.powers);
         telemetry.put("Error: ", hang_gvf.error);
         (FtcDashboard.getInstance()).sendTelemetryPacket(telemetry);
     }

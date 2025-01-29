@@ -18,7 +18,7 @@ public class VectorField {
     double min_speed = 0.4;
     double max_turn_speed = 20;
     double stop_speed = 0.05;
-    double speed_decay_rate = 0.001;
+    double speed_decay = 0.001;
     double path_corr = 0.1;
     double PID_dist = 5;
     double centripetal_corr = 0;
@@ -31,22 +31,27 @@ public class VectorField {
 
     // Backend variables
     public double D;
-    public Point velocity = new Point(0, 0);
+    public Point powers = new Point(0, 0);
     public double speed;
     public double turn_speed;
     public boolean PID = false;
     public double error = 0;
+    public Point prev_pos;
+    public ElapsedTime timer;
+    public Point velocity;
+    public double true_speed;
 
+    // PID variables
     public double xp = end_decel, xi = 0, xd = 0.001;
     public double yp = end_decel, yi = 0, yd = 0.001;
     public double hp = 0.01, hi = 0, hd = 0.00004;
 
-    public double x_error;
-    public double y_error;
-
     PIDController x_PID;
     PIDController y_PID;
     PIDController h_PID;
+
+    public double x_error;
+    public double y_error;
 
     // Constructor
     public VectorField(WheelControl w,
@@ -69,6 +74,10 @@ public class VectorField {
         x_PID = new PIDController(xp, xi, xd);
         y_PID = new PIDController(yp, yi, yd);
         h_PID = new PIDController(hp, hi, hd);
+
+        // Timer
+        timer = new ElapsedTime();
+        prev_pos = get_pos();
     }
 
     // Gets closest point on path to robot
@@ -96,12 +105,19 @@ public class VectorField {
         return new Point(get_x(), get_y());
     }
 
-    // Updates closest point on curve using binary search
+    // Sets velocity of robot
+    public void set_velocity() {
+        velocity = Utils.div_v(prev_pos, timer.seconds());
+        true_speed = Utils.len_v(velocity);
+        timer.reset();
+    }
+
+    // Updates closest point on curve using signed GD & binary search
     public void update_closest(double look_ahead,
                                double max_rough_iters,
                                double tune_iters,
                                double rate) {
-        Point pos = Utils.add_v(get_pos(), Utils.mul_v(velocity, look_ahead));
+        Point pos = Utils.add_v(get_pos(), Utils.mul_v(powers, look_ahead));
         double path_len = path.F[path.get_bz(D)].est_arclen;
         double update = rate*speed/path_len;
 
@@ -170,7 +186,7 @@ public class VectorField {
         Point centripetal = new Point(0, 0);
         if (closest_dist() < centripetal_threshold) {
             double perp_angle = Utils.angle_v(tangent)+Math.PI/2;
-            double centripetal_len = path.curvature(D)*centripetal_corr;
+            double centripetal_len = path.curvature(D)*centripetal_corr*true_speed;
             centripetal = Utils.polar_to_rect(centripetal_len, perp_angle);
         }
 
@@ -188,18 +204,18 @@ public class VectorField {
         double temp_speed = Math.min(max_speed, Utils.len_v(new Point(x_error, y_error)));
 
         if (temp_speed < stop_speed) {
-            speed = Math.max(Math.min(speed, stop_speed) - speed_decay_rate, 0);
+            speed = Math.max(Math.min(speed, stop_speed) - speed_decay, 0);
         } else speed = temp_speed;
 
         x_error *= speed/old_speed;
         y_error *= speed/old_speed;
 
-        velocity = new Point(x_error, y_error);
+        powers = new Point(x_error, y_error);
 
         turn_speed = head_error;
 
         // Drive
-        drive.drive(-velocity.y, -velocity.x, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive(-powers.y, -powers.x, turn_speed, Math.toRadians(get_heading()), 1);
     }
 
     public void set_drive_speed(double turn_speed) {
@@ -220,12 +236,12 @@ public class VectorField {
         PID = false;
         set_turn_speed(Utils.angle_v(path.derivative(D)));
         set_drive_speed(turn_speed);
-        velocity = move_vector(speed);
+        powers = move_vector(speed);
 
         // Error
         error = Utils.dist(get_pos(), path.forward(D));
 
         // Drive according to calculations
-        drive.drive(-velocity.y, -velocity.x, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive(-powers.y, -powers.x, turn_speed, Math.toRadians(get_heading()), 1);
     }
 }
