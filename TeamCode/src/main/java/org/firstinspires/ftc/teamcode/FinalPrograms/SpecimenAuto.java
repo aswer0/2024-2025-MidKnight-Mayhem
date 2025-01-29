@@ -56,6 +56,9 @@ public class SpecimenAuto extends OpMode {
     WheelControl wheelControl;
     Path path;
 
+    BCPath bcpath;
+    VectorField follower;
+
     State state = State.pid;
     Lift lift;
     Intake intake;
@@ -98,6 +101,9 @@ public class SpecimenAuto extends OpMode {
 
         path = new Path(follow_path, wheelControl, odometry, telemetry, gvf_speed, gvf_thresh, 180, power);
 
+        bcpath = new BCPath(new Point[][]{follow_path});
+        follower = new VectorField(wheelControl, odometry, bcpath, 180);
+
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
         lift = new Lift(hardwareMap);
@@ -130,11 +136,13 @@ public class SpecimenAuto extends OpMode {
 
                 if (deposit_state == 0){
                     if (timer.milliseconds() >= 100){
-                        path.follow_pid_to_point(target, 0);
+                        //path.follow_pid_to_point(target, 0);
+                        follower.move_to_point(target, 0, 0.7);
                     }
                 }
-                else{
-                    path.follow_pid_to_point(target, 0);
+                else {
+                    //path.follow_pid_to_point(target, 0);
+                    follower.move_to_point(target, 0, 0.7);
                 }
 
                 if (deposit_state >= 1){
@@ -182,7 +190,8 @@ public class SpecimenAuto extends OpMode {
             case goToSpecimen:
                 intake.down();
                 intake.stop();
-                path.follow_pid_to_point(get_specimen_target, 0);
+                //path.follow_pid_to_point(get_specimen_target, 0);
+                follower.move_to_point(get_specimen_target, 0, 0.7);
 
                 if (timer.milliseconds() > 500){
                     lift.intakeSpecimen();
@@ -222,7 +231,8 @@ public class SpecimenAuto extends OpMode {
                 }
 
                 if (odometry.opt.get_heading()<(target_angle_intake-5)) {
-                    path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
+                    //path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
+                    follower.move_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake, 0.7);
                 } else {
                     wheelControl.drive(0,0,0,0,0);
                 }
@@ -244,7 +254,8 @@ public class SpecimenAuto extends OpMode {
             case setupSpitSample:
                 intake.intake();
                 intake.reverseDown();
-                path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
+                //path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
+                follower.move_to_point(new Point(30, 30), target_angle_spit, 0.7);
                 horizontalSlides.setPosition(0);
 
                 if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){ //original 1000
