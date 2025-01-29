@@ -180,7 +180,7 @@ public class VectorField {
         Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
 
         // Tangent vector (follower)
-        Point tangent = Utils.scale_v(path.derivative(D), 1);
+        Point tangent = Utils.scale_v(path.derivative(D), 1+accel_corr*true_speed);
 
         // Centripetal
         Point centripetal = new Point(0, 0);
@@ -234,6 +234,7 @@ public class VectorField {
 
         // Otherwise, GVF
         PID = false;
+        set_velocity();
         set_turn_speed(Utils.angle_v(path.derivative(D)));
         set_drive_speed(turn_speed);
         powers = move_vector(speed);
