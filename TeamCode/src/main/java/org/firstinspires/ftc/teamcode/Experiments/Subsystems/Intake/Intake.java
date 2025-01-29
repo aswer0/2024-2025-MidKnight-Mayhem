@@ -32,7 +32,7 @@ public class Intake {
     public Servo sweeper;
 
     public RevColorSensorV3 intakeSensor;
-    public static Alliance alliance = Alliance.red;
+    public Alliance alliance = Alliance.red;
     public Sensors sensors;
 
     public Intake(HardwareMap hardwareMap, Sensors sensors) {

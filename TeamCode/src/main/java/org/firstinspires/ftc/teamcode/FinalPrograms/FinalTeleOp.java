@@ -90,7 +90,6 @@ public class FinalTeleOp extends OpMode {
         odometry.opt.update();
         outtakeSlides.update();
         intakeSlides.update();
-        intake.smartIntake();
         // The user controlled part
         State currentState = new State();
         currentState.driveX = 1.1*gamepad1.left_stick_x; // drive X
@@ -125,8 +124,6 @@ public class FinalTeleOp extends OpMode {
         // Drive
         drive.correction_drive(currentState.driveY, currentState.driveX, currentState.rotate, Math.toRadians(odometry.opt.get_heading()), drivePower*(currentState.focusMode? Math.max(1, Math.min(0, 0.2*sensors.get_average_front_dist() - 1 )) : 1));
         if(!previousState.reAlignFieldOriented && currentState.reAlignFieldOriented) {
-            alliance = Alliance.red;
-            intake.alliance = alliance;
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 180);
         }
@@ -136,7 +133,7 @@ public class FinalTeleOp extends OpMode {
         }
         if(!previousState.toggleAlliance && currentState.toggleAlliance) {
             gamepad1.setLedColor(0,0,1,Gamepad.LED_DURATION_CONTINUOUS);
-            alliance = Alliance.blue;
+            alliance = alliance == Alliance.red ? Alliance.blue : Alliance.red;
             intake.alliance = alliance;
 
         }
@@ -238,6 +235,7 @@ public class FinalTeleOp extends OpMode {
         }
         lastTime = getRuntime();
         previousState = currentState;
+        telemetry.addData("Alliance", alliance);
     }
 
     public void outtakeControl() {
