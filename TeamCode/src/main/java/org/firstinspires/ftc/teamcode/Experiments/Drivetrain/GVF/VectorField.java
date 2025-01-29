@@ -24,6 +24,7 @@ public class VectorField {
     double centripetal_corr = 0;
     double centripetal_threshold = 10;
     double accel_corr = 0;
+    double p_to_v = 10;
 
     // End decel: deceleration rate
     double end_decel = 0.02;
@@ -108,7 +109,7 @@ public class VectorField {
     // Sets velocity of robot
     public void set_velocity() {
         velocity = Utils.div_v(prev_pos, timer.seconds());
-        true_speed = Utils.len_v(velocity);
+        //true_speed = Utils.len_v(velocity);
         timer.reset();
     }
 
@@ -153,12 +154,12 @@ public class VectorField {
     }
 
     // Get turn angle
-    public double turn_angle(double current, double target) {
+    /*public double turn_angle(double current, double target) {
         double turn_angle = target-current;
         if (turn_angle < -180) turn_angle += 360;
         if (turn_angle > 180) turn_angle -= 360;
         return turn_angle;
-    }
+    }*/
 
     // Gets speed when approaching end
     public double get_end_speed(Point p) {
@@ -176,13 +177,19 @@ public class VectorField {
     public Point move_vector(double speed) {
         update_closest(0, 50, 5, 1);
 
-        // Orthogonal vector (correction)
+        // Base vector (orthogonal & tangent)
         Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
+        Point tangent = Utils.scale_v(path.derivative(D), 1);
+        Point move_v = Utils.add_v(orth, tangent);
 
-        // Tangent vector (follower)
-        Point tangent = Utils.scale_v(path.derivative(D), 1+accel_corr*true_speed);
+        // Acceleration correction
+        Point accel_corr_term = new Point(0, 0);
+        if (accel_corr > 0) {
+            Point accel = Utils.sub_v(move_v, Utils.div_v(velocity, p_to_v));
+            accel_corr_term = Utils.mul_v(accel, accel_corr);
+        }
 
-        // Centripetal
+        // Centripetal correction
         Point centripetal = new Point(0, 0);
         if (closest_dist() < centripetal_threshold) {
             double perp_angle = Utils.angle_v(tangent)+Math.PI/2;
@@ -191,7 +198,7 @@ public class VectorField {
         }
 
         // Add everything
-        return Utils.scale_v(Utils.add_v(orth, tangent, centripetal), speed);
+        return Utils.scale_v(Utils.add_v(move_v, accel_corr_term, centripetal), speed);
     }
 
     // Move to a point given coordinates and heading
@@ -215,7 +222,7 @@ public class VectorField {
         turn_speed = head_error;
 
         // Drive
-        drive.drive(-powers.y, -powers.x, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
     }
 
     public void set_drive_speed(double turn_speed) {
@@ -243,6 +250,6 @@ public class VectorField {
         error = Utils.dist(get_pos(), path.forward(D));
 
         // Drive according to calculations
-        drive.drive(-powers.y, -powers.x, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
     }
 }
