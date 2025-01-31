@@ -32,7 +32,7 @@ public class SpecimenAuto extends OpMode {
 
     public static double pos = 650;
     public static double dist_thresh = 2.5;
-    public static double intake_dist_thresh = 4;
+    public static double intake_dist_thresh = 4.5;
 
     public static double horizontal_pos = -450;
     public static double target_angle_intake = 140;
@@ -84,13 +84,13 @@ public class SpecimenAuto extends OpMode {
     public void init() {
         Point[] follow_path = {
                 new Point(11,28),
-                new Point(36.6, 23.5),
-                new Point(4.3, 79),
+                new Point(10.3, 65.5),
+                new Point(19.2, 68.2),
                 new Point(36.5, 75)
         };
 
         target = new Point(target_x, target_y);
-        get_specimen_target = new Point(12.875-2, 28);
+        get_specimen_target = new Point(12.875, 28);
         get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
@@ -148,8 +148,8 @@ public class SpecimenAuto extends OpMode {
                 }
                 else{
                     //path.follow_pid_to_point(target, 0);
-                    if (odometry.opt.get_y()<target_y-24) {
-                        path.follow_pid_to_point(new Point(target_x - 24, target_y + 10), 0);
+                    if (odometry.opt.get_y()<target_y-36) {
+                        path.follow_pid_to_point(new Point(target_x - 12, target_y), 0);
                     } else {
                         path.follow_pid_to_point(target, 0);
                     }
@@ -228,7 +228,7 @@ public class SpecimenAuto extends OpMode {
                     arm.closeClaw();
 
                     timer.reset();
-                    target.y -= 1.5; // this has to be tuned better for more space on the right
+                    target.y -= 2.5; // this has to be tuned better for more space on the right
                     state = State.pid;
                 }
 
@@ -261,8 +261,10 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case setupSpitSample:
-                intake.intake();
+                arm.toIdlePosition();
+                //intake.intake();
                 intake.reverseDown();
+
                 path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
                 horizontalSlides.setPosition(0);
 
@@ -276,15 +278,15 @@ public class SpecimenAuto extends OpMode {
 
             case spitSample:
                 if (timer.milliseconds()>0) horizontalSlides.setPosition(-470);
-                if (intake.hasCorrectSample(false)){
+//                if (intake.hasCorrectSample(false)){
                     intake.reverseDown();
                     intake.reverse();
-                }
+//                }
 
-                if (!intake.hasCorrectSample(false) || timer.milliseconds() >= 1000){ //original 600
+                if (timer.milliseconds() >= 1000){ //!intake.hasCorrectSample(false)
                     intake_sample_y -= 9;
-                    intake_sample_x += 0.5;
-                    target_angle_intake += 2.5;
+                    //intake_sample_x += 0.5;
+                    //target_angle_intake += 2.5;
                     deposit_state++;
 
                     horizontalSlides.setPosition(-100);
