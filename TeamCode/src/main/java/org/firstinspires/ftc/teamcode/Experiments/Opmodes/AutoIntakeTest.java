@@ -121,6 +121,8 @@ public class AutoIntakeTest extends OpMode {
 
     @Override
     public void loop(){
+        intake.closeDoor();
+
         switch (state){
             case intakeSample:
                 intake.down();
@@ -164,6 +166,9 @@ public class AutoIntakeTest extends OpMode {
             case stop:
                 break;
         }
+
+        lift.update();
+        horizontalSlides.update();
 
     }
 }

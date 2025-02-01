@@ -91,6 +91,8 @@ public class FinalTeleOp extends OpMode {
         odometry.opt.update();
         outtakeSlides.update();
         intakeSlides.update();
+        intake.hasCorrectSample(true);
+
         // The user controlled part
         State currentState = new State();
         currentState.driveX = 1.1*gamepad1.left_stick_x; // drive X
@@ -142,8 +144,8 @@ public class FinalTeleOp extends OpMode {
         if(currentState.goForward) {
             drive.correction_drive(1,0,0,0,0.5);
         }
-        if(!previousState.decreasePower && currentState.decreasePower) drivePower = 0.3;
-        if(!previousState.increasePower && currentState.increasePower) drivePower = 1;
+        if(currentState.decreasePower) drivePower = 0.3;
+        //if(!previousState.increasePower && currentState.increasePower) drivePower = 1;
 
 
         if(!previousState.toLowBasket && currentState.toLowBasket) {
@@ -173,14 +175,14 @@ public class FinalTeleOp extends OpMode {
             outtakeSlides.toHighChamber();
             arm.outtakeSpecimen2();
             idleIntakeUp = true;
-        }*/ else if (!previousState.outtakeSpecimen1 && currentState.outtakeSpecimen1) {
+        }*/ else if (currentState.outtakeSpecimen1) {
 //            outtakeSlides.toHighChamber();
 //            arm.outtakeSpecimen1();
             clawOpen = false;
             idleIntakeUp = true;
             arm.closeClaw();
             oldClaw.closeClaw();
-            flipArmBy = getRuntime() + 0.25;
+            flipArmBy = flipArmBy == Double.POSITIVE_INFINITY ? getRuntime() + 0.25 : flipArmBy;
         }
         if(getRuntime() > flipArmBy) {
             flipArmBy = Double.POSITIVE_INFINITY;
@@ -218,7 +220,7 @@ public class FinalTeleOp extends OpMode {
             arm.toIdlePosition();
             idleIntakeUp = true;
             intake.down();
-            intake.intake();
+            intake.smartIntake(false);
         } else if (currentState.intakeInput<-0.7){
             arm.toIdlePosition();
             idleIntakeUp = true;
@@ -287,11 +289,11 @@ public class FinalTeleOp extends OpMode {
         public boolean startHang = false; // Will only be available at endgame to prevent mistakes. Hang will be done based on stages. (e.g. press it again to go 1st to 2nd level then third. After, reset the hang.)
     }
 
-    enum IntakingState {
-        inactive, // zero power; intake + slides fully retracted; dpad input is inactive
-        userControlled, // transitions when toggle intake is on
-        retractSlides, // horiz and vert at the same time
-        transfer // rotate the pivot & reverse the intake
+    enum DrivingState {
+        idle,
+        depositTo,
+        depositFrom,
+        waitForPlayer
     }
 
     enum OuttakeState {

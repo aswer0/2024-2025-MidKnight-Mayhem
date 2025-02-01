@@ -171,5 +171,4 @@ public class TwoSpecimenAuto extends OpMode {
         lift.update();
         telemetry.update();
     }
-    
 }

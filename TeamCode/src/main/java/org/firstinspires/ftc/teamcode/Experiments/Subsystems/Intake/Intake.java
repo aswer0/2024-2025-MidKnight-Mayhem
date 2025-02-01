@@ -105,12 +105,10 @@ public class Intake {
     }
     public boolean hasCorrectSample(boolean detectYellow) {
         boolean hasCorrectColor;
-        boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 2;
-        if(!hasObject) return false;
         if(alliance == Alliance.red) {
-            hasCorrectColor = 53 < intakeSensor.red() && intakeSensor.red() < 74 &&
-                    34 < intakeSensor.blue() && intakeSensor.blue() < 54 &&
-                    47 < intakeSensor.green() && intakeSensor.green() < 67;
+            hasCorrectColor = 60 < intakeSensor.red() && intakeSensor.red() < 80 &&
+                    50 < intakeSensor.blue() && intakeSensor.blue() < 70 &&
+                    60 < intakeSensor.green() && intakeSensor.green() < 80;
         } else {
             hasCorrectColor = 17 < intakeSensor.red() && intakeSensor.red() < 37 &&
                     45 < intakeSensor.green() && intakeSensor.green() < 65 &&
@@ -120,6 +118,15 @@ public class Intake {
             hasCorrectColor = hasCorrectColor || (83 < intakeSensor.red() && intakeSensor.red() < 103 &&
                     124 < intakeSensor.green() && intakeSensor.green() < 144 &&
                     55 < intakeSensor.blue() && intakeSensor.blue() < 75);
+        }
+        if(outputDebugInfo) {
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.put("Intake/Red", intakeSensor.red());
+            packet.put("Intake/Green", intakeSensor.green());
+            packet.put("Intake/Blue", intakeSensor.blue());
+            packet.put("Intake/Distance", intakeSensor.getDistance(DistanceUnit.INCH));
+            packet.put("Intake/hasCorrectColor", hasCorrectColor);
+            (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
         }
         return hasCorrectColor;
     }
