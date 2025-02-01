@@ -201,4 +201,11 @@ public class Path {
     public void stop(){
         this.wheelControl.drive(0, 0, 0, 0, 0);
     }
+
+    public void set_hp(double hp){
+        this.follow_heading.setConstants(hp, 0, 0.00004);
+    }
+    public void set_original_hp(){
+        this.follow_heading.setConstants(0.0095, 0, 0.00004);
+    }
 }
