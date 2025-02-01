@@ -32,12 +32,14 @@ public class FinalTeleOp extends OpMode {
     Arm arm;
     boolean clawOpen = true;
     double flipArmBy = Double.POSITIVE_INFINITY;
-    boolean haveSetToIdle = false;
     Manipulator oldClaw;
 
     Intake intake;
     HorizontalSlides intakeSlides;
     OuttakeState hangState = OuttakeState.hangingStage1;
+    ArmState armState = ArmState.idlePosition;
+    double sampleTransferStartAt = 0;
+    boolean haveTransferred = false;
     boolean idleIntakeUp = true;
 
     Sensors sensors;
@@ -112,8 +114,8 @@ public class FinalTeleOp extends OpMode {
 
         currentState.intakeSpecimen = gamepad2.cross;
         currentState.toIdlePosition = gamepad2.triangle;
-        currentState.outtakeSpecimen1 = gamepad2.square;
-        currentState.outtakeSpecimen2 = gamepad2.circle;
+        currentState.outtakeSpecimen1 = gamepad2.triangle;
+        currentState.sampleTransfer = gamepad2.circle;
 
         currentState.toggleOuttake = gamepad2.right_bumper; // toggle outtake
         currentState.outtakeSlidesInput = -gamepad2.left_stick_y; // outtake slides
@@ -164,18 +166,7 @@ public class FinalTeleOp extends OpMode {
         }
 
         // claw rpesets
-        if(!previousState.toIdlePosition && currentState.toIdlePosition) {
-            arm.toIdlePosition();
-            idleIntakeUp = true;
-        } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
-            arm.intakeSpecimen();
-            outtakeSlides.intakeSpecimen();
-            idleIntakeUp = false;
-        } /*(else if (!previousState.outtakeSpecimen2 && currentState.outtakeSpecimen2) {
-            outtakeSlides.toHighChamber();
-            arm.outtakeSpecimen2();
-            idleIntakeUp = true;
-        }*/ else if (currentState.outtakeSpecimen1) {
+        if (currentState.outtakeSpecimen1) {
 //            outtakeSlides.toHighChamber();
 //            arm.outtakeSpecimen1();
             clawOpen = false;
@@ -183,6 +174,37 @@ public class FinalTeleOp extends OpMode {
             arm.closeClaw();
             oldClaw.closeClaw();
             flipArmBy = flipArmBy == Double.POSITIVE_INFINITY ? getRuntime() + 0.25 : flipArmBy;
+        } else if (currentState.sampleTransfer) {
+            if(!previousState.sampleTransfer) {
+                sampleTransferStartAt = getRuntime();
+                haveTransferred = false;
+            }
+            double sampleTransferStartSince = getRuntime() - sampleTransferStartAt;
+            if(sampleTransferStartSince < 1) {
+                arm.openClaw();
+                clawOpen = true;
+                arm.intakeSample();
+            } else {
+                if(!haveTransferred) {
+                    haveTransferred = true;
+                    arm.closeClaw();
+                }
+                arm.outtakeSample();
+            }
+        } else {
+            if(armState == ArmState.idlePosition) {
+                arm.toIdlePosition();
+                idleIntakeUp = true;
+            } else if (armState == ArmState.intakeSpecimen) {
+                arm.intakeSpecimen();
+                outtakeSlides.intakeSpecimen();
+                idleIntakeUp = false;
+            }
+        }
+        if(!previousState.toIdlePosition && currentState.toIdlePosition) {
+            armState = ArmState.idlePosition;
+        } else if (!previousState.intakeSpecimen && currentState.intakeSpecimen) {
+            armState = ArmState.intakeSpecimen;
         }
         if(getRuntime() > flipArmBy) {
             flipArmBy = Double.POSITIVE_INFINITY;
@@ -272,7 +294,7 @@ public class FinalTeleOp extends OpMode {
         public boolean toHighBasket = false;
         // Claw Presets
         public boolean outtakeSpecimen1;
-        public boolean outtakeSpecimen2;
+        public boolean sampleTransfer;
         public boolean toIdlePosition;
         public boolean intakeSpecimen;
         // Outtake stuff
@@ -299,6 +321,10 @@ public class FinalTeleOp extends OpMode {
     enum OuttakeState {
         hangingStage1,
         hangingStage2
+    }
+    enum ArmState {
+        idlePosition,
+        intakeSpecimen
     }
     
 }
