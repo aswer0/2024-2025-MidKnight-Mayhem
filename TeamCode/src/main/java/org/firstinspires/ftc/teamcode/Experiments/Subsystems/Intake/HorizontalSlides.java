@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFCoefficients;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 
@@ -32,6 +33,8 @@ public class HorizontalSlides {
         horizontalSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         horizontalSlidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         horizontalSlidesMotor.setDirection(DcMotor.Direction.REVERSE);
+        horizontalSlidesMotor.setCurrentAlert(7, CurrentUnit.AMPS);
+
     }
     public void setPosition(double position, boolean changeState) {
         if(changeState) state = State.runToPosition;
@@ -53,6 +56,16 @@ public class HorizontalSlides {
             setPower(power);
         } else {
             setPower(0);
+        }
+    }
+
+    public boolean resetSlides() {
+        if (!horizontalSlidesMotor.isOverCurrent()) {
+            horizontalSlidesMotor.setPower(-1);
+            return false;
+        } else {
+            horizontalSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            return true;
         }
     }
 

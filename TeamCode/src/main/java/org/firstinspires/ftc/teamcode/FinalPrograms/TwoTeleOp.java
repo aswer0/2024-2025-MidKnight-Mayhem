@@ -1,0 +1,336 @@
+package org.firstinspires.ftc.teamcode.FinalPrograms;
+
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
+
+import java.util.List;
+
+@TeleOp
+public class TwoTeleOp extends OpMode {
+    double lastTime = getRuntime();
+
+    ElapsedTime intakeTimer = new ElapsedTime();
+    Odometry odometry;
+    WheelControl drive;
+    Alliance alliance = Alliance.red;
+
+    Lift outtakeSlides;
+    Arm arm;
+    boolean clawOpen = true;
+    Manipulator oldClaw;
+    ElapsedTime outtakeTimer;
+    OuttakeState outtakeState = OuttakeState.idle;
+    HangState hangState = HangState.hanging1;
+    boolean newOuttakeState = true;
+
+    Intake intake;
+    HorizontalSlides intakeSlides;
+
+    Sensors sensors;
+
+    List<LynxModule> allHubs;
+
+    double drivePower=1;
+
+    Gamepad currentGamepad1 = new Gamepad();
+    Gamepad previousGamepad1 = new Gamepad();
+    Gamepad currentGamepad2 = new Gamepad();
+    Gamepad previousGamepad2 = new Gamepad();
+
+    @Override
+    public void init() {
+        odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
+        drive = new WheelControl(hardwareMap, odometry);
+        outtakeSlides = new Lift(hardwareMap, false);
+        outtakeSlides.brakeSlides(true);
+        arm = new Arm(hardwareMap);
+        oldClaw = new Manipulator(hardwareMap);
+        outtakeTimer = new ElapsedTime();
+
+        intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
+        intakeSlides = new HorizontalSlides(hardwareMap);
+        gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
+        gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
+        sensors = new Sensors(hardwareMap, telemetry);
+
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+    }
+    @Override
+    public void start() {
+        arm.toIdlePosition();
+        arm.openClaw();
+        oldClaw.openClaw();
+        outtakeTimer.reset();
+        intake.up();
+    }
+    @Override
+    public void loop() {
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+        previousGamepad2.copy(currentGamepad2);
+        currentGamepad2.copy(gamepad2);
+
+        // Updates
+        odometry.opt.update();
+        outtakeSlides.update();
+        intakeSlides.update();
+        intake.hasCorrectSample(true);
+
+        if (gamepad1.left_bumper) {
+            drivePower=0.3;
+        } else {
+            drivePower=1;
+        }
+
+        if(gamepad1.options) {
+            gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
+            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
+            alliance = Alliance.red;
+            intake.alliance = alliance;
+        } else {
+            gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
+            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
+            alliance = Alliance.blue;
+            intake.alliance = alliance;
+        }
+        if(gamepad2.options) { //reset outtake sldies
+            outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            outtakeSlides.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+
+        // Drive
+        drive.correction_drive(gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x), Math.toRadians(odometry.opt.get_heading()), drivePower);
+
+
+
+        if(Math.abs(-gamepad2.left_stick_y) > 0.4) {
+            outtakeSlides.trySetPower(-gamepad2.left_stick_y*1);
+        } else if (outtakeSlides.leftSlide.getPower() != 0 && outtakeSlides.getState() == Lift.State.userControlled) {
+            outtakeSlides.trySetPower(0);
+        }
+
+        switch (outtakeState) {
+            case idle:
+                if (newOuttakeState) {
+                    outtakeSlides.setPosition(0);
+                    arm.toIdlePosition();
+                    arm.openClaw();
+                }
+
+                //manual horizontal extension
+                if(Math.abs(-gamepad2.right_stick_y) > 0.1) {
+                    intakeSlides.trySetPower(-gamepad2.right_stick_y);
+                } else if (intakeSlides.horizontalSlidesMotor.getPower() != 0 && intakeSlides.getState() == HorizontalSlides.State.userControlled) { // in the dead zone and not running to target
+                    intakeSlides.trySetPower(0);
+                }
+
+                if (currentGamepad2.left_bumper) {
+                    intake.sweeperOut();
+                } else {
+                    intake.sweeperIn();
+                }
+
+                //manual intake
+                if (currentGamepad2.right_trigger-currentGamepad2.left_trigger>0.7) {
+                    intake.down();
+                    intake.smartIntake(false);
+                } else if (currentGamepad2.right_trigger-currentGamepad2.left_trigger<-0.7){
+                    intake.reverseDown();
+                    if (intakeTimer.milliseconds()>50) {
+                        intake.reverse();
+                    }
+                } else {
+                    intake.up();
+                    intakeTimer.reset();
+                    intake.setPower(0);
+                    //intake.up();
+                }
+
+                newOuttakeState = false;
+
+                if (currentGamepad1.cross) {
+                    outtakeState = OuttakeState.intakeSpecimen;
+                    outtakeTimer.reset();
+                    newOuttakeState = true;
+                } else if (currentGamepad1.circle) {
+                    outtakeState = OuttakeState.outtakeSample;
+                    outtakeTimer.reset();
+                    newOuttakeState = true;
+                }
+
+                break;
+
+            case intakeSpecimen:
+                boolean outtakeSpecimen=false;
+
+                if (newOuttakeState) {
+                    outtakeSlides.intakeSpecimen();
+                    arm.intakeSpecimen();
+                    arm.openClaw();
+                }
+
+                newOuttakeState = false;
+
+                if (currentGamepad1.square && !previousGamepad1.square) {
+                    arm.closeClaw();
+                    outtakeTimer.reset();
+                    outtakeSpecimen=true;
+                }
+                if (outtakeSpecimen && outtakeTimer.milliseconds()>=100) {
+                    outtakeState = OuttakeState.outtakeSpecimen1;
+                    outtakeTimer.reset();
+                    newOuttakeState = true;
+                }
+
+                break;
+
+            case intakeSample:
+                if (newOuttakeState) {
+                    outtakeSlides.intakeSample();
+                    arm.openClaw();
+                    arm.intakeSample();
+                }
+
+                newOuttakeState = false;
+
+                if (currentGamepad2.circle && outtakeTimer.milliseconds()>=200) {
+                    arm.closeClaw();
+                    if (outtakeTimer.milliseconds()>=200+100) {
+                        outtakeState = OuttakeState.outtakeSample;
+                        outtakeTimer.reset();
+                        newOuttakeState = true;
+                    }
+                }
+
+                break;
+
+            case outtakeSpecimen1:
+                boolean releaseSpec=false;
+
+                if (newOuttakeState) {
+                    outtakeSlides.toHighChamber();
+                    arm.closeClaw();
+                    arm.outtakeSpecimen1();
+                }
+
+                newOuttakeState = false;
+
+                if (previousGamepad2.square && !currentGamepad2.square) {
+                    arm.openClaw();
+                    outtakeTimer.reset();
+                    releaseSpec = true;
+                }
+                if (releaseSpec && outtakeTimer.milliseconds()>=125) {
+                    outtakeState = OuttakeState.outakeSpecimen2;
+                    outtakeTimer.reset();
+                    newOuttakeState = true;
+                }
+
+                break;
+
+            case outakeSpecimen2:
+                if (newOuttakeState) {
+                    outtakeSlides.setPosition(100);
+                    arm.openClaw();
+                    arm.outtakeSpecimen1();
+                }
+
+                newOuttakeState = false;
+
+                if (currentGamepad2.cross) {
+                    outtakeState = OuttakeState.intakeSpecimen;
+                    outtakeTimer.reset();
+                    newOuttakeState = true;
+                } else if (currentGamepad2.triangle) {
+                    outtakeState = OuttakeState.idle;
+                    outtakeTimer.reset();
+                    newOuttakeState = true;
+                }
+
+                break;
+
+            case outtakeSample:
+                boolean releaseSample = false;
+                if (newOuttakeState) {
+                    outtakeSlides.toHighBasket();
+                    arm.closeClaw();
+                    arm.outtakeSample();
+                }
+
+                newOuttakeState = false;
+
+                if (previousGamepad2.circle && !currentGamepad2.circle) {
+                    arm.openClaw();
+                    releaseSample = true;
+                    outtakeTimer.reset();
+                } if (releaseSample && outtakeTimer.milliseconds()>=175) {
+                    arm.toIdlePosition();
+                    if (outtakeTimer.milliseconds()>=250) {
+                        outtakeState = OuttakeState.idle;
+                        outtakeTimer.reset();
+                        newOuttakeState = true;
+                    }
+                }
+
+                break;
+        }
+
+
+        if(!previousGamepad2.right_bumper && currentGamepad2.right_bumper) { // TODO bucket logic
+            if (clawOpen) {
+                arm.closeClaw();
+                oldClaw.closeClaw();
+            } else {
+                arm.openClaw();
+                oldClaw.openClaw();
+            }
+            clawOpen = !clawOpen;
+        }
+
+
+        if(!previousGamepad2.share && currentGamepad2.share) {
+            if(hangState == HangState.hanging1) {
+                outtakeSlides.setPosition(2150);
+                hangState = HangState.hanging2;
+            } else {
+                outtakeSlides.setPosition(1500);
+                hangState = HangState.hanging1;
+            }
+        }
+        lastTime = getRuntime();
+        telemetry.addData("Alliance", alliance);
+    }
+
+
+
+    enum OuttakeState {
+        idle,
+        intakeSpecimen,
+        intakeSample,
+        outtakeSpecimen1,
+        outakeSpecimen2,
+        outtakeSample,
+    }
+
+    enum HangState {
+        hanging1,
+        hanging2
+    }
+}
