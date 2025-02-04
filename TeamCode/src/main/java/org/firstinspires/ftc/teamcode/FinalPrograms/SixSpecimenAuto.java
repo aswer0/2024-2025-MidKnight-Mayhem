@@ -229,6 +229,8 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2000){
+                    intake.stop();
+                    intake.up();
                     horizontalSlides.setPosition(0);
                 }
                 if (horizontalSlides.horizontalSlidesMotor.getCurrentPosition() <= 10 && intake.hasCorrectSample(false)){
@@ -298,6 +300,7 @@ public class SixSpecimenAuto extends OpMode {
                         intake.reverseDown();
                         intake.reverse();
                     }
+                    path.follow_pid_to_point(get_specimen_target, 0);
                 }
                 else{
                     intake.down();
