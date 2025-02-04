@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import java.util.List;
 
 @TeleOp
-public class FinalTeleOp extends OpMode {
+public class RyansCrappyTeleOp extends OpMode {
     double lastTime = getRuntime();
 
     ElapsedTime intakeTimer = new ElapsedTime();
