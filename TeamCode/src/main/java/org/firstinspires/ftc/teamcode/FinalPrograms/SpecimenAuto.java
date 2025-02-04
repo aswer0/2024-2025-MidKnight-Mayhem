@@ -244,6 +244,7 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case intakeSample:
+                int time;
                 if (intake_state > 4){
                     state = State.goToSpecimen;
                 }
@@ -253,7 +254,13 @@ public class SpecimenAuto extends OpMode {
                 intake.down();
                 intake.intake();
 
-                if (timer.milliseconds()>1000) {
+                if (intake_state >= 3){
+                    time = 500;
+                }
+                else{
+                    time = 1000;
+                }
+                if (timer.milliseconds()>time) {
                     horizontalSlides.setPosition(horizontal_pos);
 
                     if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2000){ //original 2500

@@ -99,7 +99,7 @@ public class Intake {
             openDoor();
         } else {
             intake();
-            openDoor();
+            closeDoor();
         }
         return false;
     }
@@ -110,14 +110,14 @@ public class Intake {
                     50 < intakeSensor.blue() && intakeSensor.blue() < 70 &&
                     60 < intakeSensor.green() && intakeSensor.green() < 80;
         } else {
-            hasCorrectColor = 17 < intakeSensor.red() && intakeSensor.red() < 37 &&
-                    45 < intakeSensor.green() && intakeSensor.green() < 65 &&
-                    85 < intakeSensor.blue() && intakeSensor.blue() < 105;
+            hasCorrectColor = 17 < intakeSensor.red() && intakeSensor.red() < 43 &&
+                    45 < intakeSensor.green() && intakeSensor.green() < 77 &&
+                    85 < intakeSensor.blue() && intakeSensor.blue() < 120;
         }
         if(detectYellow) {
-            hasCorrectColor = hasCorrectColor || (83 < intakeSensor.red() && intakeSensor.red() < 103 &&
-                    124 < intakeSensor.green() && intakeSensor.green() < 144 &&
-                    55 < intakeSensor.blue() && intakeSensor.blue() < 75);
+            hasCorrectColor = hasCorrectColor || (83 < intakeSensor.red() && intakeSensor.red() < 110 &&
+                    124 < intakeSensor.green() && intakeSensor.green() < 160 &&
+                    55 < intakeSensor.blue() && intakeSensor.blue() < 80);
         }
         if(outputDebugInfo) {
             TelemetryPacket packet = new TelemetryPacket();

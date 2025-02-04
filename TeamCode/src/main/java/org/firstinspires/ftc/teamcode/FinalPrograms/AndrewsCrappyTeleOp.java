@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import java.util.List;
 
 @TeleOp
-public class TwoTeleOp extends OpMode {
+public class AndrewsCrappyTeleOp extends OpMode {
     double lastTime = getRuntime();
 
     ElapsedTime intakeTimer = new ElapsedTime();
@@ -36,6 +36,13 @@ public class TwoTeleOp extends OpMode {
     OuttakeState outtakeState = OuttakeState.idle;
     HangState hangState = HangState.hanging1;
     boolean newOuttakeState = true;
+
+    boolean releaseSpec=false;
+    boolean outtakeSpecimen=false;
+    boolean releaseSample = false;
+    boolean grabSample = false;
+
+    boolean isAndrewMode = true;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -93,18 +100,32 @@ public class TwoTeleOp extends OpMode {
         intakeSlides.update();
         intake.hasCorrectSample(true);
 
-        if (gamepad1.left_bumper) {
-            drivePower=0.3;
-        } else {
-            drivePower=1;
+        if (isAndrewMode){
+            if (gamepad1.left_bumper) {
+                drivePower=0.3;
+            }
+            else{
+                drivePower=1;
+            }
+        }
+        else{
+            if (gamepad1.left_bumper) {
+                drivePower=0.3;
+            }
+            if (gamepad1.right_bumper) {
+                drivePower=1;
+            }
         }
 
-        if(gamepad1.options) {
+        if (gamepad1.share && !previousGamepad1.share){
+            isAndrewMode = !isAndrewMode;
+        }
+        if(gamepad1.options && !previousGamepad1.options && alliance == Alliance.blue) {
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
             alliance = Alliance.red;
             intake.alliance = alliance;
-        } else {
+        } else if (gamepad1.options && !previousGamepad1.options) {
             gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
             alliance = Alliance.blue;
@@ -132,6 +153,7 @@ public class TwoTeleOp extends OpMode {
                     outtakeSlides.setPosition(0);
                     arm.toIdlePosition();
                     arm.openClaw();
+                    grabSample = false;
                 }
 
                 //manual horizontal extension
@@ -150,7 +172,9 @@ public class TwoTeleOp extends OpMode {
                 //manual intake
                 if (currentGamepad2.right_trigger-currentGamepad2.left_trigger>0.7) {
                     intake.down();
-                    intake.smartIntake(false);
+//                    intake.intake();
+//                    intake.closeDoor();
+                    intake.smartIntake(true);
                 } else if (currentGamepad2.right_trigger-currentGamepad2.left_trigger<-0.7){
                     intake.reverseDown();
                     if (intakeTimer.milliseconds()>50) {
@@ -165,30 +189,40 @@ public class TwoTeleOp extends OpMode {
 
                 newOuttakeState = false;
 
-                if (currentGamepad1.cross) {
+                if (currentGamepad2.cross) {
                     outtakeState = OuttakeState.intakeSpecimen;
                     outtakeTimer.reset();
                     newOuttakeState = true;
-                } else if (currentGamepad1.circle) {
-                    outtakeState = OuttakeState.outtakeSample;
+                } if (currentGamepad2.circle) {
+                    //arm.closeClaw();
+                    grabSample = true;
+                    outtakeState = OuttakeState.intakeSample;
                     outtakeTimer.reset();
                     newOuttakeState = true;
                 }
 
+                //if (grabSample && outtakeTimer.milliseconds()>150) {
+               //     outtakeState = OuttakeState.outtakeSample;
+               //     outtakeTimer.reset();
+               //     newOuttakeState = true;
+               // }
+
                 break;
 
             case intakeSpecimen:
-                boolean outtakeSpecimen=false;
+
 
                 if (newOuttakeState) {
                     outtakeSlides.intakeSpecimen();
                     arm.intakeSpecimen();
                     arm.openClaw();
+                    intake.down();
+                    outtakeSpecimen = false;
                 }
 
                 newOuttakeState = false;
 
-                if (currentGamepad1.square && !previousGamepad1.square) {
+                if (currentGamepad2.square && !previousGamepad2.square) {
                     arm.closeClaw();
                     outtakeTimer.reset();
                     outtakeSpecimen=true;
@@ -210,9 +244,9 @@ public class TwoTeleOp extends OpMode {
 
                 newOuttakeState = false;
 
-                if (currentGamepad2.circle && outtakeTimer.milliseconds()>=200) {
+                if (currentGamepad2.circle && outtakeTimer.milliseconds()>=150) {
                     arm.closeClaw();
-                    if (outtakeTimer.milliseconds()>=200+100) {
+                    if (outtakeTimer.milliseconds()>=150+300) {
                         outtakeState = OuttakeState.outtakeSample;
                         outtakeTimer.reset();
                         newOuttakeState = true;
@@ -222,12 +256,13 @@ public class TwoTeleOp extends OpMode {
                 break;
 
             case outtakeSpecimen1:
-                boolean releaseSpec=false;
+
 
                 if (newOuttakeState) {
                     outtakeSlides.toHighChamber();
                     arm.closeClaw();
                     arm.outtakeSpecimen1();
+                    releaseSpec = false;
                 }
 
                 newOuttakeState = false;
@@ -267,11 +302,12 @@ public class TwoTeleOp extends OpMode {
                 break;
 
             case outtakeSample:
-                boolean releaseSample = false;
+
                 if (newOuttakeState) {
                     outtakeSlides.toHighBasket();
                     arm.closeClaw();
                     arm.outtakeSample();
+                    releaseSample = false;
                 }
 
                 newOuttakeState = false;
@@ -280,7 +316,11 @@ public class TwoTeleOp extends OpMode {
                     arm.openClaw();
                     releaseSample = true;
                     outtakeTimer.reset();
-                } if (releaseSample && outtakeTimer.milliseconds()>=175) {
+                } if (currentGamepad2.circle) {
+                    outtakeTimer.reset();
+                }
+
+                if (releaseSample && outtakeTimer.milliseconds()>=175) {
                     arm.toIdlePosition();
                     if (outtakeTimer.milliseconds()>=250) {
                         outtakeState = OuttakeState.idle;
@@ -316,6 +356,8 @@ public class TwoTeleOp extends OpMode {
         }
         lastTime = getRuntime();
         telemetry.addData("Alliance", alliance);
+        telemetry.addData("Is Andrew Mode?", isAndrewMode);
+        telemetry.addData("state", outtakeState);
     }
 
 
