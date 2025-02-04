@@ -69,6 +69,10 @@ public class HorizontalSlides {
         }
     }
 
+    public int getPosition() {
+        return horizontalSlidesMotor.getCurrentPosition();
+    }
+
     public double getTargetPosition() {
         return position;
     }
