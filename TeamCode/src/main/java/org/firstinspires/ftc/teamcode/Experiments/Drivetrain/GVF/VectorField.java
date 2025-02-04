@@ -4,30 +4,44 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.HPIDController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.opencv.core.Point;
 
 public class VectorField {
     // Robot controls
     public Odometry odometry;
-    WheelControl drive;
-    BCPath path;
+    public WheelControl drive;
+    public BCPath path;
 
-    // Robot tuning
-    double max_speed = 0.7;
-    double min_speed = 0.4;
-    double max_turn_speed = 20;
-    double stop_speed = 0.05;
-    double speed_decay = 0.001;
+    // Motion profiling
+    double velocity_update_rate = 0.2;
+    double p_to_v = 68;
+    public Point prev_pos;
+    public double true_speed = 0;
+    public Point velocity = new Point(0, 0);
+
+    // Speed tuning
+    double max_speed = 1;
+    double min_speed = 1;
+    double max_turn_speed = 0.5;
+
+    // Correction constants
     double path_corr = 0.1;
-    double PID_dist = 5;
     double centripetal_corr = 0;
     double centripetal_threshold = 10;
     double accel_corr = 0;
-    double p_to_v = 10;
 
-    // End decel: deceleration rate
-    double end_decel = 0.02;
+    // PID constants (at end of path)
+    double PID_dist = 15;
+    double stop_speed = 0.2;
+    double stop_decay = 0.003;
+    double stop_decay_decay = 0.00001;
+    double end_decel = 0.06;
+    double cur_decay = stop_decay;
+
+    // Heading controls
+    boolean path_heading;
     double end_heading;
 
     // Backend variables
@@ -37,19 +51,16 @@ public class VectorField {
     public double turn_speed;
     public boolean PID = false;
     public double error = 0;
-    public Point prev_pos;
     public ElapsedTime timer;
-    public Point velocity;
-    public double true_speed;
 
     // PID variables
     public double xp = end_decel, xi = 0, xd = 0.001;
     public double yp = end_decel, yi = 0, yd = 0.001;
-    public double hp = 0.01, hi = 0, hd = 0.00004;
+    public double hp = 0.01, hi = 0, hd = 0;
 
     PIDController x_PID;
     PIDController y_PID;
-    PIDController h_PID;
+    HPIDController h_PID;
 
     public double x_error;
     public double y_error;
@@ -58,12 +69,14 @@ public class VectorField {
     public VectorField(WheelControl w,
                        Odometry o,
                        BCPath p,
-                       double end_heading) {
+                       double end_heading,
+                       boolean path_heading) {
         // Inputs
         this.odometry = o;
         this.path = p;
         this.drive = w;
         this.end_heading = end_heading;
+        this.path_heading = path_heading;
 
         // Zero power behavior: brake
         drive.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -74,7 +87,7 @@ public class VectorField {
         // Set PID controllers
         x_PID = new PIDController(xp, xi, xd);
         y_PID = new PIDController(yp, yi, yd);
-        h_PID = new PIDController(hp, hi, hd);
+        h_PID = new HPIDController(hp, hi, hd);
 
         // Timer
         timer = new ElapsedTime();
@@ -108,8 +121,10 @@ public class VectorField {
 
     // Sets velocity of robot
     public void set_velocity() {
-        velocity = Utils.div_v(prev_pos, timer.seconds());
-        //true_speed = Utils.len_v(velocity);
+        if (timer.seconds() < velocity_update_rate) return;
+        velocity = Utils.div_v(Utils.sub_v(get_pos(), prev_pos), timer.seconds());
+        true_speed = Utils.len_v(velocity);
+        prev_pos = get_pos();
         timer.reset();
     }
 
@@ -153,22 +168,14 @@ public class VectorField {
         return Utils.dist(path.forward(D), get_pos());
     }
 
-    // Get turn angle
-    /*public double turn_angle(double current, double target) {
-        double turn_angle = target-current;
-        if (turn_angle < -180) turn_angle += 360;
-        if (turn_angle > 180) turn_angle -= 360;
-        return turn_angle;
-    }*/
-
     // Gets speed when approaching end
     public double get_end_speed(Point p) {
         return end_decel*Utils.dist(get_pos(), p);
     }
 
     // Calculates turn speed based on target angle
-    public void set_turn_speed(double target) {
-        turn_speed = h_PID.calculate(get_heading(), target);
+    public void set_turn_speed(double target_angle) {
+        turn_speed = h_PID.calculate(get_heading(), target_angle);
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
     }
@@ -203,23 +210,26 @@ public class VectorField {
 
     // Move to a point given coordinates and heading
     public void move_to_point(Point p, double target_angle, double max_speed) {
+        // PID errors
         x_error = x_PID.calculate(get_x(), p.x);
         y_error = y_PID.calculate(get_y(), p.y);
-        double head_error = h_PID.calculate(get_heading(), target_angle);
+        turn_speed = h_PID.calculate(get_heading(), target_angle);
 
+        // Speed before modifications
         double old_speed = Utils.len_v(new Point(x_error, y_error));
-        double temp_speed = Math.min(max_speed, Utils.len_v(new Point(x_error, y_error)));
 
-        if (temp_speed < stop_speed) {
-            speed = Math.max(Math.min(speed, stop_speed) - speed_decay, 0);
-        } else speed = temp_speed;
+        if (old_speed > stop_speed) {
+            cur_decay = stop_decay;
+            speed = Math.min(max_speed, old_speed);
+        } else {
+            cur_decay = Math.max(cur_decay - stop_decay_decay, 0);
+            speed = Math.max(speed - cur_decay, 0);
+        }
 
         x_error *= speed/old_speed;
         y_error *= speed/old_speed;
 
         powers = new Point(x_error, y_error);
-
-        turn_speed = head_error;
 
         // Drive
         drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
@@ -227,6 +237,7 @@ public class VectorField {
 
     public void set_drive_speed(double turn_speed) {
         speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
+
         speed = Math.min(speed, get_end_speed(path.final_point));
     }
 
@@ -241,8 +252,9 @@ public class VectorField {
 
         // Otherwise, GVF
         PID = false;
-        set_velocity();
-        set_turn_speed(Utils.angle_v(path.derivative(D)));
+        //set_velocity();
+        if (!path_heading) set_turn_speed(end_heading);
+        else set_turn_speed(Math.toDegrees(Utils.angle_v(path.derivative(D))));
         set_drive_speed(turn_speed);
         powers = move_vector(speed);
 
