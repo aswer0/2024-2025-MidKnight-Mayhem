@@ -54,7 +54,7 @@ public class RedRightGVF extends OpMode {
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        hang_gvf = new VectorField(wheelControl, odometry, hang_path, 90);
+        hang_gvf = new VectorField(wheelControl, odometry, hang_path, 90, true);
 
         lift = new Lift(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
