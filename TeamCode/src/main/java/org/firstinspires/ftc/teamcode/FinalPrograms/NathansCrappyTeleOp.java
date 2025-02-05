@@ -30,7 +30,6 @@ public class NathansCrappyTeleOp extends OpMode {
 
     ElapsedTime intakeTimer = new ElapsedTime();
     ElapsedTime speceminTimer;
-    ElapsedTime sampleTimer;
     Odometry odometry;
     WheelControl drive;
     Alliance alliance = Alliance.red;
@@ -61,7 +60,6 @@ public class NathansCrappyTeleOp extends OpMode {
     public static double sample_y = 127.5;
     public static double sample_angle = 135;
 
-
     double turnPower = 0.8;
 
     Intake intake;
@@ -76,6 +74,8 @@ public class NathansCrappyTeleOp extends OpMode {
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
     Gamepad previousGamepad2 = new Gamepad();
+    public static boolean retractIntakeOnSample;
+    public static boolean disableSmart;
 
     @Override
     public void init() {
@@ -95,7 +95,7 @@ public class NathansCrappyTeleOp extends OpMode {
         oldClaw = new Manipulator(hardwareMap);
         speceminTimer = new ElapsedTime();
         outtakeTimer = new ElapsedTime();
-        path = new Path(follow_path, drive, odometry, telemetry, 0.1, 13, 180, drivePower);
+        path = new Path(follow_path, drive, odometry, telemetry, 0.1, 13, 180, 1);
 
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap);
@@ -114,7 +114,6 @@ public class NathansCrappyTeleOp extends OpMode {
         arm.openClaw();
         oldClaw.openClaw();
         outtakeTimer.reset();
-        sampleTimer.reset();
         intake.up();
     }
     @Override
@@ -134,7 +133,7 @@ public class NathansCrappyTeleOp extends OpMode {
             if (gamepad1.left_bumper) {
                 drivePower=0.3;
             }
-            else{
+            else if (previousGamepad1.left_bumper && !currentGamepad1.left_bumper){
                 drivePower=1;
             }
         }
@@ -169,7 +168,9 @@ public class NathansCrappyTeleOp extends OpMode {
         // Drive
         drive.correction_drive(gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x), Math.toRadians(odometry.opt.get_heading()), drivePower);
 
-        if (gamepad1.x && !previousGamepad1.x){
+        if (gamepad1.triangle && !previousGamepad1.triangle){
+            odometry.opt.calibrate_imu();
+            odometry.opt.calibrate_tracking();
             odometry.opt.setPos(7.875, 6.625, 0);
         }
 
@@ -207,7 +208,7 @@ public class NathansCrappyTeleOp extends OpMode {
 
                 outtakeSlides.toHighChamber();
                 if (odometry.opt.get_y()<target_y-36) {
-                    path.follow_pid_to_point(new Point(target_x - 12, target_y), 0);
+                    path.follow_pid_to_point(new Point(target_x-12, target_y), 0);
                 } else {
                     path.follow_pid_to_point(new Point(target_x, target_y), 0);
                 }
@@ -230,7 +231,7 @@ public class NathansCrappyTeleOp extends OpMode {
 
                 arm.openClaw();
                 arm.outtakeSpecimen1();
-                drive.drive(0, -0.5, 0, 0, 0.7);
+                drive.drive(0, -0.3, 0, 0, 1);
 
                 if (speceminTimer.milliseconds() >= 125) {
                     outtakeSlides.setPosition(100);
@@ -253,7 +254,7 @@ public class NathansCrappyTeleOp extends OpMode {
                     arm.intakeSpecimen();
                 }
 
-                if (path.at_point(new Point(12.875, 28), 3)) { //4
+                if (path.at_point(new Point(13, 31), 3)) { //4
                     drive.drive(0, 0, 0, 0, 0);
                     speceminTimer.reset();
                     specimenState = SpeceminState.pickupSpecimen;
@@ -266,7 +267,7 @@ public class NathansCrappyTeleOp extends OpMode {
                 intake.stop();
                 arm.intakeSpecimen();
 
-                if (sensors.get_back_dist() >= 2.5 || speceminTimer.milliseconds() < 600) {
+                if (sensors.get_back_dist() >= 2.5 || speceminTimer.milliseconds() < 1100) {
                     drive.drive(0.5, 0, 0, 0, 0.7);
                 } else {
                     drive.drive(0, 0, 0, 0, 0);
@@ -304,10 +305,21 @@ public class NathansCrappyTeleOp extends OpMode {
 
                 //manual intake
                 if (currentGamepad2.right_trigger-currentGamepad2.left_trigger>0.7) {
-                    intake.down();
-//                    intake.intake();
-//                    intake.closeDoor();
-                    intake.smartIntake(true);
+                    if(disableSmart) {
+                        intake.intake();
+                        intake.closeDoor();
+                        intake.down();
+                    } else {
+                        boolean hasCorrectObject = intake.smartIntake(true);
+                        if(hasCorrectObject && retractIntakeOnSample) {
+                            intakeSlides.setPosition(0);
+                            intake.up();
+                            gamepad1.rumble(500);
+                            gamepad2.rumble(500);
+                        } else {
+                            intake.down();
+                        }
+                    }
                 } else if (currentGamepad2.right_trigger-currentGamepad2.left_trigger<-0.7){
                     intake.reverseDown();
                     if (intakeTimer.milliseconds()>50) {
@@ -435,6 +447,7 @@ public class NathansCrappyTeleOp extends OpMode {
             case outtakeSample:
 
                 if (newOuttakeState) {
+                    drivePower=0.5;
                     outtakeSlides.toHighBasket();
                     arm.closeClaw();
                     arm.outtakeSample();
@@ -488,7 +501,8 @@ public class NathansCrappyTeleOp extends OpMode {
         lastTime = getRuntime();
         telemetry.addData("Alliance", alliance);
         telemetry.addData("Is Andrew Mode?", isAndrewMode);
-        telemetry.addData("state", outtakeState);
+        telemetry.addData("outtake state", outtakeState);
+        telemetry.addData("specemen state", specimenState);
         telemetry.addData("X pos", odometry.opt.get_x());
         telemetry.addData("Y pos", odometry.opt.get_y());
         telemetry.addData("Heading", odometry.opt.get_heading());
