@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.FinalPrograms;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import org.opencv.core.Point;
 
+@Disabled
 @Autonomous
 public class RedRightGVF extends OpMode {
     Point specimen_target;

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
 import org.opencv.core.Point;
 
+@Disabled
 @Autonomous
 public class Park extends OpMode {
     Odometry odometry;

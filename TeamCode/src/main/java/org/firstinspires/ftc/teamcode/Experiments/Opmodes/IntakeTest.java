@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Opmodes;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSl
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 
+@Disabled
 @TeleOp
 public class IntakeTest extends OpMode {
     //CRServo servo1;

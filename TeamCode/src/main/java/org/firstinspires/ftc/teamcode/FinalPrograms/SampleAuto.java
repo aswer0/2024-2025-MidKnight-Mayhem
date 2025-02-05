@@ -73,7 +73,7 @@ public class SampleAuto extends OpMode {
         odometry = new Odometry(hardwareMap, 0, start_point.x, start_point.y, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         bcpath = new BCPath(follow_path);
-        vf = new VectorField(wheelControl, odometry, bcpath, 135);
+        //vf = new VectorField(wheelControl, odometry, bcpath, 135);
 
         //path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, -180, 0.7);
 

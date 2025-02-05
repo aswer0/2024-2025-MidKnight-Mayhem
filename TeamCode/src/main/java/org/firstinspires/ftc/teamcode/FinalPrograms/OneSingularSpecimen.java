@@ -51,7 +51,7 @@ public class OneSingularSpecimen extends OpMode {
         specimen_target = new Point(26, 72);
         park_target = new Point(2, 5);
         wheelControl = new WheelControl(hardwareMap, odometry);
-        vf = new VectorField(wheelControl, odometry, path, 0);
+        //vf = new VectorField(wheelControl, odometry, path, 0);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Opmodes;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import java.util.List;
 
 @TeleOp
+@Disabled
 public class TestDrive extends OpMode {
     Odometry odometry;
     WheelControl drive;

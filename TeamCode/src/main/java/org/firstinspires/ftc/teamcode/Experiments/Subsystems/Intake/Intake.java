@@ -91,7 +91,8 @@ public class Intake {
         }
         // TODO: Alliance detection
         if(hasObject && hasCorrectColor) {
-            stop();
+            //stop();
+            intake();
             closeDoor();
             return true;
         } else if(hasObject) {
@@ -106,7 +107,7 @@ public class Intake {
     public boolean hasCorrectSample(boolean detectYellow) {
         boolean hasCorrectColor;
         if(alliance == Alliance.red) {
-            hasCorrectColor = 60 < intakeSensor.red() && intakeSensor.red() < 80 &&
+            hasCorrectColor = 50 < intakeSensor.red() && intakeSensor.red() < 80 &&
                     50 < intakeSensor.blue() && intakeSensor.blue() < 70 &&
                     60 < intakeSensor.green() && intakeSensor.green() < 80;
         } else {
@@ -115,8 +116,8 @@ public class Intake {
                     85 < intakeSensor.blue() && intakeSensor.blue() < 120;
         }
         if(detectYellow) {
-            hasCorrectColor = hasCorrectColor || (83 < intakeSensor.red() && intakeSensor.red() < 110 &&
-                    124 < intakeSensor.green() && intakeSensor.green() < 160 &&
+            hasCorrectColor = hasCorrectColor || (73 < intakeSensor.red() && intakeSensor.red() < 110 &&
+                    114 < intakeSensor.green() && intakeSensor.green() < 160 &&
                     55 < intakeSensor.blue() && intakeSensor.blue() < 80);
         }
         if(outputDebugInfo) {

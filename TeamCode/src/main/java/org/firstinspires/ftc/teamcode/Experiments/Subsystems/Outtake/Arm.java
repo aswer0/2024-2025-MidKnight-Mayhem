@@ -13,10 +13,10 @@ public class Arm {
     Servo tClaw;
 
     public static Preset outtakeSpecimen1 = new Preset(0.1,0.72,0.08);
-    public static Preset outtakeSpecimen2 = outtakeSpecimen1;
+    public static Preset outtakeSpecimen2 = new Preset(0.1,0.45,0.08);
     public static Preset outtakeSample = new Preset(0.9,0.75,0.16);
     public static Preset intakeSpecimen = new Preset(0.85,0.8,0.59);
-    public static Preset intakeSample = new Preset(0.85,0.5,0.62);
+    public static Preset intakeSample = new Preset(0.85,0.52,0.62);
     public static Preset idlePosition = new Preset(0.85,0.5,0.53);
     public static Preset autoStartPosition = new Preset(0.85,0.99,0.56);
 
