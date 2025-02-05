@@ -26,7 +26,8 @@ import java.util.List;
 @TeleOp
 public class AndrewsCrappyTeleOp extends OpMode {
     double lastTime = getRuntime();
-    public static boolean disableSmart = true;
+    public static boolean disableSmart = false;
+    public static boolean retractIntakeOnSample = true;
     ElapsedTime intakeTimer = new ElapsedTime();
     Odometry odometry;
     WheelControl drive;
@@ -288,7 +289,11 @@ public class AndrewsCrappyTeleOp extends OpMode {
                         intake.intake();
                         intake.closeDoor();
                     }else {
-                        intake.smartIntake(true);
+                        boolean hasCorrectObject = intake.smartIntake(true);
+                        if(hasCorrectObject && retractIntakeOnSample) {
+                            outtakeState = OuttakeState.idle;
+                            intakeSlides.setPosition(0);
+                        }
                     }
                 } else if (currentGamepad2.right_trigger-currentGamepad2.left_trigger<-0.7){
                     intake.reverseDown();
