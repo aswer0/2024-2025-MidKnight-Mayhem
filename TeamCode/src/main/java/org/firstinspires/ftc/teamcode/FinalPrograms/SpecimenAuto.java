@@ -180,14 +180,16 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case deposit:
+                wheelControl.drive(0,0,0,0,0);
                 intake.stop();
                 intake.down();
 
                 arm.openClaw();
-                arm.outtakeSpecimen1();
+                //arm.outtakeSpecimen1();
 
                 if (timer.milliseconds() >= 125) {
-                    lift.setPosition(100);
+                    lift.setPosition(0);
+                    arm.outtakeSpecimen2();
                 }
 
                 if (timer.milliseconds() >= 400){
@@ -211,7 +213,7 @@ public class SpecimenAuto extends OpMode {
                 horizontalSlides.setPosition(0);
                 path.follow_pid_to_point(get_specimen_target, 0);
 
-                if (timer.milliseconds() > 500){
+                if (timer.milliseconds() > 700){
                     lift.intakeSpecimen();
                     arm.intakeSpecimen();
                 }

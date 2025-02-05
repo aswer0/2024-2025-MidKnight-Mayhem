@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -21,10 +22,11 @@ import org.opencv.core.Point;
 
 import java.util.List;
 
+@Config
 @TeleOp
 public class AndrewsCrappyTeleOp extends OpMode {
     double lastTime = getRuntime();
-
+    public static boolean disableSmart = true;
     ElapsedTime intakeTimer = new ElapsedTime();
     Odometry odometry;
     WheelControl drive;
@@ -282,9 +284,12 @@ public class AndrewsCrappyTeleOp extends OpMode {
                 //manual intake
                 if (currentGamepad2.right_trigger-currentGamepad2.left_trigger>0.7) {
                     intake.down();
-//                    intake.intake();
-//                    intake.closeDoor();
-                    intake.smartIntake(true);
+                    if(disableSmart) {
+                        intake.intake();
+                        intake.closeDoor();
+                    }else {
+                        intake.smartIntake(true);
+                    }
                 } else if (currentGamepad2.right_trigger-currentGamepad2.left_trigger<-0.7){
                     intake.reverseDown();
                     if (intakeTimer.milliseconds()>50) {
@@ -431,9 +436,9 @@ public class AndrewsCrappyTeleOp extends OpMode {
                     outtakeTimer.reset();
                 }
 
-                if (releaseSample && outtakeTimer.milliseconds()>=175) {
+                if (releaseSample && outtakeTimer.milliseconds()>=250) {
                     arm.toIdlePosition();
-                    if (outtakeTimer.milliseconds()>=250) {
+                    if (outtakeTimer.milliseconds()>=250+100) {
                         outtakeState = OuttakeState.idle;
                         outtakeTimer.reset();
                         newOuttakeState = true;
@@ -458,7 +463,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
         if(!previousGamepad2.share && currentGamepad2.share) {
             if(hangState == HangState.hanging1) {
-                outtakeSlides.setPosition(2150);
+                outtakeSlides.setPosition(2350);
                 hangState = HangState.hanging2;
             } else {
                 outtakeSlides.setPosition(1500);

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -49,6 +50,9 @@ public class NathansCrappyTeleOp extends OpMode {
     boolean isAndrewMode = true;
     boolean pidToSample = false;
 
+    double drivePower = 1;
+    double turnPower = 0.8;
+
     Intake intake;
     HorizontalSlides intakeSlides;
 
@@ -57,7 +61,6 @@ public class NathansCrappyTeleOp extends OpMode {
 
     List<LynxModule> allHubs;
 
-    double drivePower=1;
 
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
@@ -474,6 +477,9 @@ public class NathansCrappyTeleOp extends OpMode {
         telemetry.addData("Alliance", alliance);
         telemetry.addData("Is Andrew Mode?", isAndrewMode);
         telemetry.addData("state", outtakeState);
+        telemetry.addData("X pos", odometry.opt.get_x());
+        telemetry.addData("Y pos", odometry.opt.get_y());
+        telemetry.addData("Heading", odometry.opt.get_heading());
     }
 
 
