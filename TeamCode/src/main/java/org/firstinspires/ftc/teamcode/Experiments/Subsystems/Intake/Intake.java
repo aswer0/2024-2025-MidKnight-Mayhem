@@ -90,6 +90,7 @@ public class Intake {
         switch(color) {
 
             case allianceSpecific:
+            case yellow:
                 intake();
                 closeDoor();
                 return true;
