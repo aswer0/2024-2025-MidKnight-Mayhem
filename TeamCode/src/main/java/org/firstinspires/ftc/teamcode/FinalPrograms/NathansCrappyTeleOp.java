@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -23,11 +24,13 @@ import org.opencv.core.Point;
 import java.util.List;
 
 @TeleOp
+@Config
 public class NathansCrappyTeleOp extends OpMode {
     double lastTime = getRuntime();
 
     ElapsedTime intakeTimer = new ElapsedTime();
     ElapsedTime speceminTimer;
+    ElapsedTime sampleTimer;
     Odometry odometry;
     WheelControl drive;
     Alliance alliance = Alliance.red;
@@ -40,17 +43,25 @@ public class NathansCrappyTeleOp extends OpMode {
     OuttakeState outtakeState = OuttakeState.idle;
     SpeceminState specimenState = SpeceminState.idle;
     HangState hangState = HangState.hanging1;
-    boolean newOuttakeState = true;
 
+    boolean newOuttakeState = true;
     boolean releaseSpec=false;
     boolean outtakeSpecimen=false;
     boolean releaseSample = false;
     boolean grabSample = false;
 
     boolean isAndrewMode = true;
-    boolean pidToSample = false;
+    boolean pidSample = false;
 
     double drivePower = 1;
+
+    public static double target_x = 50;
+    public static double target_y = 90;
+    public static double sample_x = 16;
+    public static double sample_y = 127.5;
+    public static double sample_angle = 135;
+
+
     double turnPower = 0.8;
 
     Intake intake;
@@ -60,7 +71,6 @@ public class NathansCrappyTeleOp extends OpMode {
     Path path;
 
     List<LynxModule> allHubs;
-
 
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
@@ -104,6 +114,7 @@ public class NathansCrappyTeleOp extends OpMode {
         arm.openClaw();
         oldClaw.openClaw();
         outtakeTimer.reset();
+        sampleTimer.reset();
         intake.up();
     }
     @Override
@@ -158,26 +169,24 @@ public class NathansCrappyTeleOp extends OpMode {
         // Drive
         drive.correction_drive(gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, -gamepad1.right_stick_x*Math.abs(gamepad1.right_stick_x), Math.toRadians(odometry.opt.get_heading()), drivePower);
 
+        if (gamepad1.x && !previousGamepad1.x){
+            odometry.opt.setPos(7.875, 6.625, 0);
+        }
+
         if (gamepad1.square && !previousGamepad1.square){
             if (specimenState == SpeceminState.idle){
-                specimenState = SpeceminState.gvf;
+                specimenState = SpeceminState.pid;
             }
             else{
                 specimenState = SpeceminState.idle;
             }
         }
-        if (gamepad1.x && !previousGamepad1.x){
-            odometry.opt.setPos(7.875, 6.625, 0);
-        }
 
         if (gamepad1.circle && !previousGamepad1.circle){
-            pidToSample = !pidToSample;
+            pidSample = !pidSample;
         }
-        if (pidToSample){
-            path.follow_pid_to_point(new Point(16, 127.5), 135);
-            if (path.at_point(new Point(16, 127.5), 5)){
-                outtakeState = OuttakeState.outtakeSample;
-            }
+        if (pidSample){
+            path.follow_pid_to_point(new Point(sample_x, sample_y), sample_angle);
         }
 
         if (Math.abs(-gamepad2.left_stick_y) > 0.4) {
@@ -191,13 +200,17 @@ public class NathansCrappyTeleOp extends OpMode {
                 speceminTimer.reset();
                 break;
 
-            case gvf:
+            case pid:
                 intake.up();
                 intake.stop();
                 arm.closeClaw();
 
                 outtakeSlides.toHighChamber();
-                path.update(0);
+                if (odometry.opt.get_y()<target_y-36) {
+                    path.follow_pid_to_point(new Point(target_x - 12, target_y), 0);
+                } else {
+                    path.follow_pid_to_point(new Point(target_x, target_y), 0);
+                }
 
                 if (speceminTimer.milliseconds() >= 100){
                     arm.outtakeSpecimen1();
@@ -217,7 +230,7 @@ public class NathansCrappyTeleOp extends OpMode {
 
                 arm.openClaw();
                 arm.outtakeSpecimen1();
-                path.update(0);
+                drive.drive(0, -0.5, 0, 0, 0.7);
 
                 if (speceminTimer.milliseconds() >= 125) {
                     outtakeSlides.setPosition(100);
@@ -240,7 +253,7 @@ public class NathansCrappyTeleOp extends OpMode {
                     arm.intakeSpecimen();
                 }
 
-                if (path.at_point(new Point(12.875, 28), 5)) { //4
+                if (path.at_point(new Point(12.875, 28), 3)) { //4
                     drive.drive(0, 0, 0, 0, 0);
                     speceminTimer.reset();
                     specimenState = SpeceminState.pickupSpecimen;
@@ -253,15 +266,14 @@ public class NathansCrappyTeleOp extends OpMode {
                 intake.stop();
                 arm.intakeSpecimen();
 
-                if (sensors.get_back_dist() >= 2.5 || speceminTimer.milliseconds() < 650) {
+                if (sensors.get_back_dist() >= 2.5 || speceminTimer.milliseconds() < 600) {
                     drive.drive(0.5, 0, 0, 0, 0.7);
                 } else {
                     drive.drive(0, 0, 0, 0, 0);
                     arm.closeClaw();
 
                     speceminTimer.reset();
-                    path.set_d(0);
-                    specimenState = SpeceminState.gvf;
+                    specimenState = SpeceminState.pid;
                 }
 
                 break;
@@ -436,8 +448,8 @@ public class NathansCrappyTeleOp extends OpMode {
                     releaseSample = true;
                     outtakeTimer.reset();
                 } if (currentGamepad2.circle) {
-                outtakeTimer.reset();
-            }
+                    outtakeTimer.reset();
+                }
 
                 if (releaseSample && outtakeTimer.milliseconds()>=175) {
                     arm.toIdlePosition();
@@ -495,7 +507,7 @@ public class NathansCrappyTeleOp extends OpMode {
 
     enum SpeceminState{
         idle,
-        gvf,
+        pid,
         deposit,
         goToSpecimen,
         pickupSpecimen
