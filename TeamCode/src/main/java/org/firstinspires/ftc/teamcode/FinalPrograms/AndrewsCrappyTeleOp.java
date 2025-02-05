@@ -293,7 +293,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                         if(hasCorrectObject && retractIntakeOnSample) {
                             intakeSlides.setPosition(0);
                             intake.up();
-                            gamepad1.rumble(500);
+                            gamepad2.rumble(500);
                         } else {
                             intake.down();
                         }
