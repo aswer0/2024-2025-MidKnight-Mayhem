@@ -291,7 +291,6 @@ public class AndrewsCrappyTeleOp extends OpMode {
                     }else {
                         boolean hasCorrectObject = intake.smartIntake(true);
                         if(hasCorrectObject && retractIntakeOnSample) {
-                            outtakeState = OuttakeState.idle;
                             intakeSlides.setPosition(0);
                         }
                     }
