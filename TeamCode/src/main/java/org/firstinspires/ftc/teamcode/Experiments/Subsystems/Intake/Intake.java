@@ -12,6 +12,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 
+import java.util.Objects;
+
 @Config
 public class Intake {
     public static boolean outputDebugInfo = false;
@@ -78,57 +80,79 @@ public class Intake {
 
 
     public boolean smartIntake(boolean detectYellow) {
-        boolean hasCorrectColor = hasCorrectSample(detectYellow);
-        boolean hasObject = intakeSensor.getDistance(DistanceUnit.INCH) < 2;
+        SampleColor color = getColor();
+        if(color == SampleColor.yellow && !detectYellow) color = SampleColor.wrong; // do not intake yellows if not told to; this feels hacky
         if(outputDebugInfo) {
             TelemetryPacket packet = new TelemetryPacket();
-            packet.put("Intake/Red", intakeSensor.red() );
-            packet.put("Intake/Green", intakeSensor.green());
-            packet.put("Intake/Blue", intakeSensor.blue());
-            packet.put("Intake/Distance", intakeSensor.getDistance(DistanceUnit.INCH));
-            packet.put("Intake/hasCorrectColor", hasCorrectColor);
+            packet.put("Intake/color", color);
             (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
         }
-        // TODO: Alliance detection
-        if(hasObject && hasCorrectColor) {
-            //stop();
-            intake();
-            closeDoor();
-            return true;
-        } else if(hasObject) {
-            intake();
-            openDoor();
-        } else {
-            intake();
-            closeDoor();
+        switch(color) {
+
+            case allianceSpecific:
+                intake();
+                closeDoor();
+                return true;
+            case wrong:
+                intake();
+                openDoor();
+                return false;
+            case unsure:
+            case none:
+                intake();
+                closeDoor();
+                return false;
         }
         return false;
     }
     public boolean hasCorrectSample(boolean detectYellow) {
-        boolean hasCorrectColor;
-        if(alliance == Alliance.red) {
-            hasCorrectColor = 50 < intakeSensor.red() && intakeSensor.red() < 80 &&
-                    50 < intakeSensor.blue() && intakeSensor.blue() < 70 &&
-                    60 < intakeSensor.green() && intakeSensor.green() < 80;
-        } else {
-            hasCorrectColor = 17 < intakeSensor.red() && intakeSensor.red() < 43 &&
-                    45 < intakeSensor.green() && intakeSensor.green() < 77 &&
-                    85 < intakeSensor.blue() && intakeSensor.blue() < 120;
-        }
-        if(detectYellow) {
-            hasCorrectColor = hasCorrectColor || (73 < intakeSensor.red() && intakeSensor.red() < 110 &&
-                    114 < intakeSensor.green() && intakeSensor.green() < 160 &&
-                    55 < intakeSensor.blue() && intakeSensor.blue() < 80);
-        }
+        SampleColor color = getColor();
+        return color == SampleColor.allianceSpecific || (detectYellow && color == SampleColor.yellow);
+    }
+    public SampleColor getColor(){
+        if(intakeSensor.getDistance(DistanceUnit.INCH) > 2) return SampleColor.none;
+        boolean red = 50 < intakeSensor.red() && intakeSensor.red() < 80 &&
+                50 < intakeSensor.blue() && intakeSensor.blue() < 70 &&
+                60 < intakeSensor.green() && intakeSensor.green() < 80;
+        boolean blue = 17 < intakeSensor.red() && intakeSensor.red() < 43 &&
+                45 < intakeSensor.green() && intakeSensor.green() < 77 &&
+                85 < intakeSensor.blue() && intakeSensor.blue() < 120;
+        boolean yellow = (73 < intakeSensor.red() && intakeSensor.red() < 110 &&
+                114 < intakeSensor.green() && intakeSensor.green() < 160 &&
+                55 < intakeSensor.blue() && intakeSensor.blue() < 80);
         if(outputDebugInfo) {
             TelemetryPacket packet = new TelemetryPacket();
             packet.put("Intake/Red", intakeSensor.red());
             packet.put("Intake/Green", intakeSensor.green());
             packet.put("Intake/Blue", intakeSensor.blue());
             packet.put("Intake/Distance", intakeSensor.getDistance(DistanceUnit.INCH));
-            packet.put("Intake/hasCorrectColor", hasCorrectColor);
+            packet.put("Intake/hasRed", red);
+            packet.put("Intake/hasBlue", blue);
+            packet.put("Intake/hasYellow", yellow);
             (FtcDashboard.getInstance()).sendTelemetryPacket(packet);
         }
-        return hasCorrectColor;
+        // See a truth table at ( https://truth-table.com/#(r%20%7C%7C%20b%20%7C%7C%20!y)%20&&%20(r%20%7C%7C%20!b%20%7C%7C%20y)%20&&%20(!r%20%7C%7C%20b%20%7C%7C%20y) )
+        if((red || blue || !yellow)
+                && (red  || !blue || yellow)
+                && (!red || blue  || yellow)) return SampleColor.unsure; // the if statement is false if exactly one of the values is true, true otherwise.
+        if(yellow) return SampleColor.yellow;
+
+        if(alliance == Alliance.red) {
+            return red ? SampleColor.allianceSpecific : SampleColor.wrong;
+        } else {
+            return blue ? SampleColor.allianceSpecific : SampleColor.wrong; // the alliance must be blue
+        }
+    }
+    public enum SampleColor {
+        /** Red color if alliance is red, blue if alliance is blue */
+        allianceSpecific,
+        /** Yellow, regardless of alliance */
+        yellow,
+        /** Blue if alliance color is red, red if alliance color is blue */
+        wrong,
+        /** The color is unknown, probably if the color sensors are mistuned */
+        unsure,
+        /** There is no object in the intake */
+        none
     }
 }
