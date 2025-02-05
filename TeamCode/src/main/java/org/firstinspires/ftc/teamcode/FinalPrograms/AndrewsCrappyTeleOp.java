@@ -284,14 +284,18 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
                 //manual intake
                 if (currentGamepad2.right_trigger-currentGamepad2.left_trigger>0.7) {
-                    intake.down();
                     if(disableSmart) {
                         intake.intake();
                         intake.closeDoor();
+                        intake.down();
                     }else {
                         boolean hasCorrectObject = intake.smartIntake(true);
                         if(hasCorrectObject && retractIntakeOnSample) {
                             intakeSlides.setPosition(0);
+                            intake.up();
+                            gamepad1.rumble(500);
+                        } else {
+                            intake.down();
                         }
                     }
                 } else if (currentGamepad2.right_trigger-currentGamepad2.left_trigger<-0.7){
@@ -453,7 +457,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
         }
 
 
-        if(!previousGamepad2.right_bumper && currentGamepad2.right_bumper) { // TODO bucket logic
+        if(!previousGamepad2.right_bumper && currentGamepad2.right_bumper) {
             if (clawOpen) {
                 arm.closeClaw();
                 oldClaw.closeClaw();
