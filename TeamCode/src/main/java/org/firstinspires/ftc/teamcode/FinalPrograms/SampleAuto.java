@@ -20,6 +20,7 @@ import org.opencv.core.Point;
 @Autonomous
 @Config
 public class SampleAuto extends OpMode {
+    double corner_offset = 18;
     Point start_point;
     //Point get_specimen_target;
     Point deposit_sample_target;
@@ -55,7 +56,7 @@ public class SampleAuto extends OpMode {
     @Override
     public void init() {
         start_point = new Point(7.875, 96);
-        deposit_sample_target = new Point(12+5, 132-5);
+        deposit_sample_target = new Point(corner_offset, 144-corner_offset);
         hang_target = new Point(72, 96);
 
         Point[][] follow_path = {{
@@ -73,7 +74,7 @@ public class SampleAuto extends OpMode {
         odometry = new Odometry(hardwareMap, 0, start_point.x, start_point.y, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         bcpath = new BCPath(follow_path);
-        //vf = new VectorField(wheelControl, odometry, bcpath, 135);
+        vf = new VectorField(wheelControl, odometry, bcpath, 135, false);
 
         //path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, -180, 0.7);
 

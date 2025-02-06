@@ -49,7 +49,7 @@ public class GVFTest2 extends OpMode {
         //wheelControl.drive(-1, 0, 0, 0, 1);
         TelemetryPacket telemetry = new TelemetryPacket();
         //vf.set_velocity();
-        telemetry.put("Velocity", vf.velocity);
+        telemetry.put("v/p", Utils.len_v(vf.velocity)/vf.speed);
         //vf.move_to_point(new Point(28, 72), 0, 0.7);
         telemetry.put("derivative", Math.toDegrees(Utils.angle_v(vf.path.derivative(vf.D))));
         telemetry.put("heading", vf.get_heading());

@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDController;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.TestPID;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.HPIDController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.opencv.core.Point;
@@ -15,7 +15,7 @@ public class VectorField {
     public BCPath path;
 
     // Motion profiling
-    double velocity_update_rate = 0.2;
+    double velocity_update_rate = 0.1;
     double p_to_v = 68;
     public Point prev_pos;
     public double true_speed = 0;
@@ -23,22 +23,20 @@ public class VectorField {
 
     // Speed tuning
     double max_speed = 1;
-    double min_speed = 1;
+    double min_speed = 0.8;
     double max_turn_speed = 0.5;
 
     // Correction constants
     double path_corr = 0.1;
-    double centripetal_corr = 0;
-    double centripetal_threshold = 10;
+    //double centripetal_corr = 0;
+    //double centripetal_threshold = 10;
     double accel_corr = 0;
 
     // PID constants (at end of path)
-    double PID_dist = 15;
+    double PID_dist = 10;
     double stop_speed = 0.2;
     double stop_decay = 0.003;
-    double stop_decay_decay = 0.00001;
-    double end_decel = 0.06;
-    double cur_decay = stop_decay;
+    double end_decel = 0.05;
 
     // Heading controls
     boolean path_heading;
@@ -54,12 +52,12 @@ public class VectorField {
     public ElapsedTime timer;
 
     // PID variables
-    public double xp = end_decel, xi = 0, xd = 0.001;
-    public double yp = end_decel, yi = 0, yd = 0.001;
-    public double hp = 0.01, hi = 0, hd = 0;
+    public double xp = end_decel, xi = 0.1, xd = 0.001, xithres = 2;
+    public double yp = end_decel, yi = 0.1, yd = 0.001, yithres = 2;
+    public double hp = 0.01, hi = 0, hd = 0.0005;
 
-    PIDController x_PID;
-    PIDController y_PID;
+    TestPID x_PID;
+    TestPID y_PID;
     HPIDController h_PID;
 
     public double x_error;
@@ -85,8 +83,8 @@ public class VectorField {
         drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set PID controllers
-        x_PID = new PIDController(xp, xi, xd);
-        y_PID = new PIDController(yp, yi, yd);
+        x_PID = new TestPID(xp, xi, xd, xithres);
+        y_PID = new TestPID(yp, yi, yd, yithres);
         h_PID = new HPIDController(hp, hi, hd);
 
         // Timer
@@ -126,6 +124,14 @@ public class VectorField {
         true_speed = Utils.len_v(velocity);
         prev_pos = get_pos();
         timer.reset();
+    }
+
+    // Gets acceleration correction term
+    public Point get_accel_corr(Point move_v) {
+        if (accel_corr > 0) {
+            Point accel = Utils.sub_v(move_v, Utils.div_v(velocity, p_to_v));
+            return Utils.mul_v(accel, accel_corr);
+        } else return new Point (0, 0);
     }
 
     // Updates closest point on curve using signed GD & binary search
@@ -190,22 +196,18 @@ public class VectorField {
         Point move_v = Utils.add_v(orth, tangent);
 
         // Acceleration correction
-        Point accel_corr_term = new Point(0, 0);
-        if (accel_corr > 0) {
-            Point accel = Utils.sub_v(move_v, Utils.div_v(velocity, p_to_v));
-            accel_corr_term = Utils.mul_v(accel, accel_corr);
-        }
+        Point accel_corr_term = get_accel_corr(move_v);
 
         // Centripetal correction
-        Point centripetal = new Point(0, 0);
+        /*Point centripetal = new Point(0, 0);
         if (closest_dist() < centripetal_threshold) {
             double perp_angle = Utils.angle_v(tangent)+Math.PI/2;
-            double centripetal_len = path.curvature(D)*centripetal_corr*true_speed;
+            double centripetal_len = path.curvature(D)*centripetal_corr*speed;
             centripetal = Utils.polar_to_rect(centripetal_len, perp_angle);
-        }
+        }*/
 
         // Add everything
-        return Utils.scale_v(Utils.add_v(move_v, accel_corr_term, centripetal), speed);
+        return Utils.add_v(Utils.scale_v(move_v, speed), accel_corr_term);
     }
 
     // Move to a point given coordinates and heading
@@ -217,27 +219,22 @@ public class VectorField {
 
         // Speed before modifications
         double old_speed = Utils.len_v(new Point(x_error, y_error));
-
-        if (old_speed > stop_speed) {
-            cur_decay = stop_decay;
-            speed = Math.min(max_speed, old_speed);
-        } else {
-            cur_decay = Math.max(cur_decay - stop_decay_decay, 0);
-            speed = Math.max(speed - cur_decay, 0);
-        }
+        speed = Math.min(max_speed, old_speed);
+        /*if (old_speed > stop_speed) speed = Math.min(max_speed, old_speed);
+        else speed = Math.max(speed - stop_decay, 0);*/
 
         x_error *= speed/old_speed;
         y_error *= speed/old_speed;
 
         powers = new Point(x_error, y_error);
+        powers = Utils.add_v(powers, get_accel_corr(powers));
 
         // Drive
         drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
     }
 
     public void set_drive_speed(double turn_speed) {
-        speed = min_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
-
+        speed = max_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
         speed = Math.min(speed, get_end_speed(path.final_point));
     }
 
@@ -252,7 +249,7 @@ public class VectorField {
 
         // Otherwise, GVF
         PID = false;
-        //set_velocity();
+        set_velocity();
         if (!path_heading) set_turn_speed(end_heading);
         else set_turn_speed(Math.toDegrees(Utils.angle_v(path.derivative(D))));
         set_drive_speed(turn_speed);
