@@ -146,11 +146,11 @@ public class Lift {
             double input = Math.min(motorController.update(leftSlide.getCurrentPosition() - position), cap);
             leftSlide.setPower(input);
             rightSlide.setPower(input);
-//            if(Math.abs(leftSlide.getCurrentPosition() - position) < 5 && leftSlide.getCurrentPosition() > 200) {
-//                state = State.userControlled;
-//
-//                setPower(0);
-//            }
+            if(Math.abs(leftSlide.getCurrentPosition() - position) < 5 && position == 0) {
+                state = State.userControlled;
+
+                setPower(0);
+            }
         }
         if(outputDebugInfo) {
             FtcDashboard dashboard = FtcDashboard.getInstance();
