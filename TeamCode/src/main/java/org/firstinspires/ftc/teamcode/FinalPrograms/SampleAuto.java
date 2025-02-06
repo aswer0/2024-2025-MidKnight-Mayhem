@@ -28,7 +28,7 @@ public class SampleAuto extends OpMode {
     double get_sample_x, get_sample_y;
     Point deposit_sample_target;
     Point park_target;
-
+//
     int deposit_state;
     ElapsedTime timer;
     Sensors sensors;
