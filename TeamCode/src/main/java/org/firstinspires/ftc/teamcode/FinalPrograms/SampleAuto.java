@@ -69,7 +69,6 @@ public class SampleAuto extends OpMode {
         deposit_state = 0;
         deposit_sample_target = new Point(corner_offset, 144-corner_offset);
         park_target = new Point(20, 40);
-        //ascent_target = new Point(72, 96);
 
         Point[][] follow_path = {{
                 new Point(7.875, 21.3),
@@ -87,8 +86,6 @@ public class SampleAuto extends OpMode {
         wheelControl = new WheelControl(hardwareMap, odometry);
         bcpath = new BCPath(follow_path);
         vf = new VectorField(wheelControl, odometry, bcpath, 135, false);
-
-        //path = new Path(follow_path, wheelControl, odometry, telemetry, 0.01, 12, -180, 0.7);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -122,9 +119,9 @@ public class SampleAuto extends OpMode {
             case pid:
                 intake.up();
                 intake.stop();
+                arm.closeClaw();
 
-                if (deposit_state == 0 || timer.milliseconds() >= 200) {
-                    arm.closeClaw();
+                if (deposit_state == 0 || timer.milliseconds() >= 300) {
                     arm.outtakeSample();
                     lift.toHighBasket();
                 }
@@ -160,7 +157,7 @@ public class SampleAuto extends OpMode {
             case move_to_intake_sample:
                 intake.up();
                 intake.stop();
-                arm.outtakeSample();
+                arm.intakeSample();
                 arm.openClaw();
                 lift.toHighBasket();
 
@@ -199,6 +196,7 @@ public class SampleAuto extends OpMode {
                 if (timer.milliseconds() >= 1000) {
                     arm.closeClaw();
                 }
+
                 if (timer.milliseconds() >= 1300) {
                     timer.reset();
                     state = State.pid;
