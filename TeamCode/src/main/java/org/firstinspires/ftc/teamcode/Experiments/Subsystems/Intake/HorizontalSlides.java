@@ -84,16 +84,11 @@ public class HorizontalSlides {
 
     public void update() {
         if (state == State.runToPosition) {
-            if(position == 0) {
-
-                if(resetSlides()) state = State.userControlled;
-            } else {
-                horizontalSlidesMotor.setPower(pidController.update(horizontalSlidesMotor.getCurrentPosition() - position));
-                // Brake if already in position
-                if (Math.abs(horizontalSlidesMotor.getCurrentPosition() - position) < 5) {
-                    state = State.userControlled;
-                    setPower(0);
-                }
+            horizontalSlidesMotor.setPower(pidController.update(horizontalSlidesMotor.getCurrentPosition() - position));
+            // Brake if already in position
+            if (Math.abs(horizontalSlidesMotor.getCurrentPosition() - position) < 5) {
+                state = State.userControlled;
+                setPower(0);
             }
         }
         if(outputDebugInfo) {

@@ -143,13 +143,9 @@ public class Lift {
     }
     public void update() {
         if (state == State.runToPosition) {
-            if(position == 0) {
-                if(resetSlides()) state = State.userControlled;
-            } else {
-                double input = Math.min(motorController.update(leftSlide.getCurrentPosition() - position), cap);
-                leftSlide.setPower(input);
-                rightSlide.setPower(input);
-            }
+            double input = Math.min(motorController.update(leftSlide.getCurrentPosition() - position), cap);
+            leftSlide.setPower(input);
+            rightSlide.setPower(input);
 //            if(Math.abs(leftSlide.getCurrentPosition() - position) < 5 && leftSlide.getCurrentPosition() > 200) {
 //                state = State.userControlled;
 //
