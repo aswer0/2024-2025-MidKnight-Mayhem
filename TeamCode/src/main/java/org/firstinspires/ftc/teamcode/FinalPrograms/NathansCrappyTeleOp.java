@@ -56,8 +56,8 @@ public class NathansCrappyTeleOp extends OpMode {
 
     public static double target_x = 50;
     public static double target_y = 90;
-    public static double sample_x = 16;
-    public static double sample_y = 127.5;
+    public static double sample_x = 13;
+    public static double sample_y = 123.5;
     public static double sample_angle = 135;
 
     double turnPower = 0.8;
@@ -74,8 +74,8 @@ public class NathansCrappyTeleOp extends OpMode {
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
     Gamepad previousGamepad2 = new Gamepad();
-    public static boolean retractIntakeOnSample;
-    public static boolean disableSmart;
+    public static boolean retractIntakeOnSample = true;
+    public static boolean disableSmart = false;
 
     @Override
     public void init() {
@@ -284,6 +284,7 @@ public class NathansCrappyTeleOp extends OpMode {
         switch (outtakeState) {
             case idle:
                 if (newOuttakeState) {
+                    drivePower = 1;
                     outtakeSlides.setPosition(0);
                     arm.toIdlePosition();
                     arm.openClaw();
