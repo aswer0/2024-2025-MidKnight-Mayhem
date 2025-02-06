@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFCoefficients;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 
@@ -61,10 +62,11 @@ public class HorizontalSlides {
 
     public boolean resetSlides() {
         if (!horizontalSlidesMotor.isOverCurrent()) {
-            horizontalSlidesMotor.setPower(-1);
+            horizontalSlidesMotor.setPower(1);
             return false;
         } else {
             horizontalSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            horizontalSlidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             return true;
         }
     }
@@ -82,9 +84,17 @@ public class HorizontalSlides {
 
     public void update() {
         if (state == State.runToPosition) {
-            horizontalSlidesMotor.setPower(pidController.update(horizontalSlidesMotor.getCurrentPosition() - position));
-            // Brake if already in position
+            if(position == 0) {
 
+                if(resetSlides()) state = State.userControlled;
+            } else {
+                horizontalSlidesMotor.setPower(pidController.update(horizontalSlidesMotor.getCurrentPosition() - position));
+                // Brake if already in position
+                if (Math.abs(horizontalSlidesMotor.getCurrentPosition() - position) < 5) {
+                    state = State.userControlled;
+                    setPower(0);
+                }
+            }
         }
         if(outputDebugInfo) {
             FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -92,6 +102,7 @@ public class HorizontalSlides {
             packet.put("HorizontalSlides/Current", horizontalSlidesMotor.getCurrentPosition());
             packet.put("HorizontalSlides/Target", position);
             packet.put("HorizontalSlides/State", state);
+            packet.put("HorizontalSlides/CurrentLOad", horizontalSlidesMotor.getCurrent(CurrentUnit.AMPS));
             dashboard.sendTelemetryPacket(packet);
         }
     }

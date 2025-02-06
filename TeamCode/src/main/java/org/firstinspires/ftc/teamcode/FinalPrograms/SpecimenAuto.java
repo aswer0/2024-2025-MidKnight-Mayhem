@@ -146,7 +146,7 @@ public class SpecimenAuto extends OpMode {
 
                 if (intake_state == 0){
                     arm.outtakeSpecimen1();
-                    if (timer.milliseconds() >= 100){
+                    if (timer.milliseconds() >= 200){
                         path.follow_pid_to_point(target, 0);
                     }
                 }
@@ -180,7 +180,7 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case deposit:
-                wheelControl.drive(0,0,0,0,0);
+                //wheelControl.drive(0,0,0,0,0);
                 intake.stop();
                 intake.down();
 
@@ -253,7 +253,7 @@ public class SpecimenAuto extends OpMode {
 
                 path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
 
-                intake.down();
+                //intake.down();
                 intake.intake();
 
                 if (intake_state >= 3){
@@ -263,6 +263,7 @@ public class SpecimenAuto extends OpMode {
                     time = 1000;
                 }
                 if (timer.milliseconds()>time) {
+                    intake.down();
                     horizontalSlides.setPosition(horizontal_pos);
 
                     if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2000){ //original 2500

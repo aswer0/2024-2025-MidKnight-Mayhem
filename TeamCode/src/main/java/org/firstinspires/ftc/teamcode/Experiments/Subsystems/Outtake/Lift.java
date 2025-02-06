@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFCoefficients;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 
@@ -45,6 +46,7 @@ public class Lift {
         this.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         this.leftSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.leftSlide.setCurrentAlert(5, CurrentUnit.AMPS);
 
         this.rightSlide = hardwareMap.get(DcMotorEx.class,"SlideRight");
         this.rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -123,11 +125,36 @@ public class Lift {
     public double getPosition() {
         return position;
     }
+    public boolean resetSlides() {
+        if (!leftSlide.isOverCurrent()) {
+            leftSlide.setPower(-1);
+            rightSlide.setPower(-1);
+            return false;
+        } else {
+            leftSlide.setPower(0);
+            rightSlide.setPower(0);
+            leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+            rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            return true;
+        }
+    }
     public void update() {
         if (state == State.runToPosition) {
-            double input = Math.min(motorController.update(leftSlide.getCurrentPosition() - position), cap);
-            leftSlide.setPower(input);
-            rightSlide.setPower(input);
+            if(position == 0) {
+                if(resetSlides()) state = State.userControlled;
+            } else {
+                double input = Math.min(motorController.update(leftSlide.getCurrentPosition() - position), cap);
+                leftSlide.setPower(input);
+                rightSlide.setPower(input);
+            }
+//            if(Math.abs(leftSlide.getCurrentPosition() - position) < 5 && leftSlide.getCurrentPosition() > 200) {
+//                state = State.userControlled;
+//
+//                setPower(0);
+//            }
         }
         if(outputDebugInfo) {
             FtcDashboard dashboard = FtcDashboard.getInstance();
