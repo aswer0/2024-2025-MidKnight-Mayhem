@@ -122,13 +122,16 @@ public class SampleAuto extends OpMode {
             case pid:
                 intake.up();
                 intake.stop();
-                arm.closeClaw();
-                arm.outtakeSample();
-                lift.toHighBasket();
+
+                if (deposit_state == 0 || timer.milliseconds() >= 200) {
+                    arm.closeClaw();
+                    arm.outtakeSample();
+                    lift.toHighBasket();
+                }
 
                 vf.move_to_point(deposit_sample_target, 135, 0.7);
 
-                if (vf.dist_to_end() < 1 || timer.milliseconds() > 5000) {
+                if (vf.dist_to_end() <= 1 || timer.milliseconds() >= 3000) {
                     timer.reset();
                     state = State.deposit_sample;
                 }
@@ -140,8 +143,9 @@ public class SampleAuto extends OpMode {
                 intake.stop();
                 arm.openClaw();
                 arm.outtakeSample();
+                lift.toHighBasket();
 
-                if (timer.milliseconds() > 300) {
+                if (timer.milliseconds() >= 300) {
                     timer.reset();
                     deposit_state++;
                     if (deposit_state <= 3) {
@@ -156,10 +160,13 @@ public class SampleAuto extends OpMode {
             case move_to_intake_sample:
                 intake.up();
                 intake.stop();
+                arm.outtakeSample();
+                arm.openClaw();
+                lift.toHighBasket();
 
                 vf.move_to_point(new Point(get_sample_x, get_sample_y), 0, 0.7);
 
-                if (vf.dist_to_end() < 1 || timer.milliseconds() > 5000) {
+                if (vf.dist_to_end() <= 1 || timer.milliseconds() >= 5000) {
                     timer.reset();
                     state = State.intake_sample;
                 }
@@ -172,6 +179,7 @@ public class SampleAuto extends OpMode {
                 intake.down();
                 intake.intake();
                 intakeSlides.setPosition(intake_slide_extend);
+                lift.intakeSample();
 
                 if (intake.hasCorrectSample(true) || timer.milliseconds() >= 2000) {
                     timer.reset();
@@ -185,6 +193,8 @@ public class SampleAuto extends OpMode {
                 intakeSlides.setPosition(0);
                 intake.up();
                 arm.intakeSample();
+                arm.openClaw();
+                lift.intakeSample();
 
                 if (timer.milliseconds() >= 1000) {
                     arm.closeClaw();
@@ -198,6 +208,7 @@ public class SampleAuto extends OpMode {
 
             case park:
                 vf.move_to_point(park_target, 0, 0.7);
+                break;
         }
     }
 }
