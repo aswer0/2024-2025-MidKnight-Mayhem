@@ -28,7 +28,7 @@ public class SampleAuto extends OpMode {
     double get_sample_x, get_sample_y;
     Point deposit_sample_target;
     Point park_target;
-//
+
     int deposit_state;
     ElapsedTime timer;
     Sensors sensors;
@@ -128,7 +128,7 @@ public class SampleAuto extends OpMode {
 
                 vf.move_to_point(deposit_sample_target, 135, 0.7);
 
-                if (vf.dist_to_end() <= 1 || timer.milliseconds() >= 3000) {
+                if (vf.dist_to_end() <= 1 || timer.milliseconds() >= 1500) {
                     timer.reset();
                     state = State.deposit_sample;
                 }
@@ -161,9 +161,9 @@ public class SampleAuto extends OpMode {
                 arm.openClaw();
                 lift.toHighBasket();
 
-                vf.move_to_point(new Point(get_sample_x, get_sample_y), 0, 0.7);
+                vf.move_to_point(new Point(get_sample_x, get_sample_y), -180, 0.7);
 
-                if (vf.dist_to_end() <= 1 || timer.milliseconds() >= 5000) {
+                if (vf.dist_to_end() <= 2 || timer.milliseconds() >= 1500) {
                     timer.reset();
                     state = State.intake_sample;
                 }

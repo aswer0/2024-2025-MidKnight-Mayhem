@@ -1,18 +1,19 @@
-package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
+package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Utils.TestPID;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.HPIDController;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.TestPID;
 import org.opencv.core.Point;
 
 public class VectorField {
     // Robot controls
     public Odometry odometry;
     public WheelControl drive;
-    public BCPath path;
+    public CompositePath path;
 
     // Motion profiling
     double velocity_update_rate = 0.1;
@@ -20,11 +21,6 @@ public class VectorField {
     public Point prev_pos;
     public double true_speed = 0;
     public Point velocity = new Point(0, 0);
-
-    // Speed tuning
-    double max_speed = 1;
-    double min_speed = 0.8;
-    double max_turn_speed = 0.5;
 
     // Correction constants
     double path_corr = 0.1;
@@ -37,14 +33,14 @@ public class VectorField {
     double stop_speed = 0.2;
     double stop_decay = 0.003;
     double end_decel = 0.05;
-    public Point end_target;
+    Point end_target;
 
     // Heading controls
-    boolean path_heading;
     double end_heading;
 
     // Backend variables
     public double D;
+    public BezierPath cur_bz;
     public Point powers = new Point(0, 0);
     public double speed;
     public double turn_speed;
@@ -67,15 +63,13 @@ public class VectorField {
     // Constructor
     public VectorField(WheelControl w,
                        Odometry o,
-                       BCPath p,
-                       double end_heading,
-                       boolean path_heading) {
+                       CompositePath p,
+                       double end_heading) {
         // Inputs
         this.odometry = o;
         this.path = p;
         this.drive = w;
         this.end_heading = end_heading;
-        this.path_heading = path_heading;
 
         // Zero power behavior: brake
         drive.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -93,13 +87,13 @@ public class VectorField {
         prev_pos = get_pos();
     }
 
-    public void updatePath(BCPath path) {
+    public void updatePath(CompositePath path) {
         this.path = path;
     }
 
     // Gets closest point on path to robot
     public Point get_closest() {
-        return path.forward(D);
+        return cur_bz.forward(D);
     }
 
     // x position of robot
@@ -145,19 +139,19 @@ public class VectorField {
                                double tune_iters,
                                double rate) {
         Point pos = Utils.add_v(get_pos(), Utils.mul_v(powers, look_ahead));
-        double path_len = path.F[path.get_bz(D)].est_arclen;
+        double path_len = cur_bz.est_arclen;
         double update = rate*speed/path_len;
 
         // Get rough estimate
-        int init_sign = path.dDdt_sign(pos, D);
+        int init_sign = cur_bz.dDdt_sign(pos, D);
         int iters = 0;
-        while (path.dDdt_sign(pos, D) == init_sign && iters++ < max_rough_iters) {
+        while (cur_bz.dDdt_sign(pos, D) == init_sign && iters++ < max_rough_iters) {
             D -= init_sign*update;
         }
 
         // Binary search to tune closest
         for (int i = 0; i < tune_iters; i++) {
-            if (path.dDdt_sign(pos, D) > 0) D -= update;
+            if (cur_bz.dDdt_sign(pos, D) > 0) D -= update;
             else D += update;
             update /= 2;
         }
@@ -171,33 +165,31 @@ public class VectorField {
 
     // Calculates distance to endpoint
     public double dist_to_end() {
-        return Utils.dist(end_target, get_pos());
+        return Utils.dist(path.final_point, get_pos());
     }
 
     // Distance to closest point on path
     public double closest_dist() {
-        return Utils.dist(path.forward(D), get_pos());
+        return Utils.dist(cur_bz.forward(D), get_pos());
     }
 
     // Gets speed when approaching end
     public double get_end_speed(Point p) {
-        return end_decel*Utils.dist(get_pos(), p);
+        return end_decel* Utils.dist(get_pos(), p);
     }
 
     // Calculates turn speed based on target angle
     public void set_turn_speed(double target_angle) {
         turn_speed = h_PID.calculate(get_heading(), target_angle);
-        if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
-        if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
+        if (turn_speed > cur_bz.max_turn_speed) turn_speed = cur_bz.max_turn_speed;
+        if (turn_speed < -cur_bz.max_turn_speed) turn_speed = -cur_bz.max_turn_speed;
     }
 
     // Robot's move vector to path
     public Point move_vector(double speed) {
-        update_closest(0, 50, 5, 1);
-
         // Base vector (orthogonal & tangent)
         Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
-        Point tangent = Utils.scale_v(path.derivative(D), 1);
+        Point tangent = Utils.scale_v(cur_bz.derivative(D), 1);
         Point move_v = Utils.add_v(orth, tangent);
 
         // Acceleration correction
@@ -207,7 +199,7 @@ public class VectorField {
         /*Point centripetal = new Point(0, 0);
         if (closest_dist() < centripetal_threshold) {
             double perp_angle = Utils.angle_v(tangent)+Math.PI/2;
-            double centripetal_len = path.curvature(D)*centripetal_corr*speed;
+            double centripetal_len = cur_bz.curvature(D)*centripetal_corr*speed;
             centripetal = Utils.polar_to_rect(centripetal_len, perp_angle);
         }*/
 
@@ -242,32 +234,39 @@ public class VectorField {
     }
 
     public void set_drive_speed(double turn_speed) {
-        speed = max_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
+        speed =cur_bz.max_speed-turn_speed*(cur_bz.max_speed-cur_bz.min_speed)/cur_bz.max_turn_speed;
         speed = Math.min(speed, get_end_speed(path.final_point));
     }
 
     // Move with GVF
-    public void move() {
-        // Set end target
+    public void follow(CompositePath path) {
+        if (this.path != path) {
+            D = 0;
+            this.path = path;
+        }
+
         end_target = path.final_point;
 
+        update_closest(0, 50, 5, 1);
+        cur_bz = path.F[path.get_bz(D)];
+        
         // PID at the end
-        if (D > D_from_end(PID_dist)) {
+        if (D == path.n_bz-1 && D > D_from_end(PID_dist)) {
             PID = true;
-            move_to_point(path.final_point, end_heading, max_speed);
+            move_to_point(path.final_point, end_heading, cur_bz.max_speed);
             return;
         }
 
         // Otherwise, GVF
         PID = false;
         set_velocity();
-        if (!path_heading) set_turn_speed(end_heading);
-        else set_turn_speed(Math.toDegrees(Utils.angle_v(path.derivative(D))));
+        if (!cur_bz.interpolate_heading) set_turn_speed(end_heading);
+        else set_turn_speed(Math.toDegrees(Utils.angle_v(cur_bz.derivative(D))));
         set_drive_speed(turn_speed);
         powers = move_vector(speed);
 
         // Error
-        error = Utils.dist(get_pos(), path.forward(D));
+        error = Utils.dist(get_pos(), cur_bz.forward(D));
 
         // Drive according to calculations
         drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
