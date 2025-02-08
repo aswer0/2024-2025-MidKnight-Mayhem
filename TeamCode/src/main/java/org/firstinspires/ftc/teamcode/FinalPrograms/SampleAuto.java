@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.VectorField;
+//import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.CompositePath;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -35,7 +35,7 @@ public class SampleAuto extends OpMode {
 
     Odometry odometry;
     WheelControl wheelControl;
-    BCPath bcpath;
+    //BCPath bcpath;
     VectorField vf;
 
     State state = State.pid;
@@ -65,27 +65,18 @@ public class SampleAuto extends OpMode {
     public void init() {
         start_point = new Point(7.875, 96);
         get_sample_x = 25;
-        get_sample_y = 120;
+        get_sample_y = 127;
         deposit_state = 0;
         deposit_sample_target = new Point(corner_offset, 144-corner_offset);
         park_target = new Point(20, 40);
-
-        Point[][] follow_path = {{
-                new Point(7.875, 21.3),
-                new Point(48, 21.3),
-                new Point(3.7, 28.6),
-                new Point(43.6, 47.3),
-                new Point(16.5, 72.4),
-                new Point(23, 65),
-        }};
 
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
         odometry = new Odometry(hardwareMap, 0, start_point.x, start_point.y, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        bcpath = new BCPath(follow_path);
-        vf = new VectorField(wheelControl, odometry, bcpath, 135, false);
+        //bcpath = new BCPath(follow_path);
+        vf = new VectorField(wheelControl, odometry);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -114,6 +105,7 @@ public class SampleAuto extends OpMode {
         odometry.opt.update();
         lift.update();
         telemetry.update();
+        intakeSlides.update();
 
         switch(state) {
             case pid:
@@ -126,9 +118,9 @@ public class SampleAuto extends OpMode {
                     lift.toHighBasket();
                 }
 
-                vf.move_to_point(deposit_sample_target, 135, 0.7);
+                vf.pid_to_point(deposit_sample_target, 135, 0.5);
 
-                if (vf.dist_to_end() <= 1 || timer.milliseconds() >= 1500) {
+                if (vf.dist_to_end() <= 1 || timer.milliseconds() >= 3000) {
                     timer.reset();
                     state = State.deposit_sample;
                 }
@@ -141,6 +133,7 @@ public class SampleAuto extends OpMode {
                 arm.openClaw();
                 arm.outtakeSample();
                 lift.toHighBasket();
+                wheelControl.drive(0, 0, 0, 0, 0);
 
                 if (timer.milliseconds() >= 300) {
                     timer.reset();
@@ -157,13 +150,13 @@ public class SampleAuto extends OpMode {
             case move_to_intake_sample:
                 intake.up();
                 intake.stop();
-                arm.intakeSample();
+                arm.outtakeSample();
                 arm.openClaw();
-                lift.toHighBasket();
+                lift.intakeSample();
 
-                vf.move_to_point(new Point(get_sample_x, get_sample_y), -180, 0.7);
+                vf.pid_to_point(new Point(get_sample_x, get_sample_y), -180, 0.5);
 
-                if (vf.dist_to_end() <= 2 || timer.milliseconds() >= 1500) {
+                if (vf.dist_to_end() <= 2 || timer.milliseconds() >= 4000) {
                     timer.reset();
                     state = State.intake_sample;
                 }
@@ -177,6 +170,7 @@ public class SampleAuto extends OpMode {
                 intake.intake();
                 intakeSlides.setPosition(intake_slide_extend);
                 lift.intakeSample();
+                wheelControl.drive(0, 0, 0, 0, 0);
 
                 if (intake.hasCorrectSample(true) || timer.milliseconds() >= 2000) {
                     timer.reset();
@@ -192,6 +186,7 @@ public class SampleAuto extends OpMode {
                 arm.intakeSample();
                 arm.openClaw();
                 lift.intakeSample();
+                wheelControl.drive(0, 0, 0, 0, 0);
 
                 if (timer.milliseconds() >= 1000) {
                     arm.closeClaw();
@@ -205,7 +200,7 @@ public class SampleAuto extends OpMode {
                 break;
 
             case park:
-                vf.move_to_point(park_target, 0, 0.7);
+                vf.pid_to_point(park_target, 0, 0.5);
                 break;
         }
     }
