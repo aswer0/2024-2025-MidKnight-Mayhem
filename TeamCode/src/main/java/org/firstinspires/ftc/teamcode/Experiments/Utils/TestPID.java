@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.Experiments.Utils;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class TestPID {
-    private double kp, ki, kd, ithres;
-    private double integralSum = 0;
-    private double lastError = 0;
+    public double kp, ki, kd, ithres;
+    public double integralSum = 0;
+    public double lastError = 0;
 
     ElapsedTime timer;
 
@@ -29,7 +29,7 @@ public class TestPID {
 
         if (error < this.ithres) {
             integralSum += error*timer.seconds();
-        }
+        } else integralSum = 0;
 
         double derivative = (error - lastError) / timer.seconds();
 

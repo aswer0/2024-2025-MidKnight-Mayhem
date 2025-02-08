@@ -10,32 +10,32 @@ public class BezierPath {
 
     // Interpolates heading
     boolean interpolate_heading;
-    double end_heading;
+    public double target_heading;
 
     // Estimates arc length
     double est_arclen;
 
     // Speeds
-    double min_speed, max_speed, max_turn_speed;
+    double min_power, max_power, max_turn_power;
 
-    public BezierPath(double min_speed, double max_speed, double max_turn_speed, Point... P) {
+    public BezierPath(double min_power, double max_power, double max_turn_power, Point... P) {
         // Set all control points
         this.P = P;
         this.K = P.length-1;
 
         // Min speed and max speed
-        this.min_speed = min_speed;
-        this.max_speed = max_speed;
-        this.max_turn_speed = max_turn_speed;
+        this.min_power = min_power;
+        this.max_power = max_power;
+        this.max_turn_power = max_turn_power;
 
         // Get estimated arc length
         this.interpolate_heading = false;
-        this.est_arclen = this.est_arclen(0.05);
+        this.est_arclen = est_arclen(0.05);
     }
 
-    public BezierPath set_end_heading(double end_heading) {
+    public BezierPath set_heading(double end_heading) {
         this.interpolate_heading = true;
-        this.end_heading = end_heading;
+        this.target_heading = end_heading;
         return this;
     }
 

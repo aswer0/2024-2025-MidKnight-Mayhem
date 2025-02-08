@@ -1,20 +1,11 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
 
-import android.sax.StartElementListener;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-import com.sun.source.doctree.StartElementTree;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Experiments.Utils.utils;
-
-import java.util.Optional;
 
 //
 public class WheelControl {
@@ -22,6 +13,8 @@ public class WheelControl {
     public DcMotorEx BL;
     public DcMotorEx FR;
     public DcMotorEx FL;
+    public double f = 0.06;
+    public double strafe_k = 1.5;
     private VoltageSensor voltageSensor;
 
     Odometry odometry;
@@ -46,9 +39,9 @@ public class WheelControl {
         this.voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
         this.driveCorrection = new DriveCorrection(odometry);
     }
+
     public void setPowers(double BL, double BR, double FL, double FR, double power) {
         double max = 1; // max motor power
-
         max = Math.max(BL, max);
         max = Math.max(BR, max);
         max = Math.max(FL, max);
@@ -64,11 +57,11 @@ public class WheelControl {
      * @param forward Y component of the vector (robot oriented)
      * @param right   X component of the vector (robot oriented)
      * @param rotate  Rotation velocity (radians)
-     * @param angle   The angle for where to rotate the thing. Get from odometry. (field oriented)
+     * @param heading   The angle for where to rotate the thing. Get from odometry. (field oriented)
      */
-    public void drive(double forward, double right, double rotate, double angle, double power) {
-        double newX = right*Math.cos(angle) - forward*Math.sin(angle);
-        double newY = right*Math.sin(angle) + forward*Math.cos(angle);
+    public void drive(double forward, double right, double rotate, double heading, double power) {
+        double newX = right*Math.cos(heading) - forward*Math.sin(heading);
+        double newY = right*Math.sin(heading) + forward*Math.cos(heading);
 
         double BLPower = newY + newX + rotate;
         double BRPower = newY - newX - rotate;
@@ -82,23 +75,100 @@ public class WheelControl {
         max = Math.max(FLPower, max);
         max = Math.max(FRPower, max); // Detect the motor with the most power
         if (!(BLPower==0)) {
-            this.BL.setPower(power * (BLPower/max) + 0.06*BLPower/Math.abs(BLPower));
+            this.BL.setPower(power * (BLPower/max) + this.f*BLPower/Math.abs(BLPower));
         } else {
             this.BL.setPower(0);
         }
         if (!(BRPower==0)) {
-            this.BR.setPower(power * (BRPower/max) + 0.06*BRPower/Math.abs(BRPower));
+            this.BR.setPower(power * (BRPower/max) + this.f*BRPower/Math.abs(BRPower));
         } else {
             this.BR.setPower(0);
         }if (!(FLPower==0)) {
-            this.FL.setPower(power * (FLPower/max) + 0.06*FLPower/Math.abs(FLPower));
+            this.FL.setPower(power * (FLPower/max) + this.f*FLPower/Math.abs(FLPower));
         } else {
             this.FL.setPower(0);
         }if (!(FRPower==0)) {
-            this.FR.setPower(power * (FRPower/max) + 0.06*FRPower/Math.abs(FRPower));
+            this.FR.setPower(power * (FRPower/max) + this.f*FRPower/Math.abs(FRPower));
         } else {
             this.FR.setPower(0);
         }
+    }
+
+    public void drive_relative(double forward, double right, double rotate_power, double max_power) {
+        /*
+        Wheel directions
+        back back
+        back back
+
+        Wheel diagonals
+        \ /
+        / \
+         */
+
+        // Strafe is slower so scale up
+        right *= strafe_k;
+
+        // Calculate motor powers
+        double BLPower = -forward + right + rotate_power;
+        double BRPower = -forward - right - rotate_power;
+        double FLPower = -forward - right + rotate_power;
+        double FRPower = -forward + right - rotate_power;
+
+        // Get max power to make sure powers <= 1
+        double old_max_power = max_power;
+        old_max_power = Math.max(Math.abs(BLPower), old_max_power);
+        old_max_power = Math.max(Math.abs(BRPower), old_max_power);
+        old_max_power = Math.max(Math.abs(FLPower), old_max_power);
+        old_max_power = Math.max(Math.abs(FRPower), old_max_power);
+
+        // Power scaling
+        double power_scale = max_power/old_max_power;
+
+        // Set powers
+        this.BL.setPower(BLPower*power_scale + this.f*Math.signum(BLPower));
+        this.BR.setPower(BRPower*power_scale + this.f*Math.signum(BRPower));
+        this.FL.setPower(FLPower*power_scale + this.f*Math.signum(FLPower));
+        this.FR.setPower(FRPower*power_scale + this.f*Math.signum(FRPower));
+    }
+
+    public void drive_angle(double strafe_angle, double rotate_power, double drive_power, double robot_heading) {
+        /*
+        Everything is in degrees
+        Strafe angle is relative to field, not robot
+        Power only comes from variable and not forward/right
+        Useful if you want to drive at an exact power
+        Rotation is added after drive
+        Angles are standard (0 is positive x-axis, 90 is positive y-axis)
+        Useful for driving given power and angle (polar)
+        */
+
+        // Turn strafe angle heading clockwise
+        double theta = Math.toRadians(strafe_angle-robot_heading);
+
+        // Convert angle and power to relative drive
+        double forward = drive_power*Math.cos(theta);
+        double right = -drive_power*Math.sin(theta);
+
+        // Drive relatively
+        drive_relative(forward, right, rotate_power, 1);
+    }
+
+    public void drive_limit_power(double drive_x, double drive_y, double rotate_power, double max_drive_power, double robot_heading) {
+        /*
+        Everything is in degrees
+        Similar to drive but power is used as max
+        Rotation is added after drive
+        Angles are standard (0 is positive x-axis, 90 is positive y-axis)
+        Useful for driving given x and y powers (rectangular)
+         */
+
+        // Convert x and y relative to robot forward and right
+        robot_heading = Math.toRadians(robot_heading);
+        double forward = drive_x*Math.cos(robot_heading) + drive_y*Math.sin(robot_heading);
+        double right = drive_x*Math.sin(robot_heading) - drive_y*Math.cos(robot_heading);
+
+        // Drive relatively
+        drive_relative(forward, right, rotate_power, max_drive_power);
     }
 
     public void change_mode(DcMotor.ZeroPowerBehavior mode){

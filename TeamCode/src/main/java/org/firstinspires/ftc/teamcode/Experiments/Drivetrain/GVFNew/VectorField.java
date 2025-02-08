@@ -19,7 +19,7 @@ public class VectorField {
     double velocity_update_rate = 0.1;
     double p_to_v = 68;
     public Point prev_pos;
-    public double true_speed = 0;
+    public double speed = 0;
     public Point velocity = new Point(0, 0);
 
     // Correction constants
@@ -29,9 +29,6 @@ public class VectorField {
     double accel_corr = 0;
 
     // PID constants (at end of path)
-    double PID_dist = 10;
-    double stop_speed = 0.2;
-    double stop_decay = 0.003;
     double end_decel = 0.05;
     Point end_target;
 
@@ -41,17 +38,17 @@ public class VectorField {
     // Backend variables
     public double D;
     public BezierPath cur_bz;
-    public Point powers = new Point(0, 0);
-    public double speed;
-    public double turn_speed;
+    public double strafe_angle;
+    public double drive_power;
+    public double turn_power;
     public boolean PID = false;
     public double error = 0;
     public ElapsedTime timer;
 
     // PID variables
-    public double xp = end_decel, xi = 0.1, xd = 0.001, xithres = 2;
-    public double yp = end_decel, yi = 0.1, yd = 0.001, yithres = 2;
-    public double hp = 0.01, hi = 0, hd = 0.0005;
+    public double xp = end_decel, xi = 0.1, xd = 0.006, xithres = 2;
+    public double yp = end_decel, yi = 0.1, yd = 0.006, yithres = 2;
+    public double hp = 0.01, hi = 0.025, hd = 0.001, hithres = 2;
 
     TestPID x_PID;
     TestPID y_PID;
@@ -62,14 +59,10 @@ public class VectorField {
 
     // Constructor
     public VectorField(WheelControl w,
-                       Odometry o,
-                       CompositePath p,
-                       double end_heading) {
+                       Odometry o) {
         // Inputs
         this.odometry = o;
-        this.path = p;
         this.drive = w;
-        this.end_heading = end_heading;
 
         // Zero power behavior: brake
         drive.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -78,22 +71,18 @@ public class VectorField {
         drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set PID controllers
-        x_PID = new TestPID(xp, xi, xd, xithres);
-        y_PID = new TestPID(yp, yi, yd, yithres);
-        h_PID = new HPIDController(hp, hi, hd);
+        this.x_PID = new TestPID(xp, xi, xd, xithres);
+        this.y_PID = new TestPID(yp, yi, yd, yithres);
+        this.h_PID = new HPIDController(hp, hi, hd, hithres);
 
         // Timer
         timer = new ElapsedTime();
         prev_pos = get_pos();
     }
 
-    public void updatePath(CompositePath path) {
-        this.path = path;
-    }
-
     // Gets closest point on path to robot
     public Point get_closest() {
-        return cur_bz.forward(D);
+        return path.forward(D);
     }
 
     // x position of robot
@@ -116,11 +105,11 @@ public class VectorField {
         return new Point(get_x(), get_y());
     }
 
-    // Sets velocity of robot
+    // Sets velocity measurement of robot
     public void set_velocity() {
         if (timer.seconds() < velocity_update_rate) return;
         velocity = Utils.div_v(Utils.sub_v(get_pos(), prev_pos), timer.seconds());
-        true_speed = Utils.len_v(velocity);
+        speed = Utils.len_v(velocity);
         prev_pos = get_pos();
         timer.reset();
     }
@@ -134,24 +123,23 @@ public class VectorField {
     }*/
 
     // Updates closest point on curve using signed GD & binary search
-    public void update_closest(double look_ahead,
-                               double max_rough_iters,
+    public void update_closest(double max_rough_iters,
                                double tune_iters,
                                double rate) {
-        Point pos = Utils.add_v(get_pos(), Utils.mul_v(powers, look_ahead));
-        double path_len = cur_bz.est_arclen;
-        double update = rate*speed/path_len;
+        Point pos = get_pos();
+        double path_len = path.get_bz(D).est_arclen;
+        double update = rate*drive_power/path_len;
 
         // Get rough estimate
-        int init_sign = cur_bz.dDdt_sign(pos, D);
         int iters = 0;
-        while (cur_bz.dDdt_sign(pos, D) == init_sign && iters++ < max_rough_iters) {
+        int init_sign = path.dDdt_sign(pos, D);
+        while (path.dDdt_sign(pos, D) == init_sign && iters++ < max_rough_iters) {
             D -= init_sign*update;
         }
 
         // Binary search to tune closest
         for (int i = 0; i < tune_iters; i++) {
-            if (cur_bz.dDdt_sign(pos, D) > 0) D -= update;
+            if (path.dDdt_sign(pos, D) > 0) D -= update;
             else D += update;
             update /= 2;
         }
@@ -170,26 +158,26 @@ public class VectorField {
 
     // Distance to closest point on path
     public double closest_dist() {
-        return Utils.dist(cur_bz.forward(D), get_pos());
+        return Utils.dist(path.forward(D), get_pos());
     }
 
-    // Gets speed when approaching end
-    public double get_end_speed(Point p) {
-        return end_decel* Utils.dist(get_pos(), p);
+    // Gets power when approaching end
+    public double get_end_power(Point p) {
+        return end_decel*Utils.dist(get_pos(), p);
     }
 
-    // Calculates turn speed based on target angle
-    public void set_turn_speed(double target_angle) {
-        turn_speed = h_PID.calculate(get_heading(), target_angle);
-        if (turn_speed > cur_bz.max_turn_speed) turn_speed = cur_bz.max_turn_speed;
-        if (turn_speed < -cur_bz.max_turn_speed) turn_speed = -cur_bz.max_turn_speed;
+    // Calculates turn power based on target angle
+    public void set_turn_power(double target_heading) {
+        turn_power = h_PID.calculate(get_heading(), target_heading);
+        if (turn_power > cur_bz.max_turn_power) turn_power = cur_bz.max_turn_power;
+        if (turn_power < -cur_bz.max_turn_power) turn_power = -cur_bz.max_turn_power;
     }
 
     // Robot's move vector to path
-    public Point move_vector(double speed) {
+    public double get_strafe_angle() {
         // Base vector (orthogonal & tangent)
         Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
-        Point tangent = Utils.scale_v(cur_bz.derivative(D), 1);
+        Point tangent = Utils.scale_v(path.derivative(D), 1);
         Point move_v = Utils.add_v(orth, tangent);
 
         // Acceleration correction
@@ -199,76 +187,64 @@ public class VectorField {
         /*Point centripetal = new Point(0, 0);
         if (closest_dist() < centripetal_threshold) {
             double perp_angle = Utils.angle_v(tangent)+Math.PI/2;
-            double centripetal_len = cur_bz.curvature(D)*centripetal_corr*speed;
+            double centripetal_len = path.curvature(D)*centripetal_corr*speed;
             centripetal = Utils.polar_to_rect(centripetal_len, perp_angle);
         }*/
 
         // Add everything
-        return Utils.scale_v(move_v, speed);
+        return Math.toDegrees(Utils.angle_v(move_v));
         //return Utils.add_v(Utils.scale_v(move_v, speed), accel_corr_term);
     }
 
     // Move to a point given coordinates and heading
-    public void move_to_point(Point p, double target_angle, double max_speed) {
+    public void pid_to_point(Point p, double target_heading, double max_power) {
         end_target = p;
 
         // PID errors
         x_error = x_PID.calculate(get_x(), p.x);
         y_error = y_PID.calculate(get_y(), p.y);
-        turn_speed = h_PID.calculate(get_heading(), target_angle);
-
-        // Speed before modifications
-        double old_speed = Utils.len_v(new Point(x_error, y_error));
-        speed = Math.min(max_speed, old_speed);
-        /*if (old_speed > stop_speed) speed = Math.min(max_speed, old_speed);
-        else speed = Math.max(speed - stop_decay, 0);*/
-
-        x_error *= speed/old_speed;
-        y_error *= speed/old_speed;
-
-        powers = new Point(x_error, y_error);
-        //powers = Utils.add_v(powers, get_accel_corr(powers));
+        turn_power = h_PID.calculate(get_heading(), target_heading);
 
         // Drive
-        drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive_limit_power(x_error, y_error, turn_power, max_power, get_heading());
     }
 
-    public void set_drive_speed(double turn_speed) {
-        speed =cur_bz.max_speed-turn_speed*(cur_bz.max_speed-cur_bz.min_speed)/cur_bz.max_turn_speed;
-        speed = Math.min(speed, get_end_speed(path.final_point));
+    public void set_drive_power(double turn_power) {
+        double max_p = cur_bz.max_power, min_p = cur_bz.min_power;
+        drive_power = max_p-turn_power*(max_p-min_p)/cur_bz.max_turn_power;
+        drive_power = Math.min(drive_power, get_end_power(path.final_point));
     }
 
     // Move with GVF
     public void follow(CompositePath path) {
         if (this.path != path) {
-            D = 0;
-            this.path = path;
+            D = 0; this.path = path;
         }
 
         end_target = path.final_point;
 
-        update_closest(0, 50, 5, 1);
-        cur_bz = path.F[path.get_bz(D)];
+        update_closest(50, 5, 1);
+        cur_bz = path.get_bz(D);
         
         // PID at the end
-        if (D == path.n_bz-1 && D > D_from_end(PID_dist)) {
+        if (D > D_from_end(path.pid_dist)) {
             PID = true;
-            move_to_point(path.final_point, end_heading, cur_bz.max_speed);
+            pid_to_point(path.final_point, end_heading, cur_bz.max_power);
             return;
         }
 
         // Otherwise, GVF
         PID = false;
         set_velocity();
-        if (!cur_bz.interpolate_heading) set_turn_speed(end_heading);
-        else set_turn_speed(Math.toDegrees(Utils.angle_v(cur_bz.derivative(D))));
-        set_drive_speed(turn_speed);
-        powers = move_vector(speed);
+        if (cur_bz.interpolate_heading) set_turn_power(cur_bz.target_heading);
+        else set_turn_power(Math.toDegrees(Utils.angle_v(path.derivative(D))));
+        set_drive_power(turn_power);
+        strafe_angle = get_strafe_angle();
 
         // Error
-        error = Utils.dist(get_pos(), cur_bz.forward(D));
+        error = closest_dist();
 
         // Drive according to calculations
-        drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive_angle(strafe_angle, turn_power, drive_power, get_heading());
     }
 }

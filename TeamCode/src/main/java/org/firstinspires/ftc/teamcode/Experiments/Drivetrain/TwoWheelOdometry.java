@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
+/*package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -6,21 +6,19 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
-//
+import org.opencv.core.Point;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Config
 public class TwoWheelOdometry {
     public static double threshold = 0.0002;
 
-    public static double TICKS_TO_INCHES = 1.88976*Math.PI/(2048 * 0.982);
-    //public static double TRACK_WIDTH = 10.1*0.987;
-    public static double TRACK_LEFT = 5.4*1.1;
-    //public static double TRACK_RIGHT = TRACK_WIDTH - TRACK_LEFT;
-    public static double LENGTH = 3.2;
+    public static double ticks_to_inches = 1.88976*Math.PI/(2048 * 0.982);
+    public static Point v_encoder_pos = new Point(-5, -1);
+    public static Point h_encoder_pos = new Point(-5, -1);
 
-    public DcMotorEx verticalEncoder;
-    public DcMotorEx horizontalEncoder;
+    public DcMotorEx v_encoder;
+    public DcMotorEx h_encoder;
 
     private double heading;
     private double xPos;
@@ -89,8 +87,8 @@ public class TwoWheelOdometry {
         horiz = -this.horizontalEncoder.getCurrentPosition();
         heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-        double dV = (vert-oldV)*TICKS_TO_INCHES;
-        double dH = (horiz-oldH)*TICKS_TO_INCHES;
+        double dV = (vert-oldV)* ticks_to_inches;
+        double dH = (horiz-oldH)* ticks_to_inches;
 
         dTheta = heading-oldHeading;
         double middleH = (heading+oldHeading)/2;
@@ -111,4 +109,4 @@ public class TwoWheelOdometry {
         this.yPos = yPos+Math.sin(middleH-Math.PI/2)*change_x+Math.cos(middleH-Math.PI/2)*change_y;
     }
 
-}
+}*/

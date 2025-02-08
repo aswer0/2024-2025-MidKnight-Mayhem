@@ -53,9 +53,9 @@ public class VectorField {
     public ElapsedTime timer;
 
     // PID variables
-    public double xp = end_decel, xi = 0.1, xd = 0.001, xithres = 2;
-    public double yp = end_decel, yi = 0.1, yd = 0.001, yithres = 2;
-    public double hp = 0.01, hi = 0, hd = 0.0005;
+    public double xp = end_decel, xi = 0.1, xd = 0.006, xithres = 2;
+    public double yp = end_decel, yi = 0.1, yd = 0.006, yithres = 2;
+    public double hp = 0.01, hi = 0.025, hd = 0.001, hithres = 2;
 
     TestPID x_PID;
     TestPID y_PID;
@@ -86,7 +86,7 @@ public class VectorField {
         // Set PID controllers
         x_PID = new TestPID(xp, xi, xd, xithres);
         y_PID = new TestPID(yp, yi, yd, yithres);
-        h_PID = new HPIDController(hp, hi, hd);
+        h_PID = new HPIDController(hp, hi, hd, hithres);
 
         // Timer
         timer = new ElapsedTime();
@@ -242,7 +242,7 @@ public class VectorField {
     }
 
     public void set_drive_speed(double turn_speed) {
-        speed = max_speed+(turn_speed/max_turn_speed)*(max_speed-min_speed);
+        speed = max_speed-(turn_speed/max_turn_speed)*(max_speed-min_speed);
         speed = Math.min(speed, get_end_speed(path.final_point));
     }
 

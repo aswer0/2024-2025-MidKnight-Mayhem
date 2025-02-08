@@ -14,7 +14,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import org.opencv.core.Point;
 
-@Disabled
 @Config
 @TeleOp
 public class GVFTest extends OpMode {
@@ -29,9 +28,9 @@ public class GVFTest extends OpMode {
         Point[][] cp = {
                 {
                         new Point(0, 72),
-                        new Point(28, 72)
-                        //new Point(10, 3),
-                        //new Point(64, 30)
+                        //new Point(28, 72),
+                        new Point(10, 3),
+                        new Point(64, 30)
                 }
         };
 
@@ -59,7 +58,7 @@ public class GVFTest extends OpMode {
 //        telemetry.put("temp", vf.temp_turn);
 //        telemetry.put("derivative", Math.toDegrees(Utils.angle_v(vf.path.derivative(vf.D))));
         telemetry.put("heading", vf.get_heading());
-//        telemetry.put("turn_speed", vf.turn_speed);
+//        telemetry.put("turn_power", vf.turn_power);
         telemetry.put("speed", vf.speed);
 //        telemetry.put("D", vf.D);
 //        telemetry.put("PID", vf.PID);

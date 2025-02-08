@@ -53,7 +53,7 @@ public class GVFTest2 extends OpMode {
         //vf.move_to_point(new Point(28, 72), 0, 0.7);
         telemetry.put("derivative", Math.toDegrees(Utils.angle_v(vf.path.derivative(vf.D))));
         telemetry.put("heading", vf.get_heading());
-        telemetry.put("turn_speed", vf.turn_speed);
+        telemetry.put("turn_power", vf.turn_speed);
         telemetry.put("speed", vf.speed);
         telemetry.put("D", vf.D);
         telemetry.put("PID", vf.PID);
