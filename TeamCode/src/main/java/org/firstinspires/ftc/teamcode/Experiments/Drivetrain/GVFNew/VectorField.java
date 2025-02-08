@@ -202,27 +202,6 @@ public class VectorField {
         drive_power = Math.min(drive_power, get_end_power(path.final_point));
     }
 
-    public double get_target_heading() {
-        switch(cur_bz.heading_method) {
-            case path:
-                return Utils.angle_v_deg(path.derivative(D));
-
-            case pid:
-                return cur_bz.end_heading;
-
-            case linear:
-                double part_path = cur_bz.get_arclen(path.local_t(D))/cur_bz.total_arclen;
-                if (part_path < 0) {
-                    return cur_bz.start_heading;
-                } else if (part_path > 1) {
-                    return cur_bz.end_heading;
-                } else {
-                    return (1-part_path)*cur_bz.start_heading+part_path*cur_bz.end_heading;
-                }
-        }
-        throw new IllegalArgumentException("Not a valid heading method state.");
-    }
-
     // Move with GVF
     public void follow(CompositePath path) {
         if (this.path != path) {
@@ -244,7 +223,7 @@ public class VectorField {
         // Otherwise, GVF
         PID = false;
         set_velocity();
-        set_turn_power(get_target_heading());
+        set_turn_power(path.get_target_heading(D));
         set_drive_power();
         set_strafe_angle();
 

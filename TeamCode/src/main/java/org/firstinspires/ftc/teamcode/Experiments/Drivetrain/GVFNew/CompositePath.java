@@ -57,4 +57,9 @@ public class CompositePath {
         int i = bz_index(t);
         return F[i].dDdt_sign(p,t-i);
     }
+
+    public double get_target_heading(double t) {
+        int i = bz_index(t);
+        return F[i].get_target_heading(local_t(t));
+    }
 }

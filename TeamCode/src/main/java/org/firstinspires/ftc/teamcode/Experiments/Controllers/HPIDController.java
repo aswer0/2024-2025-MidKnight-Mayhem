@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.Experiments.Controllers;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.Utils;
+
 public class HPIDController {
     private double kp, ki, kd, ithres;
     private double integralSum = 0;
@@ -26,8 +28,7 @@ public class HPIDController {
 
     public double calculate(double pos, double target) {
         double error = target - pos;
-        error %= 360;
-        if (error > 180) error -= 360;
+        error = Utils.limit_angle(error);
 
         if (error < this.ithres) {
             integralSum += error*timer.seconds();

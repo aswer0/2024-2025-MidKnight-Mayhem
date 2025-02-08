@@ -62,7 +62,7 @@ public class BezierPath {
     public BezierPath linear_heading(double start_heading, double end_heading) {
         this.heading_method = HeadingMethod.linear;
         this.start_heading = start_heading;
-        this.end_heading = end_heading;
+        this.end_heading = start_heading + Utils.limit_angle(end_heading-start_heading);
         return this;
     }
 
@@ -163,6 +163,7 @@ public class BezierPath {
         return new Point(dx, dy);
     }
 
+    // Curvature of path (1/radius)
     public double curvature(double t) {
         double d_slope = Utils.slope_v(derivative(t));
         double second_d_slope = Utils.slope_v(second_derivative(t));
@@ -173,5 +174,26 @@ public class BezierPath {
     // Useful for finding the closest point on the curve to a given position
     public int dDdt_sign(Point p, double t) {
         return (int)Math.signum(Utils.sub_v(forward(t), p).dot(derivative(t)));
+    }
+
+    public double get_target_heading(double t) {
+        switch(heading_method) {
+            case path:
+                return Utils.angle_v_deg(derivative(t));
+
+            case pid:
+                return end_heading;
+
+            case linear:
+                double part_path = get_arclen(t)/total_arclen;
+                if (part_path < 0) {
+                    return start_heading;
+                } else if (part_path > 1) {
+                    return end_heading;
+                } else {
+                    return (1-part_path)*start_heading+part_path*end_heading;
+                }
+        }
+        throw new IllegalArgumentException("Not a valid heading method state.");
     }
 }

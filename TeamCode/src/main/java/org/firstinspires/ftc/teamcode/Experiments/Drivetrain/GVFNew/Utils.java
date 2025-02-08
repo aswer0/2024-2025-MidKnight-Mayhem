@@ -4,6 +4,12 @@ import org.opencv.core.Point;
 
 // Point utils
 public class Utils {
+    public static double limit_angle(double angle) {
+        angle %= 360;
+        if (angle > 180) angle -= 360;
+        return angle;
+    }
+
     public static Point add_v(Point a, Point b) {
         return new Point(a.x+b.x, a.y+b.y);
     }
