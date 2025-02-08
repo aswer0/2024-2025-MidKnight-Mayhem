@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Utils.TestPID;
-import org.firstinspires.ftc.teamcode.Experiments.Utils.HPIDController;
+import org.firstinspires.ftc.teamcode.Experiments.Controllers.TestPID;
+import org.firstinspires.ftc.teamcode.Experiments.Controllers.HPIDController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.opencv.core.Point;
 

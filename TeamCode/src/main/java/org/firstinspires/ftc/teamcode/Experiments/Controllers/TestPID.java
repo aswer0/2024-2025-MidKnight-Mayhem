@@ -1,15 +1,15 @@
-package org.firstinspires.ftc.teamcode.Experiments.Utils;
+package org.firstinspires.ftc.teamcode.Experiments.Controllers;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class HPIDController {
-    private double kp, ki, kd, ithres;
-    private double integralSum = 0;
-    private double lastError = 0;
+public class TestPID {
+    public double kp, ki, kd, ithres;
+    public double integralSum = 0;
+    public double lastError = 0;
 
     ElapsedTime timer;
 
-    public HPIDController(double kp, double ki, double kd, double ithres) {
+    public TestPID(double kp, double ki, double kd, double ithres) {
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
@@ -25,15 +25,11 @@ public class HPIDController {
     }
 
     public double calculate(double pos, double target) {
-        double error = target - pos;
-        error %= 360;
-        if (error > 180) error -= 360;
+        double error = target-pos;
 
         if (error < this.ithres) {
             integralSum += error*timer.seconds();
         } else integralSum = 0;
-
-        integralSum = integralSum + (error * timer.seconds());
 
         double derivative = (error - lastError) / timer.seconds();
 
