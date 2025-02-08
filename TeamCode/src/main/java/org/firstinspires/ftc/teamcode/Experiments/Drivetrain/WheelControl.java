@@ -131,6 +131,13 @@ public class WheelControl {
         this.FR.setPower(FRPower*power_scale + this.f*Math.signum(FRPower));
     }
 
+    public void stop() {
+        this.BL.setPower(0);
+        this.BR.setPower(0);
+        this.FL.setPower(0);
+        this.FR.setPower(0);
+    }
+
     public void drive_angle(double strafe_angle, double rotate_power, double drive_power, double robot_heading) {
         /*
         Everything is in degrees

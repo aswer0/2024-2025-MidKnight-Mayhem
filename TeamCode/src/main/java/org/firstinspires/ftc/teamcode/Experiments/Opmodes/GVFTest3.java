@@ -29,11 +29,11 @@ public class GVFTest3 extends OpMode {
         path = new CompositePath(
                 10, -90,
                 new BezierPath(
-                       0.3, 0.5, 0.5,
+                       0.3, 0.5, 0.5, 5,
                         new Point(0, 72),
                         new Point(10, 10),
                         new Point(64, 30)
-                ).set_heading(45)
+                ).pid_heading(45)
         );
 
         vf = new VectorField(wheelControl, odometry);
@@ -54,7 +54,7 @@ public class GVFTest3 extends OpMode {
         //vf.move_to_point(new Point(28, 72), 0, 0.7);
         //telemetry.put("derivative", Math.toDegrees(Utils.angle_v(vf.path.derivative(vf.D))));
         telemetry.put("closest", vf.get_closest());
-        telemetry.put("target_heading", vf.cur_bz.target_heading);
+        telemetry.put("target_heading", vf.cur_bz);
         telemetry.put("strafe_angle", vf.strafe_angle);
         telemetry.put("x_error", vf.x_error);
         telemetry.put("y_error", vf.y_error);

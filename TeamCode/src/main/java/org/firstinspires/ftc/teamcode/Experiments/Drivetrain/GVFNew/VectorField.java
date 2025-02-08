@@ -17,16 +17,14 @@ public class VectorField {
 
     // Motion profiling
     double velocity_update_rate = 0.1;
-    double p_to_v = 68;
+    double p_to_v = 65;
     public Point prev_pos;
     public double speed = 0;
     public Point velocity = new Point(0, 0);
 
     // Correction constants
     double path_corr = 0.1;
-    //double centripetal_corr = 0;
-    //double centripetal_threshold = 10;
-    double accel_corr = 0;
+    double centripetal_corr = 0;
 
     // PID constants (at end of path)
     double end_decel = 0.05;
@@ -68,7 +66,6 @@ public class VectorField {
         drive.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         drive.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         drive.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set PID controllers
         this.x_PID = new TestPID(xp, xi, xd, xithres);
@@ -114,20 +111,12 @@ public class VectorField {
         timer.reset();
     }
 
-    // Gets acceleration correction term
-    /*public Point get_accel_corr(Point move_v) {
-        if (accel_corr > 0) {
-            Point accel = Utils.sub_v(move_v, Utils.div_v(velocity, p_to_v));
-            return Utils.mul_v(accel, accel_corr);
-        } else return new Point (0, 0);
-    }*/
-
     // Updates closest point on curve using signed GD & binary search
     public void update_closest(double max_rough_iters,
                                double tune_iters,
                                double rate) {
         Point pos = get_pos();
-        double path_len = path.get_bz(D).est_arclen;
+        double path_len = path.get_bz(D).total_arclen;
         double update = rate*drive_power/path_len;
 
         // Get rough estimate
@@ -148,12 +137,13 @@ public class VectorField {
 
     // Calculates D (parameter) value that is approximately "dist" distance from end
     public double D_from_end(double dist) {
-        return path.n_bz-dist/path.F[path.n_bz-1].est_arclen;
+        BezierPath last_bz = path.F[path.n_bz-1];
+        return path.n_bz-1+last_bz.dist_to_t(last_bz.total_arclen-dist);
     }
 
     // Calculates distance to endpoint
     public double dist_to_end() {
-        return Utils.dist(path.final_point, get_pos());
+        return Utils.dist(end_target, get_pos());
     }
 
     // Distance to closest point on path
@@ -174,26 +164,22 @@ public class VectorField {
     }
 
     // Robot's move vector to path
-    public double get_strafe_angle() {
+    public void set_strafe_angle() {
         // Base vector (orthogonal & tangent)
         Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
         Point tangent = Utils.scale_v(path.derivative(D), 1);
         Point move_v = Utils.add_v(orth, tangent);
 
-        // Acceleration correction
-        //Point accel_corr_term = get_accel_corr(move_v);
-
         // Centripetal correction
-        /*Point centripetal = new Point(0, 0);
-        if (closest_dist() < centripetal_threshold) {
-            double perp_angle = Utils.angle_v(tangent)+Math.PI/2;
-            double centripetal_len = path.curvature(D)*centripetal_corr*speed;
-            centripetal = Utils.polar_to_rect(centripetal_len, perp_angle);
-        }*/
+        Point centripetal_v = new Point(0, 0);
+        if (centripetal_corr > 0) {
+            double perp_angle = Utils.angle_v_rad(tangent)+Math.PI/2;
+            double centripetal_len = path.curvature(D)*centripetal_corr*speed/p_to_v;
+            centripetal_v = Utils.polar_to_rect_rad(centripetal_len, perp_angle);
+        }
 
         // Add everything
-        return Math.toDegrees(Utils.angle_v(move_v));
-        //return Utils.add_v(Utils.scale_v(move_v, speed), accel_corr_term);
+        strafe_angle = Utils.angle_v_deg(Utils.add_v(move_v, centripetal_v));
     }
 
     // Move to a point given coordinates and heading
@@ -209,10 +195,32 @@ public class VectorField {
         drive.drive_limit_power(x_error, y_error, turn_power, max_power, get_heading());
     }
 
-    public void set_drive_power(double turn_power) {
+    public void set_drive_power() {
         double max_p = cur_bz.max_power, min_p = cur_bz.min_power;
-        drive_power = max_p-turn_power*(max_p-min_p)/cur_bz.max_turn_power;
+        double curvature = path.curvature(D);
+        drive_power = Math.max(max_p-curvature*cur_bz.curvature_power_decay, min_p);
         drive_power = Math.min(drive_power, get_end_power(path.final_point));
+    }
+
+    public double get_target_heading() {
+        switch(cur_bz.heading_method) {
+            case path:
+                return Utils.angle_v_deg(path.derivative(D));
+
+            case pid:
+                return cur_bz.end_heading;
+
+            case linear:
+                double part_path = cur_bz.get_arclen(path.local_t(D))/cur_bz.total_arclen;
+                if (part_path < 0) {
+                    return cur_bz.start_heading;
+                } else if (part_path > 1) {
+                    return cur_bz.end_heading;
+                } else {
+                    return (1-part_path)*cur_bz.start_heading+part_path*cur_bz.end_heading;
+                }
+        }
+        throw new IllegalArgumentException("Not a valid heading method state.");
     }
 
     // Move with GVF
@@ -236,10 +244,9 @@ public class VectorField {
         // Otherwise, GVF
         PID = false;
         set_velocity();
-        if (cur_bz.interpolate_heading) set_turn_power(cur_bz.target_heading);
-        else set_turn_power(Math.toDegrees(Utils.angle_v(path.derivative(D))));
-        set_drive_power(turn_power);
-        strafe_angle = get_strafe_angle();
+        set_turn_power(get_target_heading());
+        set_drive_power();
+        set_strafe_angle();
 
         // Error
         error = closest_dist();
