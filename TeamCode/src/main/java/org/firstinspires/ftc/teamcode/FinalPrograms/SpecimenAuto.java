@@ -24,18 +24,27 @@ import org.opencv.core.Point;
 @Autonomous
 @Config
 public class SpecimenAuto extends OpMode {
-    public static double sample_x = 24.5;
-    public static double sample_y = 37;
+    //public static double sample_x = 24.5;
+    //public static double sample_y = 37;
 
-    public static double intake_sample_x = 27;
-    public static double intake_sample_y = 34;
+    public static double intake_sample_x1 = 26;
+    public static double intake_sample_y1 = 35.5;
+    public static double intake_sample_x2 = 27.5;
+    public static double intake_sample_y2 = 34;
+    public static double intake_sample_x3 = 26;
+    public static double intake_sample_y3 = 17.2;
+    public static double sweep_sample_x = 32;
+    public static double sweep_sample_y = 34;
+
+    public static double clampValue = -200;
+
 
     public static double pos = 650;
     public static double dist_thresh = 2.5;
     public static double intake_dist_thresh = 2.5;
 
     public static double horizontal_pos = -450;
-    public static double target_angle_intake = 140;
+    public static double target_angle_intake1 = 136;
     public static double target_angle_spit = 22;
 
     public static double power = 1;
@@ -48,7 +57,7 @@ public class SpecimenAuto extends OpMode {
 
     Point target;
     Point get_specimen_target;
-    Point get_sample_target;
+    //Point get_sample_target;
 
     ElapsedTime timer;
     ElapsedTime intakeShakeTimer;
@@ -84,6 +93,8 @@ public class SpecimenAuto extends OpMode {
 
     @Override
     public void init() {
+        intake_sample_x1 = 27;
+        sweep_sample_x = 29;
         Point[] follow_path = {
                 new Point(11,28),
                 new Point(10.3, 65.5),
@@ -92,8 +103,8 @@ public class SpecimenAuto extends OpMode {
         };
 
         target = new Point(target_x, target_y);
-        get_specimen_target = new Point(12.875, 28);
-        get_sample_target = new Point(sample_x, sample_y);
+        get_specimen_target = new Point(14.875, 28);
+        //get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
         intakeShakeTimer = new ElapsedTime();
@@ -146,7 +157,7 @@ public class SpecimenAuto extends OpMode {
 
                 if (intake_state == 0){
                     arm.outtakeSpecimen1();
-                    if (timer.milliseconds() >= 200){
+                    if (timer.milliseconds() >= 500){
                         path.follow_pid_to_point(target, 0);
                     }
                 }
@@ -232,7 +243,7 @@ public class SpecimenAuto extends OpMode {
                 arm.intakeSpecimen();
                 horizontalSlides.setPosition(0);
 
-                if (sensors.get_back_dist() >= intake_dist_thresh || timer.milliseconds() < 700) {
+                if (timer.milliseconds() < 700) { //sensors.get_back_dist() >= intake_dist_thresh &&
                     wheelControl.drive(0.5, 0, 0, 0, 0.7);
                 } else {
                     wheelControl.drive(0, 0, 0, 0, 0);
@@ -250,8 +261,16 @@ public class SpecimenAuto extends OpMode {
                 if (intake_state > 4){
                     state = State.goToSpecimen;
                 }
+                //if (intake_state==2 || intake_state==3) {
+                    //path.follow_pid_to_point(new Point(sweep_sample_x, sweep_sample_y), target_angle_intake);
+                //}
+                if (intake_state==2 || intake_state==3) {
+                    path.follow_pid_to_point(new Point(intake_sample_x1, intake_sample_y1), target_angle_intake1);
+                }
+                if (intake_state==4) {
+                    path.follow_pid_to_point(new Point(intake_sample_x3, intake_sample_y3), target_angle_intake1);
 
-                path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
+                }
 
                 //intake.down();
                 intake.intake();
@@ -263,24 +282,34 @@ public class SpecimenAuto extends OpMode {
                     time = 1000;
                 }
                 if (timer.milliseconds()>time) {
-                    intake.down();
+                    if (horizontalSlides.getPosition()<clampValue) {
+                        intake.down();
+                    } else {
+                        intake.reverseDown();
+                    }
                     horizontalSlides.setPosition(horizontal_pos);
 
-                    if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2000){ //original 2500
+                    if (intake.hasCorrectSample(false) || timer.milliseconds() >= 1500){ //original 2500
                         timer.reset();
                         state = State.setupSpitSample;
                     }
+//                    if ((intake_state==2 || intake_state==3) && path.at_point(new Point(intake_sample_x,intake_sample_y), 3)) {
+//                        timer.reset();
+//                        state = State.setupSpitSample;
+//
+//                    }
                 }
 
                 break;
 
             case setupSpitSample:
                 path.set_original_hp();
-                arm.toIdlePosition();
-                intake.reverseDown();
+                arm.toSpecIdlePosition();
+                //intake.reverseDown();
+                intake.down();
 
                 path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
-                horizontalSlides.setPosition(0);
+                horizontalSlides.setPosition(horizontal_pos);
 
                 if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){ //original 1000
                     wheelControl.drive(0,0,0,0, 0);
@@ -291,13 +320,14 @@ public class SpecimenAuto extends OpMode {
                 break;
 
             case spitSample:
-                if (timer.milliseconds()>0) horizontalSlides.setPosition(-470);
+                if (timer.milliseconds()>0) horizontalSlides.setPosition(horizontal_pos);
                 intake.reverseDown();
-                intake.reverse();
+                if (horizontalSlides.getPosition()<-100) intake.reverse();
 
                 if (timer.milliseconds() >= 600){
-                    intake_sample_y -= 8;
-                    //intake_sample_x += 0.5;
+                    intake_sample_y1 -= 8.5; //8
+                    intake_sample_x1 += 0.5;
+                    target_angle_intake1 += 3;
                     intake_state++;
 
                     horizontalSlides.setPosition(-100);
@@ -323,6 +353,7 @@ public class SpecimenAuto extends OpMode {
         telemetry.addData("Horizontal Motor position: ", horizontalSlides.horizontalSlidesMotor.getCurrentPosition());
         telemetry.addData("State: ", state);
         telemetry.addData("Back Distance", sensors.get_back_dist());
+        telemetry.addData("timer", timer.milliseconds());
 
         lift.update();
         telemetry.update();

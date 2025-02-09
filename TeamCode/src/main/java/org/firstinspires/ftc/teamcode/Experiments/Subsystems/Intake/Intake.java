@@ -19,7 +19,7 @@ public class Intake {
     public static boolean outputDebugInfo = false;
 
     public static double DOWN_POS=0.64;
-    public static double UP_POS=0.9;
+    public static double UP_POS=0.884;
 
     public static double DOOR_OPEN_POS=0.8;
     public static double DOOR_CLOSE_POS=0.4;
@@ -92,15 +92,19 @@ public class Intake {
             case allianceSpecific:
             case yellow:
                 intake();
+                up();
                 closeDoor();
                 return true;
             case wrong:
-                intake();
+                //intake();
+                reverseDown();
+                reverse();
                 openDoor();
                 return false;
             case unsure:
             case none:
                 intake();
+                down();
                 closeDoor();
                 return false;
         }
