@@ -34,9 +34,10 @@ public class HPIDController {
             integralSum += error*timer.seconds();
         } else integralSum = 0;
 
-        integralSum = integralSum + (error * timer.seconds());
-
-        double derivative = (error - lastError) / timer.seconds();
+        double derivative = 0;
+        if (lastError != 0) {
+            derivative = (error - lastError) / timer.seconds();
+        }
 
         double power = this.kp*error + this.ki*integralSum + this.kd*derivative;
 
