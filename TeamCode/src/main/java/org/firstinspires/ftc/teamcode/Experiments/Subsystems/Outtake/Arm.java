@@ -12,16 +12,17 @@ public class Arm {
     Servo pivot_right;
     Servo tClaw;
 
-    public static Preset outtakeSpecimen1 = new Preset(0.1,0.72,0.08);
+    public static Preset outtakeSpecimen1 = new Preset(0.1,0.75,0.08);
     public static Preset outtakeSpecimen2 = new Preset(0.1,0.82,0.08);
     public static Preset outtakeSample = new Preset(0.1,0.86,0.16);
     public static Preset intakeSpecimen = new Preset(0.85,0.8,0.59);
-    public static Preset intakeSample = new Preset(0.1,0.54,0.62);
+    public static Preset intakeSample = new Preset(0.09,0.54,0.62);
     public static Preset idlePosition = new Preset(0.1,0.5,0.53);
+    public static Preset specIdlePosition = new Preset(0.85,0.5,0.53);
     public static Preset autoStartPosition = new Preset(0.85,0.99,0.56);
 
-    public static double clawClosePos = 0.28;
-    public static double clawOpenPos = 0.52;
+    public static double clawClosePos = 0.38;
+    public static double clawOpenPos = 0.15;
 
     public Arm(HardwareMap hardwareMap) {
         this.outtake_arm_far = hardwareMap.get(Servo.class, "oAF");
@@ -53,6 +54,9 @@ public class Arm {
     }
     public void toIdlePosition() {
         applyPreset(idlePosition);
+    }
+    public void toSpecIdlePosition() {
+        applyPreset(specIdlePosition);
     }
     public void toAutoStartPosition() {
         applyPreset(autoStartPosition);
