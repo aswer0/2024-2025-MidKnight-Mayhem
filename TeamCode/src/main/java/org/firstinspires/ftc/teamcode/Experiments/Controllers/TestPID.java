@@ -6,6 +6,7 @@ public class TestPID {
     public double kp, ki, kd, ithres;
     public double integralSum = 0;
     public double lastError = 0;
+    public double error = 0;
 
     ElapsedTime timer;
 
@@ -25,7 +26,7 @@ public class TestPID {
     }
 
     public double calculate(double pos, double target) {
-        double error = target-pos;
+        error = target-pos;
 
         if (error < this.ithres) {
             integralSum += error*timer.seconds();

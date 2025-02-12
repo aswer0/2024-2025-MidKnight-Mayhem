@@ -49,12 +49,13 @@ public class GVFTest extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
-        vf.move();
+        //vf.move();
         //wheelControl.drive(-1, 0, 0, 0, 1);
         TelemetryPacket telemetry = new TelemetryPacket();
         //vf.set_velocity();
         //telemetry.put("v/p", Utils.len_v(vf.velocity)/vf.speed);
-        //vf.move_to_point(new Point(28, 72), 0, 0.7);
+        vf.move_to_point(new Point(28, 72), -90, 0.7);
+        telemetry.put("turn speed", vf.turn_speed);
 //        telemetry.put("temp", vf.temp_turn);
 //        telemetry.put("derivative", Math.toDegrees(Utils.angle_v(vf.path.derivative(vf.D))));
         telemetry.put("heading", vf.get_heading());
@@ -66,7 +67,6 @@ public class GVFTest extends OpMode {
         telemetry.put("vf_yPos", vf.get_y());
         //telemetry.put("Closest", vf.get_closest());
         telemetry.put("powers", vf.powers);
-        telemetry.put("turn speed", vf.turn_speed);
         (FtcDashboard.getInstance()).sendTelemetryPacket(telemetry);
     }
 }

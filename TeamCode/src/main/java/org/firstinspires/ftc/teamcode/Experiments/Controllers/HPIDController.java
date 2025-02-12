@@ -8,6 +8,7 @@ public class HPIDController {
     private double kp, ki, kd, ithres;
     private double integralSum = 0;
     private double lastError = 0;
+    public double error = 0;
 
     ElapsedTime timer;
 
@@ -27,10 +28,10 @@ public class HPIDController {
     }
 
     public double calculate(double pos, double target) {
-        double error = target - pos;
+        error = target - pos;
         error = Utils.limit_angle(error);
 
-        if (error < this.ithres) {
+        if (Math.abs(error) < this.ithres) {
             integralSum += error*timer.seconds();
         } else integralSum = 0;
 

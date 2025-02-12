@@ -85,7 +85,7 @@ public class BezierPath {
         if (t >= 0 && t <= est_arclen_steps) {
             int nearest = (int)(t*est_arclen_steps);
             double part_section = t*est_arclen_steps - nearest;
-            return (1-part_section)*arclen[nearest]+part_section*arclen[nearest+1];
+            return Utils.linear_interpolate(arclen[nearest], arclen[nearest+1], part_section);
         } else if (t < 0) {
             return t*extrapolate_len(0);
         } else {
@@ -191,7 +191,7 @@ public class BezierPath {
                 } else if (part_path > 1) {
                     return end_heading;
                 } else {
-                    return (1-part_path)*start_heading+part_path*end_heading;
+                    return Utils.linear_interpolate(start_heading, end_heading, part_path);
                 }
         }
         throw new IllegalArgumentException("Not a valid heading method state.");

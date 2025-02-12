@@ -71,7 +71,6 @@ public class Intake {
     public void up() {setPivot(UP_POS);}
     public void down() {setPivot(DOWN_POS);}
     public void reverseDown() {setPivot(0.78);}
-
     public void openDoor() {intakeDoor.setPosition(DOOR_OPEN_POS);}
     public void closeDoor() {intakeDoor.setPosition(DOOR_CLOSE_POS);}
 
@@ -110,6 +109,25 @@ public class Intake {
         }
         return false;
     }
+
+    public boolean smarterIntake(boolean detectYellow) {
+        SampleColor color = getColor();
+        switch(color) {
+            case yellow:
+                if (detectYellow) {
+                    stop(); up(); closeDoor();
+                    return true;
+                }
+
+            case allianceSpecific:
+                stop(); up(); closeDoor();
+                return true;
+        }
+        setPower(-0.3);
+        down();
+        return false;
+    }
+
     public boolean hasCorrectSample(boolean detectYellow) {
         SampleColor color = getColor();
         return color == SampleColor.allianceSpecific || (detectYellow && color == SampleColor.yellow);

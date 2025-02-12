@@ -55,7 +55,7 @@ public class VectorField {
     // PID variables
     public double xp = end_decel, xi = 0.1, xd = 0.006, xithres = 2;
     public double yp = end_decel, yi = 0.1, yd = 0.006, yithres = 2;
-    public double hp = 0.01, hi = 0.025, hd = 0.001, hithres = 2;
+    public double hp = 0.005, hi = 0.01, hd = 0.001, hithres = 2;
 
     TestPID x_PID;
     TestPID y_PID;
@@ -217,28 +217,16 @@ public class VectorField {
     }
 
     // Move to a point given coordinates and heading
-    public void move_to_point(Point p, double target_angle, double max_speed) {
+    public void move_to_point(Point p, double target_heading, double max_speed) {
         end_target = p;
 
         // PID errors
         x_error = x_PID.calculate(get_x(), p.x);
         y_error = y_PID.calculate(get_y(), p.y);
-        turn_speed = h_PID.calculate(get_heading(), target_angle);
-
-        // Speed before modifications
-        double old_speed = Utils.len_v(new Point(x_error, y_error));
-        speed = Math.min(max_speed, old_speed);
-        /*if (old_speed > stop_speed) speed = Math.min(max_speed, old_speed);
-        else speed = Math.max(speed - stop_decay, 0);*/
-
-        x_error *= speed/old_speed;
-        y_error *= speed/old_speed;
-
-        powers = new Point(x_error, y_error);
-        //powers = Utils.add_v(powers, get_accel_corr(powers));
+        turn_speed = h_PID.calculate(get_heading(), target_heading);
 
         // Drive
-        drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
+        drive.drive_limit_power(x_error, y_error, turn_speed, max_speed, get_heading());
     }
 
     public void set_drive_speed(double turn_speed) {

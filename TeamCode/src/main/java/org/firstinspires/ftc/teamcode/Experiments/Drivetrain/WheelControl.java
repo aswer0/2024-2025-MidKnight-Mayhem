@@ -96,7 +96,7 @@ public class WheelControl {
 
     public void drive_relative(double forward, double right, double rotate_power, double max_power) {
         /*
-        Wheel directions
+        Wheel drive directions
         back back
         back back
 
@@ -104,6 +104,11 @@ public class WheelControl {
         \ /
         / \
          */
+
+        // Make sure forward and right are <= 1
+        double power_scale = max_power/Math.max(max_power, Math.max(forward, right));
+        forward *= power_scale;
+        right *= power_scale;
 
         // Strafe is slower so scale up
         right *= strafe_k;
@@ -122,7 +127,7 @@ public class WheelControl {
         old_max_power = Math.max(Math.abs(FRPower), old_max_power);
 
         // Power scaling
-        double power_scale = max_power/old_max_power;
+        power_scale = max_power/old_max_power;
 
         // Set powers
         this.BL.setPower(BLPower*power_scale + this.f*Math.signum(BLPower));

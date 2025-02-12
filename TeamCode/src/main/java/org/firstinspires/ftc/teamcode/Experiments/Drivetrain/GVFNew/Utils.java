@@ -10,6 +10,10 @@ public class Utils {
         return angle;
     }
 
+    public static double linear_interpolate(double min, double max, double part) {
+        return (1-part)*min+part*max;
+    }
+
     public static Point add_v(Point a, Point b) {
         return new Point(a.x+b.x, a.y+b.y);
     }
