@@ -24,6 +24,9 @@ public class Lift {
     public static double lowChamberPos=0;
     public static double intakeSpecimenPos=25;
     public static double intakeSamplePos=0;
+    public static double backChamber1Pos=600;
+    public static double backChamber2Pos=1000;
+
 
     public DcMotorEx leftSlide;
     public DcMotorEx rightSlide;
@@ -88,6 +91,8 @@ public class Lift {
     public void intakeSample() {
         setPosition(intakeSamplePos);
     }
+    public void toBackChamber1Pos() {setPosition(backChamber1Pos);}
+    public void toBackChamber2Pos() {setPosition(backChamber2Pos);}
 
     public void setPosition(double position, boolean changeState) {
         setPosition(position, changeState, Double.POSITIVE_INFINITY);

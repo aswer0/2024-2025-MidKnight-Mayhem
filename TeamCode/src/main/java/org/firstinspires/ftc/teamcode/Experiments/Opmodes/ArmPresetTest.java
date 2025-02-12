@@ -60,6 +60,13 @@ public class ArmPresetTest extends OpMode {
             case toAutoStartPosition:
                 arm.toAutoStartPosition();
                 break;
+            case backOuttakeSpecimen1:
+                arm.backOuttakeSpecimen1();
+                outtakeSlides.toBackChamber1Pos();
+                break;
+            case backOuttakeSpecimen2:
+                arm.backOuttakeSpecimen2();
+                outtakeSlides.toBackChamber2Pos();
         }
     }
     public enum ArmPreset {
@@ -69,6 +76,8 @@ public class ArmPresetTest extends OpMode {
         outtakeSpecimen2,
         outtakeSample,
         toIdlePosition,
-        toAutoStartPosition
+        toAutoStartPosition,
+        backOuttakeSpecimen1,
+        backOuttakeSpecimen2
     }
 }

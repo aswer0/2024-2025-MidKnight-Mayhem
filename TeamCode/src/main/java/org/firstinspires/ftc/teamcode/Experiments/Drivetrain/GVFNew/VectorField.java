@@ -147,6 +147,10 @@ public class VectorField {
         return Utils.dist(end_target, get_pos());
     }
 
+    public boolean at_point(Point p, double threshold) {
+        return Utils.dist(get_pos(), p) <= threshold;
+    }
+
     /*// Distance to closest point on path
     public double closest_dist() {
         return Utils.dist(path.forward(T), get_pos());

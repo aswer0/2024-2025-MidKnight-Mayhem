@@ -20,9 +20,11 @@ public class Arm {
     public static Preset idlePosition = new Preset(0.1,0.5,0.53);
     public static Preset specIdlePosition = new Preset(0.85,0.5,0.53);
     public static Preset autoStartPosition = new Preset(0.85,0.99,0.56);
+    public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.75,0.44);
+    public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.75,0.36);
 
-    public static double clawClosePos = 0.38;
-    public static double clawOpenPos = 0.15;
+    public static double clawClosePos = 0.17; //0.385
+    public static double clawOpenPos = 0.4; //0.15
 
     public Arm(HardwareMap hardwareMap) {
         this.outtake_arm_far = hardwareMap.get(Servo.class, "oAF");
@@ -60,6 +62,12 @@ public class Arm {
     }
     public void toAutoStartPosition() {
         applyPreset(autoStartPosition);
+    }
+    public void backOuttakeSpecimen1() {
+        applyPreset(backOuttakeSpecimen1);
+    }
+    public void backOuttakeSpecimen2() {
+        applyPreset(backOuttakeSpecimen2);
     }
 
     public void openClaw() {

@@ -43,7 +43,7 @@ public class SixSpecimenAuto extends OpMode {
     public static double target_y = 90;
 
     public static double set_pos_tolerance = 1;
-    public static double ticks_per_inch = 100;
+    public static double ticks_per_inch = 70;
     public static double sub_spit_angle = 60;
     double intake_state = 0;
 
@@ -81,6 +81,7 @@ public class SixSpecimenAuto extends OpMode {
     enum State {
         pid,
         subIntake,
+        firstSpit,
         goToSpecimen,
         pickupSpecimen,
         deposit,
@@ -107,7 +108,7 @@ public class SixSpecimenAuto extends OpMode {
         intakeShakeTimer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
-        odometry = new Odometry(hardwareMap, 0, 7.875, 72, "OTOS");
+        odometry = new Odometry(hardwareMap, 180, 7.875, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new Path(follow_path, wheelControl, odometry, telemetry, gvf_speed, gvf_thresh, 180, power);
@@ -139,21 +140,23 @@ public class SixSpecimenAuto extends OpMode {
                 sub_intake.x = -sub_intake_limit.x/2;
             }
         }
-        if (!previousGamepad1.dpad_left && currentGamepad1.dpad_right){
-            sub_intake.y += set_pos_tolerance;
+        if (!previousGamepad1.dpad_right && currentGamepad1.dpad_right){
+            sub_intake.x += set_pos_tolerance;
             if (sub_intake.x > sub_intake_limit.x/2){
                 sub_intake.x = sub_intake_limit.x/2;
             }
         }
-        if (!previousGamepad1.dpad_left && currentGamepad1.dpad_up){
-            sub_intake.x -= set_pos_tolerance;
+        if (!previousGamepad1.dpad_up && currentGamepad1.dpad_up){
+            sub_intake.y -= set_pos_tolerance;
         }
-        if (!previousGamepad1.dpad_left && currentGamepad1.dpad_down){
-            sub_intake.x -= set_pos_tolerance;
+        if (!previousGamepad1.dpad_down && currentGamepad1.dpad_down){
+            sub_intake.y -= set_pos_tolerance;
         }
 
         telemetry.addData("Alliance", alliance);
-
+        telemetry.addLine();
+        telemetry.addData("intake x", sub_intake.x);
+        telemetry.addData("intake y", sub_intake.y);
 
     }
 
@@ -174,12 +177,13 @@ public class SixSpecimenAuto extends OpMode {
                 intake.stop();
                 arm.closeClaw();
 
-                lift.toHighChamber();
+                lift.toBackChamber1Pos();
 
                 if (intake_state == 0){
-                    arm.outtakeSpecimen1();
+                    arm.backOuttakeSpecimen1();
+                    horizontalSlides.setPosition(sub_intake.y*ticks_per_inch);
                     if (timer.milliseconds() >= 100){
-                        path.follow_pid_to_point(new Point(target_x+sub_intake.x, target_y+ sub_intake.y), 0);
+                        path.follow_pid_to_point(new Point(target_x+sub_intake.x, target_y+ sub_intake.y), 180);
                     }
                 }
                 else{
@@ -220,23 +224,28 @@ public class SixSpecimenAuto extends OpMode {
 
                 break;
 
-            case subIntake:
+            case subIntake: //also back deposit
+                lift.toBackChamber2Pos();
+                arm.backOuttakeSpecimen2();
                 horizontalSlides.setPosition(sub_intake.y*ticks_per_inch);
 
-                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition()-sub_intake.y*ticks_per_inch) <= 10){
-                    intake.down();
-                    intake.intake();
-                }
+                if (Math.abs(lift.getPosition()-lift.backChamber1Pos)<10) {
+                    arm.openClaw();
+                    if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() - sub_intake.y * ticks_per_inch) <= 10) {
+                        intake.down();
+                        intake.intake();
+                    }
 
-                if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2000){
-                    intake.stop();
-                    intake.up();
-                    horizontalSlides.setPosition(0);
+                    if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2000) {
+                        intake.stop();
+                        intake.up();
+                        horizontalSlides.setPosition(0);
+                    }
                 }
-                if (horizontalSlides.horizontalSlidesMotor.getCurrentPosition() <= 10 && intake.hasCorrectSample(false)){
-                    timer.reset();
-                    state = State.deposit;
-                }
+//                if (horizontalSlides.horizontalSlidesMotor.getCurrentPosition() <= 10 && intake.hasCorrectSample(false)){
+//                    timer.reset();
+//                    state = State.deposit;
+//                }
 
                 break;
 

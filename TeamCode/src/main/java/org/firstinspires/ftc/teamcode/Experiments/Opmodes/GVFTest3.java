@@ -45,7 +45,7 @@ public class GVFTest3 extends OpMode {
         //wheelControl.drive_relative(0, 0, 0.3, 0.5);
         //wheelControl.drive_angle(45, 0, 0.2, vf.get_heading())
         //wheelControl.drive_limit_power(0.2, 0, 0, 0.7, Math.toRadians(vf.get_heading()));
-        vf.pid_to_point(new Point(72, 72), 0, 0.8);
+        vf.pid_to_point(new Point(28, 72), -90, 0.8);
         //vf.follow(path);
         //wheelControl.drive(-1, 0, 0, 0, 1);
         TelemetryPacket telemetry = new TelemetryPacket();

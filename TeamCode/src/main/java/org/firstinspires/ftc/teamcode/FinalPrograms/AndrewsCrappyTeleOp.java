@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -25,7 +25,6 @@ import java.util.List;
 @Config
 @TeleOp
 public class AndrewsCrappyTeleOp extends OpMode {
-    double lastTime = getRuntime();
     public static boolean disableSmart = false;
     public static boolean retractIntakeOnSample = true;
     ElapsedTime intakeTimer = new ElapsedTime();
@@ -60,9 +59,11 @@ public class AndrewsCrappyTeleOp extends OpMode {
     public static double dist_thresh = 2.5;
     public static double intake_dist_thresh = 2.5;
     Point target;
-    Path path;
     ElapsedTime autoTimer;
 
+    public static double sample_x = 13;
+    public static double sample_y = 123.5;
+    public static double sample_angle = 135;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -78,6 +79,8 @@ public class AndrewsCrappyTeleOp extends OpMode {
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
     Gamepad previousGamepad2 = new Gamepad();
+
+    VectorField vf;
 
     @Override
     public void init() {
@@ -102,14 +105,30 @@ public class AndrewsCrappyTeleOp extends OpMode {
                 new Point(19.2, 68.2),
                 new Point(36.5, 75)
         };
+
+        vf = new VectorField(drive, odometry);
         target = new Point(target_x, target_y);
-        path = new Path(follow_path, drive, odometry, telemetry, gvf_speed, gvf_thresh, 180, power);
         autoTimer = new ElapsedTime();
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
+    }
+    @Override
+    public void init_loop() {
+        if(gamepad1.options && !previousGamepad1.options && (alliance == Alliance.blue)) {
+            gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
+            alliance = Alliance.red;
+            intake.alliance = alliance;
+        } else if (gamepad1.options && !previousGamepad1.options) {
+            gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
+            alliance = Alliance.blue;
+            intake.alliance = alliance;
+        }
+
+        previousGamepad1.copy(gamepad1);
+        telemetry.addData("Alliance", alliance);
     }
     @Override
     public void start() {
@@ -158,100 +177,111 @@ public class AndrewsCrappyTeleOp extends OpMode {
             isAndrewMode = !isAndrewMode;
         }
         if(gamepad1.options && !previousGamepad1.options && alliance == Alliance.blue) {
-            gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
-            alliance = Alliance.red;
-            intake.alliance = alliance;
         } else if (gamepad1.options && !previousGamepad1.options) {
-            gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
-            alliance = Alliance.blue;
-            intake.alliance = alliance;
         }
         if(gamepad2.options) { //reset outtake sldies
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
 
-//        if (!previousGamepad1.ps && currentGamepad1.ps && outtakeState == OuttakeState.intakeSpecimen) {
-//            odometry.opt.setPos(9,30,0);
-//            autoSpecDrive=true;
-//            gamepad1.rumble(500);
-//            gamepad2.rumble(500);
-//            autoTimer.reset();
-//        }
+        if (!previousGamepad1.triangle && currentGamepad1.triangle) {
+            odometry.opt.setPos(sample_x, sample_y, sample_angle);
+        }
 
-        // Drive
+        if (!previousGamepad1.cross && currentGamepad1.cross && outtakeState == OuttakeState.intakeSpecimen) {
+            odometry.opt.setPos(9,32,0);
+            autoSpecDrive=true;
+            autoSpecDriveState = AutoSpecDriveState.start;
+            outtakeState = OuttakeState.auto;
+            gamepad1.rumble(500);
+            gamepad2.rumble(500);
+            autoTimer.reset();
+        }
 
-//        if (autoSpecDrive) {
-//            //failsafe
-//            if (Math.abs(currentGamepad1.left_stick_x)>0.1 || Math.abs(currentGamepad1.left_stick_y)>0.1) {
-//                autoSpecDrive=false;
-//            }
-//            if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
-//                target.y -= 2.5; // this has to be tuned better for more space on the right
-//            }
-//
-//            switch (autoSpecDriveState) {
-//                case start:
-//                    arm.closeClaw();
-//                    if (outtakeState==OuttakeState.outtakeSpecimen1) {
-//                        autoTimer.reset();
-//                        autoSpecDriveState = AutoSpecDriveState.pid;
-//                    }
-//                    break;
-//                case pid:
-//                    outtakeState = OuttakeState.outtakeSpecimen1;
-//                    if (odometry.opt.get_y()<target_y-36) {
-//                        path.follow_pid_to_point(new Point(target_x - 12, target_y), 0);
-//                    } else {
-//                        path.follow_pid_to_point(target, 0);
-//                    }
-//
-//                    if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
-//                        autoTimer.reset();
-//                        autoSpecDriveState = AutoSpecDriveState.deposit;
-//                    } if (autoTimer.milliseconds() > 5000) {
-//                        autoTimer.reset();
-//                        autoSpecDriveState = AutoSpecDriveState.deposit;
-//                    }
-//                    break;
-//                case deposit:
-//                    intake.down();
-//                    intakeSlides.setPosition(0);
-//                    if (outtakeState==OuttakeState.outakeSpecimen2) {
-//                        autoTimer.reset();
-//                        autoSpecDriveState = AutoSpecDriveState.goToSpecimen;
-//                    }
-//                    break;
-//                case goToSpecimen:
-//                    path.follow_pid_to_point(new Point(12.875, 30), 0);
-//
-//                    if (autoTimer.milliseconds() > 500){
-//                        outtakeState = OuttakeState.intakeSpecimen;
-//                    }
-//                    if (path.at_point(new Point(12.875, 30), 5)) { //4
-//                        drive.drive(0, 0, 0, 0, 0.7);
-//                        autoTimer.reset();
-//                        autoSpecDriveState = AutoSpecDriveState.pickupSpecimen;
-//                    }
-//                    break;
-//                case pickupSpecimen:
-//                    if (sensors.get_back_dist() >= intake_dist_thresh || autoTimer.milliseconds() < 700) {
-//                        drive.drive(0.5, 0, 0, 0, 0.7);
-//                    } else {
-//                        drive.drive(0, 0, 0, 0, 0);
-//                        arm.closeClaw();
-//
-//                        autoTimer.reset();
-//                        autoSpecDriveState = AutoSpecDriveState.pid;
-//                    }
-//                    break;
-//            }
+         //Drive
+        if (autoSpecDrive) {
+            //failsafe
+            if (Math.abs(currentGamepad1.left_stick_x)>0.1 || Math.abs(currentGamepad1.left_stick_y)>0.1) {
+                outtakeState=OuttakeState.idle;
+                autoSpecDrive=false;
+            }
+            if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
+                target.y += 2; // this has to be tuned better for more space on the right
+            }
 
-        //} else {
+            switch (autoSpecDriveState) {
+                case start:
+                    arm.closeClaw();
+                    if (autoTimer.milliseconds()>100) {
+                        autoTimer.reset();
+                        autoSpecDriveState = AutoSpecDriveState.pid;
+                    }
+                    break;
+                case pid:
+                    //outtakeState = OuttakeState.outtakeSpecimen1;
+                    arm.closeClaw();
+                    arm.outtakeSpecimen1();
+                    outtakeSlides.toHighChamber();
+
+                    if (odometry.opt.get_y()<target_y-36) {
+                        vf.pid_to_point(new Point(target_x - 12, target_y), 0, 1);
+                    } else {
+                        vf.pid_to_point(target, 0, 1);
+                    }
+
+                    if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
+                        autoTimer.reset();
+                        autoSpecDriveState = AutoSpecDriveState.deposit;
+                    } if (autoTimer.milliseconds() > 5000) {
+                        autoTimer.reset();
+                        autoSpecDriveState = AutoSpecDriveState.deposit;
+                    }
+                    break;
+                case deposit:
+                    arm.openClaw();
+                    if (autoTimer.milliseconds() >= 125) {
+                        outtakeSlides.setPosition(0);
+                        arm.outtakeSpecimen2();
+                    }
+                    if (autoTimer.milliseconds()>400) {
+                        autoTimer.reset();
+                        autoSpecDriveState = AutoSpecDriveState.goToSpecimen;
+                    }
+                    break;
+                case goToSpecimen:
+                    intake.down();
+                    intakeSlides.setPosition(0);
+                    vf.pid_to_point(new Point(12.875, 32), 0, 1);
+
+                    if (autoTimer.milliseconds() > 500){
+                        outtakeSlides.intakeSpecimen();
+                        arm.intakeSpecimen();
+                    }
+                    if (vf.at_point(new Point(12.875, 30), 5) || autoTimer.milliseconds()>3000) { //4
+                        drive.drive(0, 0, 0, 0, 0.7);
+                        autoTimer.reset();
+                        autoSpecDriveState = AutoSpecDriveState.pickupSpecimen;
+                    }
+                    break;
+                case pickupSpecimen:
+                    if (sensors.get_back_dist() >= intake_dist_thresh || autoTimer.milliseconds() < 600) {
+                        drive.drive(0.5, 0, 0, 0, 0.7);
+                    } else {
+                        drive.drive(0, 0, 0, 0, 0);
+                        arm.closeClaw();
+
+                        autoTimer.reset();
+                        autoSpecDriveState = AutoSpecDriveState.pid;
+                    }
+                    break;
+            }
+        } else if (currentGamepad1.circle){ //auto pid sample
+            vf.pid_to_point(new Point(sample_x, sample_y), sample_angle, 1);
+        }else {
             drive.correction_drive(gamepad1.left_stick_y, 1.1 * gamepad1.left_stick_x, -gamepad1.right_stick_x * Math.abs(gamepad1.right_stick_x) * turnPower, Math.toRadians(odometry.opt.get_heading()), drivePower);
-        //}
+        }
 
         //manual outtake slides
         if(Math.abs(-gamepad2.left_stick_y) > 0.4) {
@@ -349,7 +379,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                     newOuttakeState = true;
                 }
 
-                if (currentGamepad2.square && !previousGamepad2.square || autoSpecDrive && autoSpecDriveState==AutoSpecDriveState.start) {
+                if (currentGamepad2.square && !previousGamepad2.square) {
                     arm.closeClaw();
                     outtakeTimer.reset();
                     outtakeSpecimen=true;
@@ -394,12 +424,11 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
                 newOuttakeState = false;
 
-                if (!(autoSpecDriveState==AutoSpecDriveState.pid)) {
-                    if (previousGamepad2.square && !currentGamepad2.square || autoSpecDriveState == AutoSpecDriveState.deposit) {
-                        arm.openClaw();
-                        outtakeTimer.reset();
-                        releaseSpec = true;
-                    }
+
+                if (previousGamepad2.square && !currentGamepad2.square) {
+                    arm.openClaw();
+                    outtakeTimer.reset();
+                    releaseSpec = true;
                 }
                 if (releaseSpec && outtakeTimer.milliseconds()>=125) {
                     outtakeState = OuttakeState.outakeSpecimen2;
@@ -465,6 +494,9 @@ public class AndrewsCrappyTeleOp extends OpMode {
                 }
 
                 break;
+
+            case auto:
+                break;
         }
 
 
@@ -489,7 +521,6 @@ public class AndrewsCrappyTeleOp extends OpMode {
                 hangState = HangState.hanging1;
             }
         }
-        lastTime = getRuntime();
         telemetry.addData("Alliance", alliance);
         telemetry.addData("Is Andrew Mode?", isAndrewMode);
         telemetry.addData("state", outtakeState);
@@ -510,6 +541,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
         outtakeSpecimen1,
         outakeSpecimen2,
         outtakeSample,
+        auto
     }
 
     enum HangState {
