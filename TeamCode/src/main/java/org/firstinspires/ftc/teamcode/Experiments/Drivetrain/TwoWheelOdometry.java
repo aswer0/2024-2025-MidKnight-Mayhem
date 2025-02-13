@@ -17,8 +17,8 @@ public class TwoWheelOdometry {
     // Offsets of encoders
     // Left to right:  negative to positive x
     // Down to up: negative to positive y
-    public static double vertical_encoder_x = -5.26;
-    public static double horizontal_encoder_y = 1.98;
+    public static double vertical_encoder_y = -5.26;
+    public static double horizontal_encoder_x = 1.98;
 
     // Encoders
     public DcMotorEx vertical_encoder;
@@ -114,8 +114,8 @@ public class TwoWheelOdometry {
             d_y = d_h;
         } else {
             double coeff = 2*Math.sin(d_heading/2);
-            d_x = coeff * (d_v / d_heading - vertical_encoder_x);
-            d_y = coeff * (d_h / d_heading + horizontal_encoder_y);
+            d_x = coeff * (d_v / d_heading - vertical_encoder_y);
+            d_y = coeff * (d_h / d_heading + horizontal_encoder_x);
         }
 
         // Calculate new position
