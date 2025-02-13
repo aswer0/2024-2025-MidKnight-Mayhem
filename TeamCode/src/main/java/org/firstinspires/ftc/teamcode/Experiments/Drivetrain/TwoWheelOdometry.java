@@ -110,18 +110,18 @@ public class TwoWheelOdometry {
 
         // Calculate dx and dy relative to robot
         if (Math.abs(d_heading) <= threshold) {
-            d_x = d_h;
-            d_y = d_v;
+            d_x = d_v;
+            d_y = d_h;
         } else {
             double coeff = 2*Math.sin(d_heading/2);
-            d_x = coeff * (d_h / d_heading + horizontal_encoder_y);
-            d_y = coeff * (d_v / d_heading - vertical_encoder_x);
+            d_x = coeff * (d_v / d_heading - vertical_encoder_x);
+            d_y = coeff * (d_h / d_heading + horizontal_encoder_y);
         }
 
         // Calculate new position
         double middle_heading = old_heading+d_heading/2;
-        double d_x_field = d_y *Math.cos(middle_heading) - d_x *Math.sin(middle_heading);
-        double d_y_field = d_x *Math.sin(middle_heading) + d_y *Math.cos(middle_heading);
+        double d_x_field = d_x*Math.cos(middle_heading) - d_y*Math.sin(middle_heading);
+        double d_y_field = d_y*Math.sin(middle_heading) + d_x*Math.cos(middle_heading);
         this.x_pos += d_x_field;
         this.y_pos += d_y_field;
     }
