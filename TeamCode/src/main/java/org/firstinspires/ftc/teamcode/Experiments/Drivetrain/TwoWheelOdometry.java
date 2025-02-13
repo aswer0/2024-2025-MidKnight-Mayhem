@@ -1,112 +1,128 @@
-/*package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
+package org.firstinspires.ftc.teamcode.Experiments.Drivetrain;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import org.opencv.core.Point;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.Utils;
 
 @Config
 public class TwoWheelOdometry {
     public static double threshold = 0.0002;
+    public static double TICKS_TO_INCHES = 1.88976*Math.PI/(2048 * 0.982);
 
-    public static double ticks_to_inches = 1.88976*Math.PI/(2048 * 0.982);
-    public static Point v_encoder_pos = new Point(-5, -1);
-    public static Point h_encoder_pos = new Point(-5, -1);
+    // Offsets of encoders
+    // Left to right:  negative to positive x
+    // Down to up: negative to positive y
+    public static double vertical_encoder_x = -5.26;
+    public static double horizontal_encoder_y = 1.98;
 
-    public DcMotorEx v_encoder;
-    public DcMotorEx h_encoder;
+    // Encoders
+    public DcMotorEx vertical_encoder;
+    public DcMotorEx horizontal_encoder;
+    public IMU imu;
+    public OptOdometry opt;
 
+    // Odometry of robot
     private double heading;
-    private double xPos;
-    private double yPos;
+    private double x_pos;
+    private double y_pos;
 
-    double vert;
-    double horiz;
-    private double velocity;
+    // Positions of encoders
+    double v_pos;
+    double h_pos;
 
-    private double dX;
-    private double dY;
-    private double dTheta;
+    // Change in values
+    private double d_v;
+    private double d_h;
+    private double d_heading;
+    private double d_x;
+    private double d_y;
 
-    private IMU imu;
-    //public OptOdometry opt;
+    public TwoWheelOdometry(HardwareMap hardwareMap,
+                            double start_heading,
+                            double start_x,
+                            double start_y,
+                            String vertical_string,
+                            String horizontal_string) {
+        vertical_encoder = hardwareMap.get(DcMotorEx.class, vertical_string);
+        horizontal_encoder = hardwareMap.get(DcMotorEx.class, horizontal_string);
 
-    ElapsedTime imuTimer = new ElapsedTime();
+        vertical_encoder.setDirection(DcMotorEx.Direction.REVERSE);
+        horizontal_encoder.setDirection(DcMotorEx.Direction.REVERSE);
 
-    public TwoWheelOdometry(HardwareMap hardwareMap, double heading, double x, double y, String vert, String horiz) {
-        verticalEncoder = hardwareMap.get(DcMotorEx.class, vert);
-        horizontalEncoder = hardwareMap.get(DcMotorEx.class, horiz);
+        v_pos = vertical_encoder.getCurrentPosition();
+        h_pos = horizontal_encoder.getCurrentPosition();
 
-        verticalEncoder.setDirection(DcMotorEx.Direction.REVERSE);
-        horizontalEncoder.setDirection(DcMotorEx.Direction.REVERSE);
+        heading = start_heading;
+        x_pos = start_x;
+        y_pos = start_y;
 
-        this.vert = verticalEncoder.getCurrentPosition();
-        this.horiz = -horizontalEncoder.getCurrentPosition();
-
-        this.heading = heading;
-        this.xPos = x;
-        this.yPos = y;
-
-        this.imu = hardwareMap.get(IMU.class,"imu");
+        // Set up IMU
+        imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP));
         imu.initialize(parameters);
-
         imu.resetYaw();
-        imuTimer.reset();
     }
 
-    public double getxPos() {
-        return this.xPos;
+    public double getXPos() {
+        return this.x_pos;
     }
 
-    public double getyPos() {
-        return this.yPos;
+    public double getYPos() {
+        return this.y_pos;
     }
 
-    public double getHeading() {
+    public double getHeadingRad() {
         return this.heading;
     }
 
+    public double getHeadingDeg() {
+        return Math.toDegrees(this.heading);
+    }
+
     public void setPos(double x, double y, double theta) {
-        xPos = x;
-        yPos = y;
+        x_pos = x;
+        y_pos = y;
         heading = theta;
     }
+
     public void update() {
-        double oldV = vert; //set to prev update's values
-        double oldH = horiz;
-        double oldHeading = heading;
+        // Previous values
+        double old_v = v_pos;
+        double old_h = h_pos;
+        double old_heading = heading;
 
-        vert = this.verticalEncoder.getCurrentPosition();
-        horiz = -this.horizontalEncoder.getCurrentPosition();
+        // Current values
         heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        v_pos = this.vertical_encoder.getCurrentPosition();
+        h_pos = this.horizontal_encoder.getCurrentPosition();
 
-        double dV = (vert-oldV)* ticks_to_inches;
-        double dH = (horiz-oldH)* ticks_to_inches;
+        // Change in values
+        d_v = (v_pos-old_v)*TICKS_TO_INCHES;
+        d_h = (h_pos-old_h)*TICKS_TO_INCHES;
+        d_heading = Utils.limit_angle_rad(heading-old_heading);
 
-        dTheta = heading-oldHeading;
-        double middleH = (heading+oldHeading)/2;
-
-        // Y is FB and X is LR
-        if (Math.abs(dTheta) <= threshold) { //prevents divide by 0 error (when driving straight forward)
-            dY = dV;
-            dX = dH;
-            dTheta = 0;
+        // Calculate dx and dy relative to robot
+        if (Math.abs(d_heading) <= threshold) {
+            d_x = d_h;
+            d_y = d_v;
         } else {
-            dY = 2 * (dV / dTheta - TRACK_LEFT) * (Math.sin(dTheta / 2));
-            dX = 2 * (dH / dTheta - LENGTH) * (Math.sin(dTheta / 2));
+            double coeff = 2*Math.sin(d_heading/2);
+            d_x = coeff * (d_h / d_heading + horizontal_encoder_y);
+            d_y = coeff * (d_v / d_heading - vertical_encoder_x);
         }
-        double change_x = dY*Math.sin(dTheta/2) + dX*Math.cos(dTheta/2);
-        double change_y = dY*Math.cos(dTheta/2) + dX*Math.sin(dTheta/2);
 
-        this.xPos = xPos+Math.cos(middleH-Math.PI/2)*change_x-Math.sin(middleH-Math.PI/2)*change_y;
-        this.yPos = yPos+Math.sin(middleH-Math.PI/2)*change_x+Math.cos(middleH-Math.PI/2)*change_y;
+        // Calculate new position
+        double middle_heading = old_heading+d_heading/2;
+        double d_x_field = d_y *Math.cos(middle_heading) - d_x *Math.sin(middle_heading);
+        double d_y_field = d_x *Math.sin(middle_heading) + d_y *Math.cos(middle_heading);
+        this.x_pos += d_x_field;
+        this.y_pos += d_y_field;
     }
-
-}*/
+}

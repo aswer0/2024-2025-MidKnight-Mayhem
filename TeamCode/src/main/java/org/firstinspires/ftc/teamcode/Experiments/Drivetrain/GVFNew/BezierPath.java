@@ -62,7 +62,7 @@ public class BezierPath {
     public BezierPath linear_heading(double start_heading, double end_heading) {
         this.heading_method = HeadingMethod.linear;
         this.start_heading = start_heading;
-        this.end_heading = start_heading + Utils.limit_angle(end_heading-start_heading);
+        this.end_heading = start_heading + Utils.limit_angle_deg(end_heading-start_heading);
         return this;
     }
 

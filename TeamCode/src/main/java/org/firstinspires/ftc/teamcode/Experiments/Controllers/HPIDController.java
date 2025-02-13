@@ -29,7 +29,7 @@ public class HPIDController {
 
     public double calculate(double pos, double target) {
         error = target - pos;
-        error = Utils.limit_angle(error);
+        error = Utils.limit_angle_deg(error);
 
         if (Math.abs(error) < this.ithres) {
             integralSum += error*timer.seconds();

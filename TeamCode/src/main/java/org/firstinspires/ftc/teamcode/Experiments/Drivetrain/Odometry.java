@@ -37,8 +37,11 @@ public class Odometry {
 
     private IMU imu;
     public OptOdometry opt;
+    public TwoWheelOdometry two;
 
     ElapsedTime imuTimer = new ElapsedTime();
+
+    public Odometry() {}
 
     public Odometry(HardwareMap hardwareMap, double heading, double x, double y, String left, String right, String front) {
         leftEncoder = hardwareMap.get(DcMotorEx.class, left);
@@ -68,6 +71,15 @@ public class Odometry {
 
     public Odometry(HardwareMap hardwareMap, double heading, double x, double y, String otos){
         opt = new OptOdometry(hardwareMap, heading, x, y, otos);
+    }
+
+    public void addTwoWheelOdometry(HardwareMap hardwareMap,
+                                    double start_heading,
+                                    double start_x,
+                                    double start_y,
+                                    String vertical_string,
+                                    String horizontal_string) {
+        two = new TwoWheelOdometry(hardwareMap, start_heading, start_x, start_y, vertical_string, horizontal_string);
     }
 
     public double getxPos() {
