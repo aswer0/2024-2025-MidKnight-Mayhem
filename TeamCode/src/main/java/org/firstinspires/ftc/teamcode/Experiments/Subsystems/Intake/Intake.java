@@ -4,9 +4,11 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
@@ -19,7 +21,7 @@ public class Intake {
     public static boolean outputDebugInfo = false;
 
     public static double DOWN_POS=0.64;
-    public static double UP_POS=0.884;
+    public static double UP_POS=0.893;
 
     public static double DOOR_OPEN_POS=0.8;
     public static double DOOR_CLOSE_POS=0.4;
@@ -37,15 +39,17 @@ public class Intake {
     public Alliance alliance = Alliance.red;
     public Sensors sensors;
 
+    public ElapsedTime correctSampleSince = new ElapsedTime();
     public Intake(HardwareMap hardwareMap, Sensors sensors) {
         this.sensors = sensors;
-        intakeMotor = hardwareMap.get(DcMotorEx.class,"intakeMotor"); //left looking from intake side
+        intakeMotor = hardwareMap.get(DcMotorEx.class,"intakeMotor");
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         intakePivotLeft = hardwareMap.get(Servo.class,"iPL"); //from intake side
         intakePivotRight = hardwareMap.get(Servo.class,"iPR");
         intakeDoor = hardwareMap.get(Servo.class, "intakeDoor");
         sweeper = hardwareMap.get(Servo.class, "sweeper");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class,"iS");
-        intakeSensor.enableLed(false);
     }
     public void setAlliance(Alliance alliance) {
         this.alliance = alliance;
@@ -90,11 +94,16 @@ public class Intake {
 
             case allianceSpecific:
             case yellow:
-                intake();
+                if(correctSampleSince.milliseconds() > 50) {
+                    intake();
+                } else {
+                    reverse();
+                }
                 up();
                 closeDoor();
                 return true;
             case wrong:
+                correctSampleSince.reset();
                 //intake();
                 reverseDown();
                 reverse();
@@ -102,6 +111,7 @@ public class Intake {
                 return false;
             case unsure:
             case none:
+                correctSampleSince.reset();
                 intake();
                 down();
                 closeDoor();
