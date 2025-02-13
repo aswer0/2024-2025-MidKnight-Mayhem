@@ -40,6 +40,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
     OuttakeState outtakeState = OuttakeState.idle;
     HangState hangState = HangState.hanging1;
     boolean newOuttakeState = true;
+    boolean sampleMode = true;
 
     boolean releaseSpec=false;
     boolean outtakeSpecimen=false;
@@ -52,8 +53,6 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
     //auto values
     public static double power = 1;
-    public static double gvf_speed = 0.1;
-    public static double gvf_thresh = 13;
     public static double target_x = 50; //36.2
     public static double target_y = 80;
     public static double dist_thresh = 2.5;
@@ -71,6 +70,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
     Sensors sensors;
 
     List<LynxModule> allHubs;
+    ElapsedTime loopTimer;
 
     double drivePower=1;
     double turnPower=1;
@@ -99,13 +99,6 @@ public class AndrewsCrappyTeleOp extends OpMode {
         sensors = new Sensors(hardwareMap, telemetry);
 
         //atuo stuff
-        Point[] follow_path = {
-                new Point(11,28),
-                new Point(10.3, 65.5),
-                new Point(19.2, 68.2),
-                new Point(36.5, 75)
-        };
-
         vf = new VectorField(drive, odometry);
         target = new Point(target_x, target_y);
         autoTimer = new ElapsedTime();
@@ -114,6 +107,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
+        loopTimer = new ElapsedTime();
     }
     @Override
     public void init_loop() {
@@ -126,9 +120,14 @@ public class AndrewsCrappyTeleOp extends OpMode {
             alliance = Alliance.blue;
             intake.alliance = alliance;
         }
+        if(currentGamepad1.share && !previousGamepad1.share) {
+            sampleMode = !sampleMode;
+        }
 
         previousGamepad1.copy(gamepad1);
         telemetry.addData("Alliance", alliance);
+        telemetry.addLine();
+        telemetry.addData("sample mode?",sampleMode);
     }
     @Override
     public void start() {
@@ -137,6 +136,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
         oldClaw.openClaw();
         outtakeTimer.reset();
         intake.up();
+        loopTimer.reset();
     }
     @Override
     public void loop() {
@@ -191,7 +191,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
         }
 
         if (!previousGamepad1.cross && currentGamepad1.cross && outtakeState == OuttakeState.intakeSpecimen) {
-            odometry.opt.setPos(9,32,0);
+            //odometry.opt.setPos(9,32,0);
             autoSpecDrive=true;
             autoSpecDriveState = AutoSpecDriveState.start;
             outtakeState = OuttakeState.auto;
@@ -205,6 +205,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
             //failsafe
             if (Math.abs(currentGamepad1.left_stick_x)>0.1 || Math.abs(currentGamepad1.left_stick_y)>0.1) {
                 outtakeState=OuttakeState.idle;
+                newOuttakeState = true;
                 autoSpecDrive=false;
             }
             if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
@@ -215,6 +216,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                 case start:
                     arm.closeClaw();
                     if (autoTimer.milliseconds()>100) {
+                        odometry.opt.setPos(8,32,0);
                         autoTimer.reset();
                         autoSpecDriveState = AutoSpecDriveState.pid;
                     }
@@ -259,8 +261,8 @@ public class AndrewsCrappyTeleOp extends OpMode {
                         outtakeSlides.intakeSpecimen();
                         arm.intakeSpecimen();
                     }
-                    if (vf.at_point(new Point(12.875, 30), 5) || autoTimer.milliseconds()>3000) { //4
-                        drive.drive(0, 0, 0, 0, 0.7);
+                    if (vf.at_point(new Point(12.875, 30), 5) || autoTimer.milliseconds()>3000 || currentGamepad1.square) { //4
+                        drive.stop();
                         autoTimer.reset();
                         autoSpecDriveState = AutoSpecDriveState.pickupSpecimen;
                     }
@@ -269,7 +271,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                     if (sensors.get_back_dist() >= intake_dist_thresh || autoTimer.milliseconds() < 600) {
                         drive.drive(0.5, 0, 0, 0, 0.7);
                     } else {
-                        drive.drive(0, 0, 0, 0, 0);
+                        drive.stop();
                         arm.closeClaw();
 
                         autoTimer.reset();
@@ -320,7 +322,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                         intake.closeDoor();
                         intake.down();
                     }else {
-                        boolean hasCorrectObject = intake.smartIntake(true);
+                        boolean hasCorrectObject = intake.smartIntake(sampleMode);
                         if(hasCorrectObject && retractIntakeOnSample) {
                             intakeSlides.setPosition(0);
                             gamepad1.rumble(500);
@@ -345,7 +347,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                     outtakeState = OuttakeState.intakeSpecimen;
                     outtakeTimer.reset();
                     newOuttakeState = true;
-                } if (currentGamepad2.circle) {
+                } if (currentGamepad2.circle || currentGamepad2.left_bumper) {
                     //arm.closeClaw();
                     grabSample = true;
                     outtakeState = OuttakeState.intakeSample;
@@ -405,6 +407,15 @@ public class AndrewsCrappyTeleOp extends OpMode {
                     arm.closeClaw();
                     if (outtakeTimer.milliseconds()>=150+300) {
                         outtakeState = OuttakeState.outtakeSample;
+                        outtakeTimer.reset();
+                        newOuttakeState = true;
+                    }
+                }
+
+                if (currentGamepad2.left_bumper && outtakeTimer.milliseconds()>=150) {
+                    arm.closeClaw();
+                    if (outtakeTimer.milliseconds()>=150+300) {
+                        outtakeState = OuttakeState.specOut;
                         outtakeTimer.reset();
                         newOuttakeState = true;
                     }
@@ -497,6 +508,34 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
             case auto:
                 break;
+
+            case specOut:
+                if (newOuttakeState) {
+                    arm.closeClaw();
+                    outtakeSlides.setPosition(400);
+                    arm.outtakeSample();
+                    releaseSample = false;
+                }
+
+                newOuttakeState = false;
+
+                if (previousGamepad2.left_bumper && !currentGamepad2.left_bumper) {
+                    arm.openClaw();
+                    releaseSample = true;
+                    outtakeTimer.reset();
+                } if (currentGamepad2.left_bumper) {
+                    outtakeTimer.reset();
+                }
+                if (releaseSample && outtakeTimer.milliseconds()>=250) {
+                    arm.toIdlePosition();
+                    if (outtakeTimer.milliseconds() >= 250 + 100) {
+                        outtakeState = OuttakeState.idle;
+                        outtakeTimer.reset();
+                        newOuttakeState = true;
+                    }
+                }
+
+                break;
         }
 
 
@@ -514,7 +553,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
         if(!previousGamepad2.share && currentGamepad2.share) {
             if(hangState == HangState.hanging1) {
-                outtakeSlides.setPosition(2350);
+                outtakeSlides.setPosition(2450);
                 hangState = HangState.hanging2;
             } else {
                 outtakeSlides.setPosition(1500);
@@ -527,9 +566,15 @@ public class AndrewsCrappyTeleOp extends OpMode {
         telemetry.addLine();
         telemetry.addData("auto spec drive?", autoSpecDrive);
         telemetry.addData("spec drive state", autoSpecDriveState);
+        telemetry.addLine();
         telemetry.addData("x", odometry.opt.get_x());
         telemetry.addData("y", odometry.opt.get_y());
         telemetry.addData("heading", odometry.opt.get_heading());
+        telemetry.addLine();
+        telemetry.addData("sample mode?",sampleMode);
+        telemetry.addLine();
+        telemetry.addData("Loop time (ms)", loopTimer.milliseconds());
+        loopTimer.reset();
     }
 
 
@@ -541,7 +586,8 @@ public class AndrewsCrappyTeleOp extends OpMode {
         outtakeSpecimen1,
         outakeSpecimen2,
         outtakeSample,
-        auto
+        auto,
+        specOut
     }
 
     enum HangState {
