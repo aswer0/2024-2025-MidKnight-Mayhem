@@ -96,6 +96,8 @@ public class WheelControl {
 
     public void drive_relative(double forward, double right, double rotate_power, double max_power) {
         /*
+        Positive rotate_power is CCW, negative is CW
+
         Wheel drive directions
         back back
         back back
@@ -119,7 +121,7 @@ public class WheelControl {
         double FLPower = -forward - right + rotate_power;
         double FRPower = -forward + right - rotate_power;
 
-        // Get max power to make sure powers <= 1
+        // Get max power to make sure powers <= max_power
         double old_max_power = max_power;
         old_max_power = Math.max(Math.abs(BLPower), old_max_power);
         old_max_power = Math.max(Math.abs(BRPower), old_max_power);
