@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.Utils;
 
 @Config
-public class TwoWheelOdometry {
+public class TwoWheelOdometryV2 {
     public static double threshold = 0.0002;
     public static double TICKS_TO_INCHES = 1.88976*Math.PI/(2048 * 0.982);
 
@@ -41,7 +41,7 @@ public class TwoWheelOdometry {
     private double d_x;
     private double d_y;
 
-    public TwoWheelOdometry(HardwareMap hardwareMap,
+    public TwoWheelOdometryV2(HardwareMap hardwareMap,
                             double start_heading,
                             double start_x,
                             double start_y,
@@ -112,9 +112,13 @@ public class TwoWheelOdometry {
             d_x = d_h;
             d_y = d_v;
         } else {
-            double coeff = 2*Math.sin(d_heading/2);
-            d_x = coeff * (d_h / d_heading + HORIZONTAL_ENCODER_Y);
-            d_y = coeff * (d_v / d_heading - VERTICAL_ENCODER_X);
+            // Radii where CCW is positive and CW is negative
+            double h_radius = d_h / d_heading + HORIZONTAL_ENCODER_Y;
+            double v_radius = d_v / d_heading - VERTICAL_ENCODER_X;
+            double sin_term = Math.sin(d_heading);
+            double cos_term = 1-Math.cos(d_heading);
+            d_x = sin_term*h_radius - cos_term*v_radius;
+            d_y = cos_term*h_radius + sin_term*v_radius;
         }
 
         // Calculate new position
