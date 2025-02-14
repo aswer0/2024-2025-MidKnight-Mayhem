@@ -169,7 +169,7 @@ public class SixSpecimenAuto extends OpMode {
 
     public void resetTimers() {
         state_timer.reset();
-        event_scheduler.clearEvents();
+        event_scheduler.clear();
     }
 
     @Override
@@ -215,7 +215,7 @@ public class SixSpecimenAuto extends OpMode {
 
                 if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() + sub_intake.x * ticks_per_inch) <= 25) {
                     intake.down();
-                    if (event_scheduler.milliseconds("Extend intake slides") > 200) {
+                    if (event_scheduler.during("Extend intake slides", 200)) {
                         sub_intake_slide_pos = Math.max(sub_intake_slide_pos-20, -450);
                     }
                 }
@@ -223,7 +223,7 @@ public class SixSpecimenAuto extends OpMode {
                 if (intake.hasCorrectSample(false) || state_timer.milliseconds() >= 3000) {
                     intake.stop();
                     intake.up();
-                    if (event_scheduler.milliseconds("Intake up") > 200) {
+                    if (event_scheduler.during("Intake up", 200)) {
                         resetTimers();
                         state = State.firstSpit;
                         break;
@@ -240,7 +240,7 @@ public class SixSpecimenAuto extends OpMode {
                     horizontalSlides.setPosition(horizontal_pos);
                     intake.reverseDown();
                     intake.reverse();
-                    if (event_scheduler.milliseconds("Spit sample") > 300) {
+                    if (event_scheduler.during("Spit sample", 300)) {
                         intake_state++;
                         resetTimers();
                         state = State.intakeSample;

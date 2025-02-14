@@ -93,7 +93,8 @@ public class VectorField {
         prev_pos = get_pos();
     }
 
-    public void updatePath(BCPath path) {
+    public void setPath(BCPath path) {
+        this.D = 0;
         this.path = path;
     }
 
@@ -230,7 +231,8 @@ public class VectorField {
     }
 
     public void set_drive_speed(double turn_speed) {
-        speed = max_speed-(turn_speed/max_turn_speed)*(max_speed-min_speed);
+        speed = max_speed;
+        //speed = max_speed-(turn_speed/max_turn_speed)*(max_speed-min_speed);
         speed = Math.min(speed, get_end_speed(path.final_point));
     }
 

@@ -25,7 +25,6 @@ public class Intake {
 
     public static double DOOR_OPEN_POS=0.55;
     public static double DOOR_CLOSE_POS=0.2;
-
     public DcMotorEx intakeMotor;
 
     public Servo intakePivotLeft;

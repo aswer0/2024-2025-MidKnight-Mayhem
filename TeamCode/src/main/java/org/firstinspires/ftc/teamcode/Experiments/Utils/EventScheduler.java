@@ -17,46 +17,55 @@ public class EventScheduler {
     }
     
     // Create event or reset it
-    public void createEvent(String event) {
+    public void manualCreate(String event) {
         event_starts.put(event, timer.milliseconds());
     }
     
     // Creates event only if it's new
-    public void createEventIfNew(String event) {
+    public void createIfNew(String event) {
         if (!event_starts.containsKey(event)) {
-            createEvent(event);
+            manualCreate(event);
         }
     }
     
     // Delete a single event
-    public void deleteEvent(String event) {
+    public void delete(String event) {
         event_starts.remove(event);
     }
     
     // Delete multiple events (less efficient)
-    public void deleteEvents(String... events) {
+    public void delete(String... events) {
         event_starts.keySet().removeAll(Set.of(events));
     }
     
     // Clear all events
-    public void clearEvents() {
+    public void clear() {
         event_starts.clear();
         timer.reset();
     }
     
     // Clear all events except some
-    public void clearEventsExcept(String... events) {
+    public void clearExcept(String... events) {
         event_starts.keySet().retainAll(Set.of(events));
     }
     
     // Time of event of milliseconds
     public double milliseconds(String event) {
-        createEventIfNew(event);
+        createIfNew(event);
         return timer.milliseconds()-event_starts.get(event);
     }
     
     // Time of event in seconds
     public double seconds(String event) {
         return milliseconds(event)/1000;
+    }
+
+    public boolean during(String event, double start_milliseconds) {
+        return milliseconds(event) > start_milliseconds;
+    }
+
+    public boolean during(String event, double start_milliseconds, double end_milliseconds) {
+        double time = milliseconds(event);
+        return time > start_milliseconds && time < end_milliseconds;
     }
 }
