@@ -1,13 +1,15 @@
 package org.firstinspires.ftc.teamcode.Experiments.Utils;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 // Processes timing for multiple events
 // Only uses one timer so it's efficient
 public class EventScheduler {
-    private Map<String, Double> event_starts;
+    private Map<String, Double> event_starts = new HashMap<>();
     private ElapsedTime timer;
     
     // Constructor
