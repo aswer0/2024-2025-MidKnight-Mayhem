@@ -56,7 +56,7 @@ public class RedRightGVF extends OpMode {
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        hang_gvf = new VectorField(wheelControl, odometry, hang_path, 90, true);
+        hang_gvf = new VectorField(wheelControl, odometry);
 
         lift = new Lift(hardwareMap);
         manipulator = new Manipulator(hardwareMap);
@@ -104,7 +104,7 @@ public class RedRightGVF extends OpMode {
         telemetry.put("X position: ", odometry.opt.get_x());
         telemetry.put("Y position: ", odometry.opt.get_y());
         telemetry.put("Heading: ", odometry.opt.get_heading());
-        telemetry.put("D: ", hang_gvf.D);
+        telemetry.put("D: ", hang_gvf.T);
         telemetry.put("Speed: ", hang_gvf.speed);
         telemetry.put("Velocity: ", hang_gvf.powers);
         telemetry.put("Error: ", hang_gvf.error);
