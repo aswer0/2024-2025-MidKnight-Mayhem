@@ -26,7 +26,7 @@ public class SixSpecimenAuto extends OpMode {
     public static double sample_y = 37;
 
     public static double intake_sample_x = 27;
-    public static double intake_sample_y = 34;
+    public static double intake_sample_y = 40;
 
     public static double first_spit_x = 27;
     public static double first_spit_y = 44;
@@ -214,27 +214,32 @@ public class SixSpecimenAuto extends OpMode {
                 arm.openClaw();
 
                 if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() + sub_intake.x * ticks_per_inch) <= 25) {
+                    event_scheduler.createIfNew("Extend intake slides");
                     intake.down();
-                    if (event_scheduler.during("Extend intake slides", 200)) {
-                        sub_intake_slide_pos = Math.max(sub_intake_slide_pos-20, -450);
-                    }
+                }
+
+                if (event_scheduler.during("Extend intake slides", 200)) {
+                    sub_intake_slide_pos = -450;
                 }
 
                 if (intake.hasCorrectSample(false) || state_timer.milliseconds() >= 3000) {
                     intake.stop();
                     intake.up();
-                    horizontalSlides.setPosition(0);
                     if (event_scheduler.during("Intake up", 200)) {
                         resetTimers();
                         state = State.firstSpit;
                         break;
                     }
                 } else {
-                    intake.intake();
+                    intake.smartIntake(false);
                 }
                 break;
 
             case firstSpit:
+                if (state_timer.milliseconds() < 100) {
+                    wheelControl.drive_relative(1, 0, 0, 1);
+                }
+
                 vf.pid_to_point(new Point(first_spit_x, first_spit_y), first_spit_angle, 1);
 
                 if (vf.at_angle(first_spit_angle, 10) && vf.at_point(new Point(first_spit_x, first_spit_y), 5)) {;
@@ -247,7 +252,7 @@ public class SixSpecimenAuto extends OpMode {
                         state = State.intakeSample;
                     }
                 } else {
-                    if (state_timer.milliseconds() < 500) {
+                    if (state_timer.milliseconds() < 1000) {
                         horizontalSlides.setPosition(0);
                     } else {
                         horizontalSlides.setPosition(horizontal_pos);
@@ -289,19 +294,14 @@ public class SixSpecimenAuto extends OpMode {
                 horizontalSlides.setPosition(0);
                 target.x = 50;
 
-                if (intake_state == 1){
-                    vf.pid_to_point(get_specimen_target, sub_spit_angle, 1);
-                }
-                else{
-                    vf.pid_to_point(get_specimen_target, 0, 1);
-                }
+                vf.pid_to_point(get_specimen_target, 0, 1);
 
                 if (state_timer.milliseconds() > 500){
                     lift.intakeSpecimen();
                     arm.intakeSpecimen();
                 }
 
-                if (vf.at_point(get_specimen_target, 5)) { //4
+                if (vf.at_angle(0, 5)) { //4
                     wheelControl.stop();
                     resetTimers();
                     state = State.pickupSpecimen;
@@ -312,42 +312,30 @@ public class SixSpecimenAuto extends OpMode {
             case pickupSpecimen:
                 arm.intakeSpecimen();
                 horizontalSlides.setPosition(0);
+                intake.down();
+                intake.stop();
 
-                if (intake_state == 1){
-                    if (intake.hasCorrectSample(false)){
-                        intake.reverseDown();
-                        intake.reverse();
-                    }
-                    vf.pid_to_point(get_specimen_target, 0, 1);
-                }
-                else{
-                    intake.down();
-                    intake.stop();
-                }
+                if (state_timer.milliseconds() < 650) {
+                    vf.pid_to_point(new Point(0, get_specimen_target.y), 0, 0.3);
+                } else {
+                    wheelControl.stop();
+                    arm.closeClaw();
 
-                if (!intake.hasCorrectSample(false)){
-                    if (/*sensors.get_back_dist() >= intake_dist_thresh || */state_timer.milliseconds() < 670) {
-                        wheelControl.drive(0.5, 0, 0, 0, 0.7);
-                    } else {
-                        wheelControl.stop();
-                        arm.closeClaw();
-
-                        resetTimers();
-                        target.y -= 2.5; // this has to be tuned better for more space on the right
-                        state = State.depositPid;
-                    }
+                    resetTimers();
+                    target.y -= 2.5; // this has to be tuned better for more space on the right
+                    state = State.depositPid;
                 }
 
                 break;
 
             case intakeSample:
-                if (intake_state > 5){
+                if (intake_state >= 5){
                     state = State.goToSpecimen;
                 }
 
-                if (state_timer.milliseconds() < 1500) {
+                if (state_timer.milliseconds() < 1000) {
                     vf.pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake, 1);
-                    if (state_timer.milliseconds() > 1000) {
+                    if (state_timer.milliseconds() > 500) {
                         horizontalSlides.setPosition(horizontal_pos);
                         intake.down();
                         intake.intake();
@@ -382,12 +370,12 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case spitSample:
-                if (state_timer.milliseconds()>0) horizontalSlides.setPosition(-470);
+                horizontalSlides.setPosition(horizontal_pos);
                 intake.reverseDown();
                 intake.reverse();
 
-                if (state_timer.milliseconds() >= 600){
-                    intake_sample_y -= 8;
+                if (state_timer.milliseconds() >= 300){
+                    intake_sample_y -= 10;
                     //intake_sample_x += 0.5;
                     intake_state++;
 

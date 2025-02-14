@@ -85,7 +85,7 @@ public class SampleAuto extends OpMode {
         odometry = new Odometry(hardwareMap, 0, start_point.x, start_point.y, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         bcpath = new BCPath(follow_path);
-        vf = new VectorField(wheelControl, odometry);
+        vf = new VectorField(wheelControl, odometry, bcpath, 135, false);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 

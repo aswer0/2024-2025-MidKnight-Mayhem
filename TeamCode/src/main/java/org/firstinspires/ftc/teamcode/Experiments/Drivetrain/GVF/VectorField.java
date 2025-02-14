@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.Utils;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Controllers.TestPID;
@@ -29,7 +28,7 @@ public class VectorField {
 
     // Correction constants
     double path_corr = 0.1;
-    double centripetal_corr = 0.05;
+    //double centripetal_corr = 0;
     //double centripetal_threshold = 10;
     double accel_corr = 0;
 
@@ -45,7 +44,7 @@ public class VectorField {
     double end_heading;
 
     // Backend variables
-    public double T;
+    public double D;
     public Point powers = new Point(0, 0);
     public double speed;
     public double turn_speed;
@@ -54,9 +53,9 @@ public class VectorField {
     public ElapsedTime timer;
 
     // PID variables
-    public double xp = end_decel, xi = 0.1, xd = 0.01, xithres = 2;
-    public double yp = end_decel, yi = 0.1, yd = 0.01, yithres = 2;
-    public double hp = 0.04, hi = 0.025, hd = 0.003, hithres = 3;
+    public double xp = end_decel, xi = 0.1, xd = 0.006, xithres = 2;
+    public double yp = end_decel, yi = 0.1, yd = 0.006, yithres = 2;
+    public double hp = 0.005, hi = 0.01, hd = 0.001, hithres = 2;
 
     TestPID x_PID;
     TestPID y_PID;
@@ -67,10 +66,16 @@ public class VectorField {
 
     // Constructor
     public VectorField(WheelControl w,
-                       Odometry o) {
+                       Odometry o,
+                       BCPath p,
+                       double end_heading,
+                       boolean path_heading) {
         // Inputs
         this.odometry = o;
+        this.path = p;
         this.drive = w;
+        this.end_heading = end_heading;
+        this.path_heading = path_heading;
 
         // Zero power behavior: brake
         drive.BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -88,16 +93,14 @@ public class VectorField {
         prev_pos = get_pos();
     }
 
-    public void setPath(BCPath path, double end_heading, boolean path_heading) {
-        this.T = 0;
+    public void setPath(BCPath path) {
+        this.D = 0;
         this.path = path;
-        this.end_heading = end_heading;
-        this.path_heading = path_heading;
     }
 
     // Gets closest point on path to robot
     public Point get_closest() {
-        return path.forward(T);
+        return path.forward(D);
     }
 
     // x position of robot
@@ -118,14 +121,6 @@ public class VectorField {
     // Gets position of robot
     public Point get_pos() {
         return new Point(get_x(), get_y());
-    }
-
-    public boolean at_point(Point p, double threshold) {
-        return Utils.dist(get_pos(), p) <= threshold;
-    }
-
-    public boolean at_angle(double h, double threshold) {
-        return (Utils.limit_angle_deg(h-get_heading())) < threshold;
     }
 
     // Sets velocity of robot
@@ -151,27 +146,27 @@ public class VectorField {
                                double tune_iters,
                                double rate) {
         Point pos = Utils.add_v(get_pos(), Utils.mul_v(powers, look_ahead));
-        double path_len = path.F[path.get_bz(T)].est_arclen;
+        double path_len = path.F[path.get_bz(D)].est_arclen;
         double update = rate*speed/path_len;
 
         // Get rough estimate
-        int init_sign = path.dDdt_sign(pos, T);
+        int init_sign = path.dDdt_sign(pos, D);
         int iters = 0;
-        while (path.dDdt_sign(pos, T) == init_sign && iters++ < max_rough_iters) {
-            T -= init_sign*update;
+        while (path.dDdt_sign(pos, D) == init_sign && iters++ < max_rough_iters) {
+            D -= init_sign*update;
         }
 
         // Binary search to tune closest
         for (int i = 0; i < tune_iters; i++) {
-            if (path.dDdt_sign(pos, T) > 0) T -= update;
-            else T += update;
+            if (path.dDdt_sign(pos, D) > 0) D -= update;
+            else D += update;
             update /= 2;
         }
-        if (T > path.n_bz) T = path.n_bz;
+        if (D > path.n_bz) D = path.n_bz;
     }
 
-    // Calculates T (parameter) value that is approximately "dist" distance from end
-    public double T_from_end(double dist) {
+    // Calculates D (parameter) value that is approximately "dist" distance from end
+    public double D_from_end(double dist) {
         return path.n_bz-dist/path.F[path.n_bz-1].est_arclen;
     }
 
@@ -182,7 +177,7 @@ public class VectorField {
 
     // Distance to closest point on path
     public double closest_dist() {
-        return Utils.dist(path.forward(T), get_pos());
+        return Utils.dist(path.forward(D), get_pos());
     }
 
     // Gets speed when approaching end
@@ -203,22 +198,22 @@ public class VectorField {
 
         // Base vector (orthogonal & tangent)
         Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
-        Point tangent = Utils.scale_v(path.derivative(T), 1);
+        Point tangent = Utils.scale_v(path.derivative(D), 1);
         Point move_v = Utils.add_v(orth, tangent);
 
         // Acceleration correction
         //Point accel_corr_term = get_accel_corr(move_v);
 
         // Centripetal correction
-        Point centripetal = new Point(0, 0);
-        if (centripetal_corr > 0) {
-            double perp_angle = Utils.angle_v_rad(tangent)+Math.PI/2;
-            double centripetal_len = path.curvature(T)*centripetal_corr*true_speed/p_to_v;
-            centripetal = Utils.polar_to_rect_rad(centripetal_len, perp_angle);
-        }
+        /*Point centripetal = new Point(0, 0);
+        if (closest_dist() < centripetal_threshold) {
+            double perp_angle = Utils.angle_v(tangent)+Math.PI/2;
+            double centripetal_len = path.curvature(D)*centripetal_corr*speed;
+            centripetal = Utils.polar_to_rect(centripetal_len, perp_angle);
+        }*/
 
         // Add everything
-        return Utils.add_v(Utils.scale_v(move_v, speed), centripetal);
+        return Utils.scale_v(move_v, speed);
         //return Utils.add_v(Utils.scale_v(move_v, speed), accel_corr_term);
     }
 
@@ -247,7 +242,7 @@ public class VectorField {
         end_target = path.final_point;
 
         // PID at the end
-        if (T > T_from_end(PID_dist)) {
+        if (D > D_from_end(PID_dist)) {
             PID = true;
             pid_to_point(path.final_point, end_heading, max_speed);
             return;
@@ -257,12 +252,12 @@ public class VectorField {
         PID = false;
         set_velocity();
         if (!path_heading) set_turn_speed(end_heading);
-        else set_turn_speed(Utils.angle_v_deg(path.derivative(T)));
+        else set_turn_speed(Math.toDegrees(Utils.angle_v(path.derivative(D))));
         set_drive_speed(turn_speed);
         powers = move_vector(speed);
 
         // Error
-        error = Utils.dist(get_pos(), path.forward(T));
+        error = Utils.dist(get_pos(), path.forward(D));
 
         // Drive according to calculations
         drive.drive(-powers.x, -powers.y, turn_speed, Math.toRadians(get_heading()), 1);
