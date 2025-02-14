@@ -108,7 +108,6 @@ public class FourSampleAuto extends OpMode {
                 arm.closeClaw();
 
                 if (timer.milliseconds() >= 300) {
-                    arm.outtakeSample();
                     lift.toHighBasket();
                 }
 
@@ -125,14 +124,16 @@ public class FourSampleAuto extends OpMode {
                 intake.up();
                 intake.stop();
 
-                arm.openClaw();
+                arm.outtakeSample();
 
                 if (timer.milliseconds() >= 250){
+                    arm.openClaw();
+                }
+                if (timer.milliseconds() >= 500){
                     arm.toAutoStartPosition();
                     lift.intakeSample();
 
                     path.follow_pid_to_point(sample_point, intake_angle);
-
                 }
                 if (timer.milliseconds() >= 2000){
                     state = State.intake_sample;
