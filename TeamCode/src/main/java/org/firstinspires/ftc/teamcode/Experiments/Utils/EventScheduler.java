@@ -4,11 +4,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.Map;
 import java.util.Set;
 
+// Processes timing for multiple events
+// Only uses one timer so it's efficient
 public class EventScheduler {
-    Map<String, Double> event_starts;
-    ElapsedTime timer;
+    private Map<String, Double> event_starts;
+    private ElapsedTime timer;
     
-    // Bases everything off single timer
+    // Constructor
     public EventScheduler() {
         timer = new ElapsedTime();
         timer.reset();
