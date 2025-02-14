@@ -165,7 +165,7 @@ public class DanielSixSpecAuto extends OpMode {
         telemetry.addData("Motor position: ", lift.getPosition());
         telemetry.addData("Horizontal Motor position: ", intake_slides.horizontalSlidesMotor.getCurrentPosition());
         telemetry.addData("State: ", state);
-        telemetry.addData("Back Distance", sensors.get_back_dist());
+        //telemetry.addData("Back Distance", sensors.get_back_dist());
         telemetry.addData("timer", timer.milliseconds());
 
         lift.update();

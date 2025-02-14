@@ -267,7 +267,7 @@ public class NathansCrappyTeleOp extends OpMode {
                 intake.stop();
                 arm.intakeSpecimen();
 
-                if (sensors.get_back_dist() >= 2.5 || speceminTimer.milliseconds() < 1100) {
+                if (/*sensors.get_back_dist() >= 2.5 || */speceminTimer.milliseconds() < 1100) {
                     drive.drive(0.5, 0, 0, 0, 0.7);
                 } else {
                     drive.drive(0, 0, 0, 0, 0);

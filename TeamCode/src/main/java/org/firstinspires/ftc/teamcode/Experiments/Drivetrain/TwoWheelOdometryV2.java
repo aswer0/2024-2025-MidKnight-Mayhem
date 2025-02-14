@@ -35,11 +35,11 @@ public class TwoWheelOdometryV2 {
     double h_pos;
 
     // Change in values
-    private double d_v;
-    private double d_h;
-    private double d_heading;
-    private double d_x;
-    private double d_y;
+    public double d_v;
+    public double d_h;
+    public double d_heading;
+    public double d_x;
+    public double d_y;
 
     public TwoWheelOdometryV2(HardwareMap hardwareMap,
                             double start_heading,

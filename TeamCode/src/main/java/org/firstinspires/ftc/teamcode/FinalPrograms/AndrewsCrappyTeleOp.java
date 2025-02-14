@@ -268,7 +268,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                     }
                     break;
                 case pickupSpecimen:
-                    if (sensors.get_back_dist() >= intake_dist_thresh || autoTimer.milliseconds() < 600) {
+                    if (/*sensors.get_back_dist() >= intake_dist_thresh || */autoTimer.milliseconds() < 600) {
                         drive.drive(0.5, 0, 0, 0, 0.7);
                     } else {
                         drive.stop();

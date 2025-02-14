@@ -23,8 +23,8 @@ public class Intake {
     public static double DOWN_POS=0.64;
     public static double UP_POS=0.893;
 
-    public static double DOOR_OPEN_POS=0.8;
-    public static double DOOR_CLOSE_POS=0.4;
+    public static double DOOR_OPEN_POS=0.55;
+    public static double DOOR_CLOSE_POS=0.2;
 
     public DcMotorEx intakeMotor;
 
@@ -104,9 +104,9 @@ public class Intake {
                 return true;
             case wrong:
                 correctSampleSince.reset();
-                //intake();
-                reverseDown();
-                reverse();
+                intake();
+                down();
+                //reverse();
                 openDoor();
                 return false;
             case unsure:

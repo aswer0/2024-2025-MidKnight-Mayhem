@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 @Disabled
 @Config
 @TeleOp
-public class OdometryTest  extends OpMode {
+public class OdometryTest extends OpMode {
     TelemetryPacket packet;
 
     Odometry odometry;

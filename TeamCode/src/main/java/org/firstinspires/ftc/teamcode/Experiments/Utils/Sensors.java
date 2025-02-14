@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -12,7 +13,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Sensors {
     Telemetry telemetry;
     DistanceSensor frontDistanceSensor;
-    DistanceSensor backDistanceSensor;
+    //DistanceSensor backDistanceSensor;
+    TouchSensor touchBackSensor;
 
     RevColorSensorV3 intakeSensor;
     public static double chamberThreshold = 5.5;
@@ -24,15 +26,19 @@ public class Sensors {
         frontDistanceSensor = hardwareMap.get(DistanceSensor.class, "fDS");
 
         //need new config
-        backDistanceSensor = hardwareMap.get(DistanceSensor.class, "bDS");
+        //backDistanceSensor = hardwareMap.get(DistanceSensor.class, "bDS");
         intakeSensor = hardwareMap.get(RevColorSensorV3.class, "iS");
+        touchBackSensor = hardwareMap.get(TouchSensor.class, "touchBack");
         this.telemetry = telemetry;
-
     }
 
     public void update() {
         distSensorReads[updateCounter] = get_front_dist();
         updateCounter++;
+    }
+
+    public boolean isTouchBack() {
+        return touchBackSensor.isPressed();
     }
 
     public boolean atChamber() {
@@ -45,9 +51,9 @@ public class Sensors {
     public double get_front_dist(){
         return frontDistanceSensor.getDistance(DistanceUnit.INCH);
     }
-    public double get_back_dist(){
-        return backDistanceSensor.getDistance(DistanceUnit.INCH);
-    }
+    //public double get_back_dist(){
+    //    return backDistanceSensor.getDistance(DistanceUnit.INCH);
+    //}
 
     public double get_average_front_dist(){
         double sum = 0;

@@ -35,7 +35,9 @@ public class TwoWheelOdometryTest extends OpMode {
         packet = new TelemetryPacket();
         packet.put("xPos", odometry.getXPos());
         packet.put("yPos", odometry.getYPos());
-        packet.put("heading", Math.toDegrees(odometry.getHeadingDeg()));
+        packet.put("d_x", odometry.d_x);
+        packet.put("d_y", odometry.d_y);
+        packet.put("heading", Math.toDegrees(odometry.getHeadingRad()));
         packet.put("vertical encoder", odometry.vertical_encoder.getCurrentPosition());
         packet.put("horizontal encoder", odometry.horizontal_encoder.getCurrentPosition());
         (FtcDashboard.getInstance()).sendTelemetryPacket(packet);

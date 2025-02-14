@@ -7,7 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.VectorField;
+//import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -16,17 +17,21 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
+import org.firstinspires.ftc.teamcode.Experiments.Utils.ActionTimer;
 import org.opencv.core.Point;
 
 @Autonomous
 @Config
 public class SixSpecimenAuto extends OpMode {
+    public static double sample_x = 24.5;
+    public static double sample_y = 37;
+
     public static double intake_sample_x = 27;
     public static double intake_sample_y = 34;
 
-    public static double first_spit_x = 24;
+    public static double first_spit_x = 27;
     public static double first_spit_y = 44;
-    public static double first_spit_angle = 70;
+    public static double first_spit_angle = 45;
 
     public static double pos = 650;
     public static double dist_thresh = 2.5;
@@ -37,31 +42,32 @@ public class SixSpecimenAuto extends OpMode {
     public static double target_angle_spit = 22;
 
     public static double power = 1;
-    public static double gvf_speed = 0.1;
-    public static double gvf_thresh = 13;
 
-    public static double target_x = 50; //36.2
-    public static double target_y = 90;
+    public static double target_x = 42; //36.2
+    public static double target_y = 72;
 
     public static double set_pos_tolerance = 1;
-    public static double ticks_per_inch = 25;
+    public static double ticks_per_inch = 70;
     public static double sub_spit_angle = 60;
     double intake_state = 0;
 
+    double sub_intake_slide_pos;
+
     Point target;
     Point get_specimen_target;
+    Point get_sample_target;
     Point sub_intake = new Point(0, 0);
     Point sub_intake_limit = new Point(27.5, 21.3);
 
     ElapsedTime timer;
-    ElapsedTime intakeShakeTimer;
+    ActionTimer action_timer;
     Sensors sensors;
 
     Odometry odometry;
     WheelControl wheelControl;
-    Path path;
+    VectorField vf;
 
-    State state = State.pid;
+    State state = State.firstPid;
 
     Lift lift;
     Intake intake;
@@ -69,7 +75,7 @@ public class SixSpecimenAuto extends OpMode {
     Arm arm;
 
     Alliance alliance = Alliance.red;
-
+    
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
 
@@ -79,8 +85,10 @@ public class SixSpecimenAuto extends OpMode {
     // setupSpitSample -> spitSample
 
     enum State {
-        pid,
+        firstPid,
+        depositPid,
         subIntake,
+        retractSubIntake,
         firstSpit,
         goToSpecimen,
         pickupSpecimen,
@@ -102,15 +110,15 @@ public class SixSpecimenAuto extends OpMode {
 
         target = new Point(target_x, target_y);
         get_specimen_target = new Point(12.875, 28);
+        get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
-        intakeShakeTimer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
-        odometry = new Odometry(hardwareMap, 180, 7.875, 72, "OTOS");
+        odometry = new Odometry(hardwareMap, 180, 8.875, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
-        path = new Path(follow_path, wheelControl, odometry, telemetry, gvf_speed, gvf_thresh, 180, power);
+        vf = new VectorField(wheelControl, odometry);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -146,7 +154,7 @@ public class SixSpecimenAuto extends OpMode {
             }
         }
         if (!previousGamepad1.dpad_up && currentGamepad1.dpad_up){
-            sub_intake.y -= set_pos_tolerance;
+            sub_intake.y += set_pos_tolerance;
         }
         if (!previousGamepad1.dpad_down && currentGamepad1.dpad_down){
             sub_intake.y -= set_pos_tolerance;
@@ -159,10 +167,14 @@ public class SixSpecimenAuto extends OpMode {
 
     }
 
+    public void resetTimers() {
+        timer.reset();
+        action_timer.reset();
+    }
+
     @Override
     public void start() {
-        timer.reset();
-        intakeShakeTimer.reset();
+        resetTimers();
     }
 
     @Override
@@ -171,107 +183,73 @@ public class SixSpecimenAuto extends OpMode {
         odometry.opt.update();
 
         switch (state) {
-            case pid:
+            case firstPid:
                 intake.up();
                 intake.stop();
                 arm.closeClaw();
-
                 lift.toBackChamber1Pos();
+                arm.backOuttakeSpecimen1();
+                horizontalSlides.setPosition(-sub_intake.x*ticks_per_inch);
 
-                if (intake_state == 0){
-                    arm.backOuttakeSpecimen1();
-                    horizontalSlides.setPosition(-sub_intake.x*ticks_per_inch);
-                    if (timer.milliseconds() >= 100){
-                        path.follow_pid_to_point(new Point(target_x, target_y+sub_intake.y), 180); //+ sub_intake.x
-                    }
-                    if (odometry.opt.get_x()>(target_x-12) && sensors.get_back_dist()<1){
-                        state = State.subIntake;
-                    }
-                }
-                else{
-                    if (timer.milliseconds() >= 100){
-                        arm.outtakeSpecimen1();
-                    }
-                    //path.follow_pid_to_point(target, 0);
-                    if (odometry.opt.get_y()<target_y-36) {
-                        path.follow_pid_to_point(new Point(target_x - 12, target_y), 0);
-                    } else {
-                        path.follow_pid_to_point(target, 0);
-                    }
-                    if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
-                        intake_state++;
-                        timer.reset();
-                        state = State.deposit;
-                    }
+                if (timer.milliseconds() >= 100) {
+                    vf.pid_to_point(new Point(target_x, target_y + sub_intake.y), 180, 1);
                 }
 
-                //if (intake_state >= 1){
-                //    path.update(0);
-                //}
-                if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
+                if (sensors.isTouchBack() || timer.milliseconds() > 1400) {
                     intake_state++;
-                    timer.reset();
-                    if (intake_state == 1){
-                        state = State.subIntake;
-                    }
-                    else{
-                        state = State.deposit;
-                    }
+                    resetTimers();
+                    sub_intake_slide_pos = -sub_intake.x*ticks_per_inch;
+                    state = State.subIntake;
                 }
-                if (timer.milliseconds() > 5000) {
-                    timer.reset();
-                    intake_state++;
-                    if (intake_state == 1){
-                        state = State.subIntake;
-                    }
-                    else{
-                        state = State.deposit;
-                    }
-                }
-
                 break;
 
             case subIntake: //also back deposit
+                wheelControl.stop();
                 lift.toBackChamber2Pos();
                 arm.backOuttakeSpecimen2();
-                horizontalSlides.setPosition(sub_intake.y*ticks_per_inch);
+                horizontalSlides.setPosition(sub_intake_slide_pos);
 
-                if (Math.abs(lift.getPosition()-lift.backChamber1Pos)<10 || timer.milliseconds()>500) {
-                    arm.openClaw();
-                    if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() - sub_intake.y * ticks_per_inch) <= 10) {
-                        intake.down();
-                        intake.intake();
-                    }
+                if (timer.milliseconds() < 250) break;
 
-                    if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2000) {
-                        intake.stop();
-                        intake.up();
-                        horizontalSlides.setPosition(0);
-                        timer.reset();
-                        state =State.firstSpit;
-                    }
+                arm.openClaw();
+
+                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() + sub_intake.x * ticks_per_inch) <= 25) {
+                    intake.down();
+                    sub_intake_slide_pos = Math.max(sub_intake_slide_pos-20, -450);
                 }
-//                if (horizontalSlides.horizontalSlidesMotor.getCurrentPosition() <= 10 && intake.hasCorrectSample(false)){
-//                    timer.reset();
-//                    state = State.deposit;
-//                }
+
+                if (intake.hasCorrectSample(false) || timer.milliseconds() >= 3000) {
+                    action_timer.startFirstOnly();
+                    intake.stop();
+                    intake.up();
+                } else {
+                    intake.intake();
+                }
+
+                if (action_timer.overMilliseconds(200)){
+                    resetTimers();
+                    state = State.firstSpit;
+                }
 
                 break;
 
             case firstSpit:
-                path.follow_pid_to_point(new Point(first_spit_x,first_spit_y), first_spit_angle);
-                if (timer.milliseconds()>1200) { //path.at_point(new Point(first_spit_x,first_spit_y),5) ||
+                vf.pid_to_point(new Point(first_spit_x, first_spit_y), first_spit_angle, 1);
+
+                if (vf.at_angle(first_spit_angle, 10) && vf.at_point(new Point(first_spit_x, first_spit_y), 5)) {
+                    action_timer.startFirstOnly();
                     horizontalSlides.setPosition(horizontal_pos);
-                    if (horizontalSlides.getPosition()<horizontal_pos+50) {
-                        intake.reverseDown();
-                        intake.reverse();
-                        if (timer.milliseconds()>1200+500) {
-                            state = State.intakeSample;
-                            intake_state++;
-                            horizontalSlides.setPosition(0);
-                            timer.reset();
-                        }
+                    intake.reverseDown();
+                    intake.reverse();
+                    if (action_timer.overMilliseconds(300)) {
+                        intake_state++;
+                        horizontalSlides.setPosition(0);
+                        resetTimers();
+                        state = State.intakeSample;
                     }
+                } else {
+                    intake.up();
+                    intake.stop();
                 }
 
                 break;
@@ -289,13 +267,12 @@ public class SixSpecimenAuto extends OpMode {
 
                 if (timer.milliseconds() >= 400){
                     // im not sure if it will intake 3 times then move to go to specimen state, check this
-                    if (intake_state >= 2 && intake_state < 6){
-                        timer.reset();
-                        intakeShakeTimer.reset();
+                    if (intake_state >= 2 && intake_state < 7){
+                        resetTimers();
                         state = State.intakeSample;
                     }
                     else {
-                        timer.reset();
+                        resetTimers();
                         state = State.goToSpecimen;
                     }
                 }
@@ -306,12 +283,13 @@ public class SixSpecimenAuto extends OpMode {
                 intake.down();
                 intake.stop();
                 horizontalSlides.setPosition(0);
+                target.x = 50;
 
                 if (intake_state == 1){
-                    path.follow_pid_to_point(get_specimen_target, sub_spit_angle);
+                    vf.pid_to_point(get_specimen_target, sub_spit_angle, 1);
                 }
                 else{
-                    path.follow_pid_to_point(get_specimen_target, 0);
+                    vf.pid_to_point(get_specimen_target, 0, 1);
                 }
 
                 if (timer.milliseconds() > 500){
@@ -319,9 +297,9 @@ public class SixSpecimenAuto extends OpMode {
                     arm.intakeSpecimen();
                 }
 
-                if (path.at_point(get_specimen_target, 5)) { //4
-                    wheelControl.drive(0, 0, 0, 0, 0.7);
-                    timer.reset();
+                if (vf.at_point(get_specimen_target, 5)) { //4
+                    wheelControl.stop();
+                    resetTimers();
                     state = State.pickupSpecimen;
                 }
 
@@ -336,7 +314,7 @@ public class SixSpecimenAuto extends OpMode {
                         intake.reverseDown();
                         intake.reverse();
                     }
-                    path.follow_pid_to_point(get_specimen_target, 0);
+                    vf.pid_to_point(get_specimen_target, 0, 1);
                 }
                 else{
                     intake.down();
@@ -344,15 +322,15 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 if (!intake.hasCorrectSample(false)){
-                    if (sensors.get_back_dist() >= intake_dist_thresh || timer.milliseconds() < 670) {
+                    if (/*sensors.get_back_dist() >= intake_dist_thresh || */timer.milliseconds() < 670) {
                         wheelControl.drive(0.5, 0, 0, 0, 0.7);
                     } else {
                         wheelControl.drive(0, 0, 0, 0, 0);
                         arm.closeClaw();
 
-                        timer.reset();
+                        resetTimers();
                         target.y -= 2.5; // this has to be tuned better for more space on the right
-                        state = State.pid;
+                        state = State.depositPid;
                     }
                 }
 
@@ -363,16 +341,21 @@ public class SixSpecimenAuto extends OpMode {
                     state = State.goToSpecimen;
                 }
 
-                path.follow_pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake);
-
-                intake.down();
-                intake.intake();
-
-                if (timer.milliseconds()>1000) {
+                if (timer.milliseconds() < 1500) {
+                    vf.pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake, 1);
+                    if (timer.milliseconds() > 1000) {
+                        horizontalSlides.setPosition(horizontal_pos);
+                        intake.down();
+                        intake.intake();
+                    }
+                } else {
                     horizontalSlides.setPosition(horizontal_pos);
+                    intake.down();
+                    intake.intake();
+                    wheelControl.drive_relative(-0.2, 0, 0, 1);
 
                     if (intake.hasCorrectSample(false) || timer.milliseconds() >= 2000){ //original 2500
-                        timer.reset();
+                        resetTimers();
                         state = State.setupSpitSample;
                     }
                 }
@@ -380,16 +363,15 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case setupSpitSample:
-                path.set_original_hp();
                 arm.toIdlePosition();
                 intake.reverseDown();
 
-                path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
+                vf.pid_to_point(new Point(30, 30), target_angle_spit, 1);
                 horizontalSlides.setPosition(0);
 
                 if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){ //original 1000
                     wheelControl.drive(0,0,0,0, 0);
-                    timer.reset();
+                    resetTimers();
                     state = State.spitSample;
                 }
 
@@ -413,7 +395,7 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case park:
-                path.follow_pid_to_point(new Point(24, 48), 60);
+                vf.pid_to_point(new Point(24, 48), 60, 1);
                 if (timer.milliseconds()>100) horizontalSlides.setPosition(horizontal_pos);
 
                 break;
@@ -422,12 +404,12 @@ public class SixSpecimenAuto extends OpMode {
         telemetry.addData("X position: ", odometry.opt.get_x());
         telemetry.addData("Y position: ", odometry.opt.get_y());
         telemetry.addData("Heading: ", odometry.opt.get_heading());
-        telemetry.addData("D value: ", path.get_d());
+        telemetry.addData("D value: ", vf.T);
         telemetry.addData("Deposit State", intake_state);
         telemetry.addData("Motor position: ", lift.getPosition());
         telemetry.addData("Horizontal Motor position: ", horizontalSlides.horizontalSlidesMotor.getCurrentPosition());
         telemetry.addData("State: ", state);
-        telemetry.addData("Back Distance", sensors.get_back_dist());
+        telemetry.addData("Back touch", sensors.isTouchBack());
 
         lift.update();
         telemetry.update();
