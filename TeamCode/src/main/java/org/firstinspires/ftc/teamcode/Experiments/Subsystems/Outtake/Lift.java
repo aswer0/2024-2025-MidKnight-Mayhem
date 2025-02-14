@@ -19,7 +19,7 @@ public class Lift {
     public static int MAX = 2500;
 
     public static double highBasketPos=1900;
-    public static double highChamberPos=295;
+    public static double highChamberPos=200;
     public static double lowBasketPos=90;
     public static double lowChamberPos=0;
     public static double intakeSpecimenPos=25;
