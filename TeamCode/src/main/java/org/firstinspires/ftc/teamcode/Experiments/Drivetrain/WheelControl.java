@@ -122,20 +122,17 @@ public class WheelControl {
         double FRPower = -forward + right - rotate_power;
 
         // Get max power to make sure powers <= max_power
-        double old_max_power = max_power;
-        old_max_power = Math.max(Math.abs(BLPower), old_max_power);
-        old_max_power = Math.max(Math.abs(BRPower), old_max_power);
-        old_max_power = Math.max(Math.abs(FLPower), old_max_power);
-        old_max_power = Math.max(Math.abs(FRPower), old_max_power);
-
-        // Power scaling
-        power_scale = max_power/old_max_power;
+        double new_max_power = 1;
+        new_max_power = Math.max(Math.abs(BLPower), new_max_power);
+        new_max_power = Math.max(Math.abs(BRPower), new_max_power);
+        new_max_power = Math.max(Math.abs(FLPower), new_max_power);
+        new_max_power = Math.max(Math.abs(FRPower), new_max_power);
 
         // Set powers
-        this.BL.setPower(BLPower*power_scale + this.f*Math.signum(BLPower));
-        this.BR.setPower(BRPower*power_scale + this.f*Math.signum(BRPower));
-        this.FL.setPower(FLPower*power_scale + this.f*Math.signum(FLPower));
-        this.FR.setPower(FRPower*power_scale + this.f*Math.signum(FRPower));
+        this.BL.setPower(BLPower/new_max_power + this.f*Math.signum(BLPower));
+        this.BR.setPower(BRPower/new_max_power + this.f*Math.signum(BRPower));
+        this.FL.setPower(FLPower/new_max_power + this.f*Math.signum(FLPower));
+        this.FR.setPower(FRPower/new_max_power + this.f*Math.signum(FRPower));
     }
 
     public void stop() {
