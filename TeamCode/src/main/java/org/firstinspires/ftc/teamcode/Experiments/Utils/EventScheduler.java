@@ -1,13 +1,15 @@
 package org.firstinspires.ftc.teamcode.Experiments.Utils;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 // Processes timing for multiple events
 // Only uses one timer so it's efficient
 public class EventScheduler {
-    private Map<String, Double> event_starts;
+    private Map<String, Double> event_starts = new HashMap<>();
     private ElapsedTime timer;
     
     // Constructor
@@ -48,7 +50,7 @@ public class EventScheduler {
     public void clearExcept(String... events) {
         event_starts.keySet().retainAll(Set.of(events));
     }
-
+    
     // Time of event of milliseconds
     public double milliseconds(String event) {
         createIfNew(event);
@@ -60,14 +62,12 @@ public class EventScheduler {
         return milliseconds(event)/1000;
     }
 
-    // If during event with start
-    public boolean during(String event, double start_ms) {
-        return milliseconds(event) > start_ms;
+    public boolean during(String event, double start_milliseconds) {
+        return milliseconds(event) > start_milliseconds;
     }
 
-    // If during event with interval
-    public boolean during(String event, double start_ms, double end_ms) {
+    public boolean during(String event, double start_milliseconds, double end_milliseconds) {
         double time = milliseconds(event);
-        return time > start_ms && time < end_ms;
+        return time > start_milliseconds && time < end_milliseconds;
     }
 }

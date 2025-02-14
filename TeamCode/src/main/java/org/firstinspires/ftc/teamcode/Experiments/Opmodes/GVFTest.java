@@ -36,8 +36,7 @@ public class GVFTest extends OpMode {
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         path = new BCPath(cp);
-        vf = new VectorField(wheelControl, odometry);
-        vf.setPath(path, -90, false);
+        vf = new VectorField(wheelControl, odometry, path, -90, true);
     }
 
     @Override
@@ -48,24 +47,22 @@ public class GVFTest extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
-        vf.move();
+        //vf.move();
         //wheelControl.drive(-1, 0, 0, 0, 1);
         TelemetryPacket telemetry = new TelemetryPacket();
         //vf.set_velocity();
         //telemetry.put("v/p", Utils.len_v(vf.velocity)/vf.speed);
-        //vf.pid_to_point(new Point(28, 72), -90, 0.7);
+        vf.pid_to_point(new Point(28, 72), -90, 0.7);
         telemetry.put("turn speed", vf.turn_speed);
 //        telemetry.put("temp", vf.temp_turn);
 //        telemetry.put("derivative", Math.toDegrees(Utils.angle_v(vf.path.derivative(vf.D))));
         telemetry.put("heading", vf.get_heading());
-        telemetry.put("curvature", vf.path.curvature(vf.T));
 //        telemetry.put("turn_power", vf.turn_power);
         telemetry.put("speed", vf.speed);
 //        telemetry.put("D", vf.D);
 //        telemetry.put("PID", vf.PID);
         telemetry.put("vf_xPos", vf.get_x());
         telemetry.put("vf_yPos", vf.get_y());
-        telemetry.put("error", vf.error);
         //telemetry.put("Closest", vf.get_closest());
         telemetry.put("powers", vf.powers);
         (FtcDashboard.getInstance()).sendTelemetryPacket(telemetry);
