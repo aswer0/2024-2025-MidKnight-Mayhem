@@ -21,11 +21,12 @@ import org.opencv.core.Point;
 @Autonomous
 @Config
 public class SixSpecimenAuto extends OpMode {
-    public static double sample_x = 24.5;
-    public static double sample_y = 37;
-
     public static double intake_sample_x = 27;
     public static double intake_sample_y = 34;
+
+    public static double first_spit_x = 24;
+    public static double first_spit_y = 44;
+    public static double first_spit_angle = 70;
 
     public static double pos = 650;
     public static double dist_thresh = 2.5;
@@ -43,13 +44,12 @@ public class SixSpecimenAuto extends OpMode {
     public static double target_y = 90;
 
     public static double set_pos_tolerance = 1;
-    public static double ticks_per_inch = 70;
+    public static double ticks_per_inch = 25;
     public static double sub_spit_angle = 60;
     double intake_state = 0;
 
     Point target;
     Point get_specimen_target;
-    Point get_sample_target;
     Point sub_intake = new Point(0, 0);
     Point sub_intake_limit = new Point(27.5, 21.3);
 
@@ -69,7 +69,7 @@ public class SixSpecimenAuto extends OpMode {
     Arm arm;
 
     Alliance alliance = Alliance.red;
-    
+
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
 
@@ -102,7 +102,6 @@ public class SixSpecimenAuto extends OpMode {
 
         target = new Point(target_x, target_y);
         get_specimen_target = new Point(12.875, 28);
-        get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
         intakeShakeTimer = new ElapsedTime();
@@ -181,9 +180,12 @@ public class SixSpecimenAuto extends OpMode {
 
                 if (intake_state == 0){
                     arm.backOuttakeSpecimen1();
-                    horizontalSlides.setPosition(sub_intake.y*ticks_per_inch);
+                    horizontalSlides.setPosition(-sub_intake.x*ticks_per_inch);
                     if (timer.milliseconds() >= 100){
-                        path.follow_pid_to_point(new Point(target_x+sub_intake.x, target_y+ sub_intake.y), 180);
+                        path.follow_pid_to_point(new Point(target_x, target_y+sub_intake.y), 180); //+ sub_intake.x
+                    }
+                    if (odometry.opt.get_x()>(target_x-12) && sensors.get_back_dist()<1){
+                        state = State.subIntake;
                     }
                 }
                 else{
@@ -195,6 +197,11 @@ public class SixSpecimenAuto extends OpMode {
                         path.follow_pid_to_point(new Point(target_x - 12, target_y), 0);
                     } else {
                         path.follow_pid_to_point(target, 0);
+                    }
+                    if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
+                        intake_state++;
+                        timer.reset();
+                        state = State.deposit;
                     }
                 }
 
@@ -229,7 +236,7 @@ public class SixSpecimenAuto extends OpMode {
                 arm.backOuttakeSpecimen2();
                 horizontalSlides.setPosition(sub_intake.y*ticks_per_inch);
 
-                if (Math.abs(lift.getPosition()-lift.backChamber1Pos)<10) {
+                if (Math.abs(lift.getPosition()-lift.backChamber1Pos)<10 || timer.milliseconds()>500) {
                     arm.openClaw();
                     if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() - sub_intake.y * ticks_per_inch) <= 10) {
                         intake.down();
@@ -240,12 +247,32 @@ public class SixSpecimenAuto extends OpMode {
                         intake.stop();
                         intake.up();
                         horizontalSlides.setPosition(0);
+                        timer.reset();
+                        state =State.firstSpit;
                     }
                 }
 //                if (horizontalSlides.horizontalSlidesMotor.getCurrentPosition() <= 10 && intake.hasCorrectSample(false)){
 //                    timer.reset();
 //                    state = State.deposit;
 //                }
+
+                break;
+
+            case firstSpit:
+                path.follow_pid_to_point(new Point(first_spit_x,first_spit_y), first_spit_angle);
+                if (timer.milliseconds()>1200) { //path.at_point(new Point(first_spit_x,first_spit_y),5) ||
+                    horizontalSlides.setPosition(horizontal_pos);
+                    if (horizontalSlides.getPosition()<horizontal_pos+50) {
+                        intake.reverseDown();
+                        intake.reverse();
+                        if (timer.milliseconds()>1200+500) {
+                            state = State.intakeSample;
+                            intake_state++;
+                            horizontalSlides.setPosition(0);
+                            timer.reset();
+                        }
+                    }
+                }
 
                 break;
 
@@ -332,7 +359,7 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case intakeSample:
-                if (intake_state > 4){
+                if (intake_state > 5){
                     state = State.goToSpecimen;
                 }
 
