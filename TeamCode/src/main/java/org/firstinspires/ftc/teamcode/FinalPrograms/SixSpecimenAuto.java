@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.VectorField;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -223,6 +223,7 @@ public class SixSpecimenAuto extends OpMode {
                 if (intake.hasCorrectSample(false) || state_timer.milliseconds() >= 3000) {
                     intake.stop();
                     intake.up();
+                    horizontalSlides.setPosition(0);
                     if (event_scheduler.during("Intake up", 200)) {
                         resetTimers();
                         state = State.firstSpit;

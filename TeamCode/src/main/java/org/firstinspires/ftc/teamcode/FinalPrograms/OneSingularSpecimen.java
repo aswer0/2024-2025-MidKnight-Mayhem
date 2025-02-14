@@ -65,7 +65,7 @@ public class OneSingularSpecimen extends OpMode {
         lift.update();
 
         if (timer.milliseconds() < 5000) {
-            vf.move_to_point(specimen_target, 0, 0.4);
+            vf.pid_to_point(specimen_target, 0, 0.4);
             lift.toHighChamber();
         }
     }

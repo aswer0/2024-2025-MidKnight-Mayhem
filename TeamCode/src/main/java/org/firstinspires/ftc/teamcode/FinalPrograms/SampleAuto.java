@@ -85,7 +85,7 @@ public class SampleAuto extends OpMode {
         odometry = new Odometry(hardwareMap, 0, start_point.x, start_point.y, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
         bcpath = new BCPath(follow_path);
-        vf = new VectorField(wheelControl, odometry, bcpath, 135, false);
+        vf = new VectorField(wheelControl, odometry);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -127,7 +127,7 @@ public class SampleAuto extends OpMode {
                     lift.toHighBasket();
                 }
 
-                vf.move_to_point(deposit_sample_target, 135, 0.7);
+                vf.pid_to_point(deposit_sample_target, 135, 0.7);
 
                 if (vf.dist_to_end() <= 1 || timer.milliseconds() >= 2500) {
                     timer.reset();
@@ -208,7 +208,7 @@ public class SampleAuto extends OpMode {
                 break;*/
 
             case park:
-                vf.move_to_point(park_target, 0, 0.7);
+                vf.pid_to_point(park_target, 0, 0.7);
                 break;
         }
     }
