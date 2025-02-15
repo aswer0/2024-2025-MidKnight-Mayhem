@@ -135,6 +135,53 @@ public class WheelControl {
         this.FR.setPower(FRPower/new_max_power + this.f*Math.signum(FRPower));
     }
 
+    // Driving but turning takes priority
+    // There is at least some power allocated to drive
+    public void drive_relative_new(double forward,
+                                   double right,
+                                   double rotate_power,
+                                   double max_drive_power,
+                                   double alloc_drive_power) {
+        /*
+        Positive rotate_power is CCW, negative is CW
+
+        Wheel drive directions
+        back back
+        back back
+
+        Wheel diagonals
+        \ /
+        / \
+         */
+
+        // Strafing is slower, so scale up (optional)
+        right *= strafe_k;
+
+        // Calculate the maximum possible drive power
+        double max_drive = Math.min(Math.max(1-rotate_power, alloc_drive_power), max_drive_power);
+
+        // Get old max drive speed
+        double old_drive = Math.max(Math.abs(-forward + right), Math.abs(-forward - right));
+
+        // Scale drive powers to be <= max_drive
+        double drive_scale = max_drive/Math.max(old_drive, max_drive);
+
+        // Calculate how much power used for rotation
+        double new_rotate_power = Math.min(rotate_power, 1-old_drive*drive_scale);
+
+        // Calculate motor powers
+        double BLPower = (-forward + right) * drive_scale + new_rotate_power;
+        double BRPower = (-forward - right) * drive_scale - new_rotate_power;
+        double FLPower = (-forward - right) * drive_scale + new_rotate_power;
+        double FRPower = (-forward + right) * drive_scale - new_rotate_power;
+
+        // Set powers
+        this.BL.setPower(BLPower + this.f*Math.signum(BLPower));
+        this.BR.setPower(BRPower + this.f*Math.signum(BRPower));
+        this.FL.setPower(FLPower + this.f*Math.signum(FLPower));
+        this.FR.setPower(FRPower + this.f*Math.signum(FRPower));
+    }
+
     public void stop() {
         this.BL.setPower(0);
         this.BR.setPower(0);

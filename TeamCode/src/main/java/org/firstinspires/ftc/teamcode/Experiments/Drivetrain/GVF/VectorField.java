@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+
+import org.firstinspires.ftc.teamcode.Experiments.Controllers.ScheduledPID;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Controllers.TestPID;
-import org.firstinspires.ftc.teamcode.Experiments.Controllers.HPIDController;
+import org.firstinspires.ftc.teamcode.Experiments.Controllers.Constants;
+
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.opencv.core.Point;
 
@@ -52,17 +54,13 @@ public class VectorField {
     public double error = 0;
     public ElapsedTime timer;
 
-    // PID variables
-    public double xp = end_decel, xi = 0.1, xd = 0.01, xithres = 2;
-    public double yp = end_decel, yi = 0.1, yd = 0.01, yithres = 2;
-    public double hp = 0.04, hi = 0.025, hd = 0.003, hithres = 3;
-
-    TestPID x_PID;
-    TestPID y_PID;
-    HPIDController h_PID;
-
     public double x_error;
     public double y_error;
+
+    // PID
+    ScheduledPID x_PID;
+    ScheduledPID y_PID;
+    ScheduledPID h_PID;
 
     // Constructor
     public VectorField(WheelControl w,
@@ -77,14 +75,14 @@ public class VectorField {
         drive.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Set PID controllers
-        x_PID = new TestPID(xp, xi, xd, xithres);
-        y_PID = new TestPID(yp, yi, yd, yithres);
-        h_PID = new HPIDController(hp, hi, hd, hithres);
-
         // Timer
         timer = new ElapsedTime();
         prev_pos = get_pos();
+
+        // PIDs
+        x_PID = Constants.drive_controller;
+        y_PID = Constants.drive_controller;
+        h_PID = Constants.heading_controller;
     }
 
     public void setPath(BCPath path, double end_heading, boolean path_heading) {
@@ -195,7 +193,7 @@ public class VectorField {
 
     // Calculates turn speed based on target angle
     public void set_turn_speed(double target_angle) {
-        turn_speed = h_PID.calculate(get_heading(), target_angle);
+        turn_speed = Constants.heading_controller.calculate(get_heading(), target_angle);
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
     }
