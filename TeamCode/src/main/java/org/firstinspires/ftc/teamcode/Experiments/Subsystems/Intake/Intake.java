@@ -101,11 +101,11 @@ public class Intake {
                     up();
                     intake();
                     return false;
-                } else if (correctSampleSince.milliseconds() >100+150) {
+                } else if (correctSampleSince.milliseconds() > 100+150) {
                     up();
                     stop();
                     return true;
-                }else {
+                } else {
                     reverseDown();
                     slowReverse();
                     return false;

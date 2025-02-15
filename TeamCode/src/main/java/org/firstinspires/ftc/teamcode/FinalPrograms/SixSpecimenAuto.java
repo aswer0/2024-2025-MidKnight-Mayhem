@@ -231,12 +231,9 @@ public class SixSpecimenAuto extends OpMode {
                 if (intake.hasCorrectSample(false) || state_timer.milliseconds() >= 3000) {
                     intake.stop();
                     intake.up();
-                    if (event_scheduler.during("Intake up", 200)) {
-                        resetTimers();
-                        intake_state++;
-                        state = State.firstSpit;
-                        break;
-                    }
+                    intake_state++;
+                    state = State.firstSpit;
+                    break;
                 } else {
                     intake.smartIntake(false);
                 }
@@ -396,7 +393,6 @@ public class SixSpecimenAuto extends OpMode {
 
                 if (state_timer.milliseconds() > 3000 || sensors.get_front_dist() < 2.5) {
                     resetTimers();
-                    intake_state++;
                     state = State.deposit;
                 }
 
@@ -437,7 +433,7 @@ public class SixSpecimenAuto extends OpMode {
         telemetry.addData("Y position: ", odometry.opt.get_y());
         telemetry.addData("Heading: ", odometry.opt.get_heading());
         telemetry.addData("D value: ", vf.T);
-        telemetry.addData("Deposit State", intake_state);
+        telemetry.addData("Intake State", intake_state);
         telemetry.addData("Motor position: ", lift.getPosition());
         telemetry.addData("Horizontal Motor position: ", horizontalSlides.horizontalSlidesMotor.getCurrentPosition());
         telemetry.addData("State: ", state);
