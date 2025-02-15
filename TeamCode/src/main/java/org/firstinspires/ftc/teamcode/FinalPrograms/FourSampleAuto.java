@@ -21,8 +21,26 @@ import org.opencv.core.Point;
 @Config
 @Autonomous
 public class FourSampleAuto extends OpMode {
-    Point sample_point;
-    double intake_angle = 90;
+    public static double samplePointX=16;
+    public static double samplePointY=144-16;
+
+    public static double intakeX1=16;
+    public static double intakeY1=117;
+    public static double intake_angle1 = 170;
+
+    public static double intakeX2=16;
+    public static double intakeY2=117;
+    public static double intake_angle2 = 180;
+
+    public static double intakeX3=24;
+    public static double intakeY3=119;
+    public static double intake_angle3 = 225;
+
+
+    Point deposit_point;
+    Point intake_point1;
+    Point intake_point2;
+    Point intake_point3;
     double pos = -500;
     double pid_max_power = 1;
 
@@ -41,6 +59,7 @@ public class FourSampleAuto extends OpMode {
     Intake intake;
 
     Alliance alliance = Alliance.red;
+    int intakeState=0;
 
     enum State {
         pid,
@@ -51,13 +70,11 @@ public class FourSampleAuto extends OpMode {
     }
 
     @Override
-    public void start() {
-        timer.reset();
-    }
-
-    @Override
     public void init() {
-        sample_point = new Point(16, 125.8);
+        deposit_point = new Point(samplePointX, samplePointY); //125.8
+        intake_point1 = new Point(intakeX1, intakeY1);
+        intake_point2 = new Point(intakeX2, intakeY2);
+        intake_point3 = new Point(intakeX3, intakeY3);
 
         Point[][] follow_path = {{
                 new Point(11, 128.7),
@@ -71,7 +88,7 @@ public class FourSampleAuto extends OpMode {
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
-        odometry = new Odometry(hardwareMap, 0, 7.875, 113, "OTOS");
+        odometry = new Odometry(hardwareMap, 90, 7.25, 96+7.7, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         vf = new VectorField(wheelControl, odometry);
@@ -100,6 +117,11 @@ public class FourSampleAuto extends OpMode {
     }
 
     @Override
+    public void start() {
+        timer.reset();
+    }
+
+    @Override
     public void loop() {
         odometry.opt.update();
         lift.update();
@@ -110,38 +132,77 @@ public class FourSampleAuto extends OpMode {
             case pid:
                 intake.up();
                 intake.stop();
-                arm.closeClaw();
+                intakeSlides.setPosition(0);
+                vf.pid_to_point(deposit_point, 135, pid_max_power);
 
-                if (timer.milliseconds() >= 300) {
-                    lift.toHighBasket();
-                }
+                if (intakeState==0) {
+                    arm.closeClaw();
+                    if (timer.milliseconds() >= 300) {
+                        lift.toHighBasket();
+                    }
 
-                vf.pid_to_point(sample_point, 135, pid_max_power);
-
-                if (timer.milliseconds() >= 2500) {
-                    timer.reset();
-                    state = State.deposit_sample;
+                    if (timer.milliseconds() >= 2500) {
+                        timer.reset();
+                        intakeState++;
+                        state = State.deposit_sample;
+                    }
+                } else {
+                    boolean transfer;
+                    if (intakeSlides.getPosition()>-20 || timer.milliseconds()>3000) {
+                        lift.intakeSample();
+                        arm.intakeSample();
+                        transfer=true;
+                        timer.reset();
+                    } else {
+                        transfer = false;
+                    }
+                    if (transfer) {
+                        if (timer.milliseconds()>150) {
+                            arm.closeClaw();
+                            if (timer.milliseconds()>150+300) {
+                                lift.toHighBasket();
+                                if (timer.milliseconds()>150+2500) {
+                                    timer.reset();
+                                    intakeState++;
+                                    state = State.deposit_sample;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 break;
 
-            case deposit_sample:
-                intake.up();
-                intake.stop();
-
+            case deposit_sample: //and move to intake
                 arm.outtakeSample();
 
                 if (timer.milliseconds() >= 250){
                     arm.openClaw();
                 }
                 if (timer.milliseconds() >= 500){
-                    arm.toAutoStartPosition();
+                    arm.toIdlePosition();
                     lift.intakeSample();
 
-                    vf.pid_to_point(sample_point, intake_angle, pid_max_power);
+                    if (intakeState==4) {
+                        state = State.park;
+                        timer.reset();
+                    }
+
+                    switch (intakeState) {
+                        case 1:
+                            vf.pid_to_point(intake_point1, intake_angle1, pid_max_power);
+                            break;
+                        case 2:
+                            vf.pid_to_point(intake_point2, intake_angle2, pid_max_power);
+                            break;
+                        case 3:
+                            vf.pid_to_point(intake_point3, intake_angle3, pid_max_power);
+                            break;
+                    }
                 }
                 if (timer.milliseconds() >= 2000){
                     state = State.intake_sample;
+                    timer.reset();
                 }
 
                 break;
@@ -152,6 +213,7 @@ public class FourSampleAuto extends OpMode {
 
                 if (timer.milliseconds() >= 500){
                     intake.down();
+                    wheelControl.drive(0,-0.2,0,Math.toRadians(odometry.opt.get_heading()),1);
                 }
 
                 if (intake.hasCorrectSample(true)) {
@@ -165,7 +227,7 @@ public class FourSampleAuto extends OpMode {
                 vf.move();
 
                 lift.toHighChamber();
-
+                break;
         }
     }
 }

@@ -63,6 +63,9 @@ public class Intake {
     public void reverse() {
         setPower(1);
     }
+    public void slowReverse() {
+        setPower(0.5);
+    }
     public void stop() {
         setPower(0);
     }
@@ -93,14 +96,20 @@ public class Intake {
 
             case allianceSpecific:
             case yellow:
-                if(correctSampleSince.milliseconds() > 50) {
-                    intake();
-                } else {
-                    reverse();
-                }
-                up();
                 closeDoor();
-                return true;
+                if(correctSampleSince.milliseconds() > 100) {
+                    up();
+                    intake();
+                    return false;
+                } else if (correctSampleSince.milliseconds() >100+150) {
+                    up();
+                    stop();
+                    return true;
+                }else {
+                    reverseDown();
+                    slowReverse();
+                    return false;
+                }
             case wrong:
                 correctSampleSince.reset();
                 intake();
