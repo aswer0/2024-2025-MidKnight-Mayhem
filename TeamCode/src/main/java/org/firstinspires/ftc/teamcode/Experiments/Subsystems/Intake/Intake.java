@@ -93,7 +93,7 @@ public class Intake {
 
             case allianceSpecific:
             case yellow:
-                if(correctSampleSince.milliseconds() > 50) {
+                if(correctSampleSince.milliseconds() > 100) {
                     intake();
                 } else {
                     reverse();
