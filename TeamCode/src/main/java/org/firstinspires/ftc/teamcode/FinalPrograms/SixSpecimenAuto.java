@@ -42,7 +42,7 @@ public class SixSpecimenAuto extends OpMode {
 
     public static double power = 1;
 
-    public static double target_x = 43; //36.2
+    public static double target_x = 47; //36.2
     public static double target_y = 65;
 
     public static double deposit_x = 47;
