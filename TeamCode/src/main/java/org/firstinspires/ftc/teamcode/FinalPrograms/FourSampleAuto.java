@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -25,13 +24,15 @@ public class FourSampleAuto extends OpMode {
     Point sample_point;
     double intake_angle = 90;
     double pos = -500;
+    double pid_max_power = 1;
 
     ElapsedTime timer;
     Sensors sensors;
 
     Odometry odometry;
     WheelControl wheelControl;
-    Path path;
+    VectorField vf;
+    //Path path;
 
     State state = State.pid;
     Lift lift;
@@ -58,19 +59,23 @@ public class FourSampleAuto extends OpMode {
     public void init() {
         sample_point = new Point(16, 125.8);
 
-        Point[] follow_path = {
+        Point[][] follow_path = {{
                 new Point(11, 128.7),
                 new Point(38, 121.8),
                 new Point(65, 125),
                 new Point(76.8, 98.3),
-        };
+        }};
+
+        BCPath path = new BCPath(follow_path);
 
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
         odometry = new Odometry(hardwareMap, 0, 7.875, 113, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        path = new Path(follow_path, wheelControl, odometry, telemetry, 13, 0.01, 90, 1);
+
+        vf = new VectorField(wheelControl, odometry);
+        vf.setPath(path, -90, false);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -111,7 +116,7 @@ public class FourSampleAuto extends OpMode {
                     lift.toHighBasket();
                 }
 
-                path.follow_pid_to_point(sample_point, 135);
+                vf.pid_to_point(sample_point, 135, pid_max_power);
 
                 if (timer.milliseconds() >= 2500) {
                     timer.reset();
@@ -133,7 +138,7 @@ public class FourSampleAuto extends OpMode {
                     arm.toAutoStartPosition();
                     lift.intakeSample();
 
-                    path.follow_pid_to_point(sample_point, intake_angle);
+                    vf.pid_to_point(sample_point, intake_angle, pid_max_power);
                 }
                 if (timer.milliseconds() >= 2000){
                     state = State.intake_sample;
@@ -157,7 +162,7 @@ public class FourSampleAuto extends OpMode {
                 break;
 
            case park:
-                path.update(true);
+                vf.move();
 
                 lift.toHighChamber();
 
