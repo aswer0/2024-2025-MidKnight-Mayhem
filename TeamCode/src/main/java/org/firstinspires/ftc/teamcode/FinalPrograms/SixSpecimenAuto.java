@@ -46,7 +46,7 @@ public class SixSpecimenAuto extends OpMode {
     public static double target_y = 65;
 
     public static double deposit_x = 47;
-    public static double deposit_y = 72;
+    public static double deposit_y = 60;
 
     public static double set_pos_tolerance = 1;
     public static double ticks_per_inch = 70;
@@ -298,7 +298,7 @@ public class SixSpecimenAuto extends OpMode {
                 arm.toIdlePosition();
                 intake.reverseDown();
 
-                vf.pid_to_point(new Point(30, 30), target_angle_spit, 1);
+                vf.pid_to_point(new Point(30, 30), target_angle_spit, 0.6);
                 horizontalSlides.setPosition(-200);
 
                 if (odometry.opt.get_heading()<40 || state_timer.milliseconds()> 1000){ //original 1000
@@ -366,9 +366,9 @@ public class SixSpecimenAuto extends OpMode {
                 intake.down();
                 intake.stop();
 
-                if (state_timer.milliseconds() < 1000 || sensors.get_front_dist() < dist_thresh) {
+                if (state_timer.milliseconds() < 2000 || sensors.get_front_dist() < dist_thresh) {
                     //vf.pid_to_point(new Point(0, get_specimen_target.y), 0, 0.5);
-                    wheelControl.drive(-0.2,0,0,0,0.7);
+                    wheelControl.drive_relative(-0.2,0,0,1);
                 } else {
                     wheelControl.stop();
                     arm.closeClaw();
