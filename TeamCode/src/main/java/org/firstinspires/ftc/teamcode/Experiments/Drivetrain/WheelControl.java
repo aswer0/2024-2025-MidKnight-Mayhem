@@ -113,7 +113,7 @@ public class WheelControl {
         right *= power_scale;
 
         // Strafe is slower so scale up
-        right *= strafe_k;
+        //right *= strafe_k;
 
         // Calculate motor powers
         double BLPower = -forward + right + rotate_power;

@@ -185,6 +185,8 @@ public class SixSpecimenAuto extends OpMode {
     public void loop() {
         intake.closeDoor();
         odometry.opt.update();
+        lift.update();
+        horizontalSlides.update();
 
         switch (state) {
             case firstPid:
@@ -223,7 +225,7 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 if (event_scheduler.during("Extend intake slides", 200)) {
-                    sub_intake_slide_pos = -450;
+                    sub_intake_slide_pos = horizontal_pos;
                 }
 
                 if (intake.hasCorrectSample(false) || state_timer.milliseconds() >= 3000) {
@@ -236,7 +238,7 @@ public class SixSpecimenAuto extends OpMode {
                         break;
                     }
                 } else {
-                    intake.intake();
+                    intake.smartIntake(false);
                 }
                 break;
 
@@ -269,7 +271,7 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case intakeSample:
-                if (state_timer.milliseconds() < 800) {
+                if (state_timer.milliseconds() < 1000) {
                     vf.pid_to_point(new Point(intake_sample_x,intake_sample_y), target_angle_intake, 0.7);
                     if (state_timer.milliseconds() > 500) {
                         horizontalSlides.setPosition(horizontal_pos);
@@ -280,11 +282,11 @@ public class SixSpecimenAuto extends OpMode {
                     horizontalSlides.setPosition(horizontal_pos);
                     intake.down();
                     intake.intake();
-                    if (state_timer.milliseconds() < 1300) {
+                    if (state_timer.milliseconds() < 1500) {
                         wheelControl.drive_relative(-0.2, -0.2, 0, 1);
                     }
 
-                    if (intake.hasCorrectSample(false) || state_timer.milliseconds() > 1800){ //original 2500
+                    if (intake.hasCorrectSample(false) || state_timer.milliseconds() > 2000){ //original 2500
                         intake_state++;
                         resetTimers();
                         state = State.setupSpitSample;
@@ -300,7 +302,7 @@ public class SixSpecimenAuto extends OpMode {
                 vf.pid_to_point(new Point(30, 30), target_angle_spit, 1);
                 horizontalSlides.setPosition(-200);
 
-                if (odometry.opt.get_heading()<30 || state_timer.milliseconds()> 1000){ //original 1000
+                if (odometry.opt.get_heading()<40 || state_timer.milliseconds()> 1000){ //original 1000
                     resetTimers();
                     state = State.spitSample;
                 }
@@ -340,9 +342,21 @@ public class SixSpecimenAuto extends OpMode {
                     arm.intakeSpecimen();
                 }
 
-                if (vf.at_angle(0, 5) && vf.at_point(get_sample_target,5)) { //4
+                if (vf.at_angle_deg(0, 5) && vf.at_point(get_sample_target,5)) { //4
                     resetTimers();
                     state = State.pickupSpecimen;
+                }
+
+                if (deposit_state == 1) {
+                    if (state_timer.milliseconds() >= 1000) {
+                        resetTimers();
+                        state = State.pickupSpecimen;
+                    }
+                } else {
+                    if (state_timer.milliseconds() >= 1500) {
+                        resetTimers();
+                        state = State.pickupSpecimen;
+                    }
                 }
 
                 break;
@@ -361,7 +375,7 @@ public class SixSpecimenAuto extends OpMode {
                     arm.closeClaw();
 
                     resetTimers();
-                    target.y -= 1.5; // this has to be tuned better for more space on the right
+                    //target.y -= 1.5; // this has to be tuned better for more space on the right
                     state = State.depositPid;
                 }
 
@@ -390,7 +404,7 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case deposit:
-                wheelControl.drive_relative(0.05, -0.1, 0, 1);
+                wheelControl.drive_relative(0.1, -0.2, 0, 1);
 
                 intake.stop();
                 intake.down();
