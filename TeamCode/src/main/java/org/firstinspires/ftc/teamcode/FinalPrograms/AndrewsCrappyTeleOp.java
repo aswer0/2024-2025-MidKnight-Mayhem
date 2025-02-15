@@ -113,10 +113,12 @@ public class AndrewsCrappyTeleOp extends OpMode {
     public void init_loop() {
         if(gamepad1.options && !previousGamepad1.options && (alliance == Alliance.blue)) {
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
+            odometry.opt.setPos(0,0,0);
             alliance = Alliance.red;
             intake.alliance = alliance;
         } else if (gamepad1.options && !previousGamepad1.options) {
             gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
+            odometry.opt.setPos(0,0,0);
             alliance = Alliance.blue;
             intake.alliance = alliance;
         }
@@ -163,12 +165,10 @@ public class AndrewsCrappyTeleOp extends OpMode {
             } else {
                 turnPower=1;
             }
-        }
-        else{
+        } else{
             if (gamepad1.left_bumper) {
                 drivePower=0.3;
-            }
-            if (gamepad1.right_bumper) {
+            }if (gamepad1.right_bumper) {
                 drivePower=1;
             }
         }
@@ -176,10 +176,19 @@ public class AndrewsCrappyTeleOp extends OpMode {
         if (gamepad1.share && !previousGamepad1.share){
             isAndrewMode = !isAndrewMode;
         }
-        if(gamepad1.options && !previousGamepad1.options && alliance == Alliance.blue) {
-            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
+        if(gamepad1.options && !previousGamepad1.options && (alliance == Alliance.blue)) {
+            gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
+            odometry.opt.setPos(0,0,0);
+            alliance = Alliance.red;
+            intake.alliance = alliance;
         } else if (gamepad1.options && !previousGamepad1.options) {
-            odometry.opt.setPos(odometry.opt.get_x(), odometry.opt.get_y(), 0);
+            gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
+            odometry.opt.setPos(0,0,0);
+            alliance = Alliance.blue;
+            intake.alliance = alliance;
+        }
+        if(currentGamepad1.share && !previousGamepad1.share) {
+            sampleMode = !sampleMode;
         }
         if(gamepad2.options) { //reset outtake sldies
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -561,6 +570,9 @@ public class AndrewsCrappyTeleOp extends OpMode {
             }
         }
         telemetry.addData("Alliance", alliance);
+        telemetry.addLine();
+        telemetry.addData("sample mode?",sampleMode);
+        telemetry.addLine();
         telemetry.addData("Is Andrew Mode?", isAndrewMode);
         telemetry.addData("state", outtakeState);
         telemetry.addLine();

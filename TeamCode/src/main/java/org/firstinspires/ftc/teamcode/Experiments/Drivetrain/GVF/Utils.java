@@ -1,28 +1,35 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
+
 import org.opencv.core.Point;
 
 // Point utils
 public class Utils {
-    public static Point add_v(Point... p) {
-        double x = 0;
-        double y = 0;
-        for (Point i:p) {
-            x += i.x; y += i.y;
-        }
-        return new Point(x, y);
+    public static double limit_angle_deg(double angle) {
+        angle %= 360;
+        if (angle > 180) angle -= 360;
+        return angle;
+    }
+
+    public static double limit_angle_rad(double angle) {
+        angle %= Math.PI*2;
+        if (angle > Math.PI) angle -= Math.PI*2;
+        return angle;
+    }
+
+    public static double linear_interpolate(double min, double max, double part) {
+        return (1-part)*min+part*max;
+    }
+
+    public static Point add_v(Point a, Point b) {
+        return new Point(a.x+b.x, a.y+b.y);
     }
 
     public static Point sub_v(Point a, Point b) {
         return new Point(a.x-b.x, a.y-b.y);
     }
 
-    public static Point mul_v(Point... p) {
-        double x = 1;
-        double y = 1;
-        for (Point i:p) {
-            x *= i.x; y *= i.y;
-        }
-        return new Point(x, y);
+    public static Point mul_v(Point a, Point b) {
+        return new Point(a.x*b.x, a.y*b.y);
     }
 
     public static Point mul_v(Point a, double b) {
@@ -54,10 +61,14 @@ public class Utils {
     }
 
     // Angle of vector
-    public static double angle_v(Point v) {
+    public static double angle_v_rad(Point v) {
         double angle = Math.atan2(v.y, v.x);
         if (angle < 0) angle += Math.PI * 2;
         return angle;
+    }
+
+    public static double angle_v_deg(Point v) {
+        return Math.toDegrees(angle_v_rad(v));
     }
 
     // Slope of vector
@@ -65,14 +76,12 @@ public class Utils {
         return v.y/v.x;
     }
 
-    // Generates vector with slope and length
-    public static Point v_with_slope(double l, double slope) {
-        double denom = Math.sqrt(1+slope*slope);
-        return new Point(l/denom, l*slope/denom);
+    // Converts polar to rectangular
+    public static Point polar_to_rect_rad(double l, double theta) {
+        return new Point(l*Math.cos(theta), l*Math.sin(theta));
     }
 
-    // Converts polar to rectangular
-    public static Point polar_to_rect(double l, double theta) {
-        return new Point(l*Math.cos(theta), l*Math.sin(theta));
+    public static Point polar_to_rect_deg(double l, double theta) {
+        return polar_to_rect_rad(l, Math.toDegrees(theta));
     }
 }

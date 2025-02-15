@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.Utils;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Controllers.TestPID;
@@ -29,7 +28,7 @@ public class VectorField {
 
     // Correction constants
     double path_corr = 0.1;
-    double centripetal_corr = 0.05;
+    double centripetal_corr = 0.02;
     //double centripetal_threshold = 10;
     double accel_corr = 0;
 
@@ -37,7 +36,7 @@ public class VectorField {
     double PID_dist = 10;
     double stop_speed = 0.2;
     double stop_decay = 0.003;
-    double end_decel = 0.05;
+    public static double end_decel = 0.05;
     public Point end_target;
 
     // Heading controls
@@ -124,8 +123,12 @@ public class VectorField {
         return Utils.dist(get_pos(), p) <= threshold;
     }
 
-    public boolean at_angle(double h, double threshold) {
-        return (Utils.limit_angle_deg(h-get_heading())) < threshold;
+    public boolean at_angle_deg(double h, double threshold) {
+        return Utils.limit_angle_deg(h-get_heading()) < threshold;
+    }
+
+    public boolean at_angle_rad(double h, double threshold) {
+        return Utils.limit_angle_rad(h-Math.toRadians(get_heading())) < threshold;
     }
 
     // Sets velocity of robot
@@ -213,7 +216,7 @@ public class VectorField {
         Point centripetal = new Point(0, 0);
         if (centripetal_corr > 0) {
             double perp_angle = Utils.angle_v_rad(tangent)+Math.PI/2;
-            double centripetal_len = path.curvature(T)*centripetal_corr*true_speed/p_to_v;
+            double centripetal_len = path.curvature(T)*centripetal_corr*true_speed*closest_dist()/p_to_v;
             centripetal = Utils.polar_to_rect_rad(centripetal_len, perp_angle);
         }
 
