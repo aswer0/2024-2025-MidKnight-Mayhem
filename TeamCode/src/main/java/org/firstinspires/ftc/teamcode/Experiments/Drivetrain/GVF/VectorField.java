@@ -129,6 +129,14 @@ public class VectorField {
         return Utils.limit_angle_rad(h-Math.toRadians(get_heading())) < threshold;
     }
 
+    public boolean at_pose_deg(Point p, double h, double p_thresh, double h_thresh) {
+        return at_point(p, p_thresh) && at_angle_deg(h, h_thresh);
+    }
+
+    public boolean at_pose_rad(Point p, double h, double p_thresh, double h_thresh) {
+        return at_point(p, p_thresh) && at_angle_rad(h, h_thresh);
+    }
+
     // Sets velocity of robot
     public void set_velocity() {
         if (timer.seconds() < velocity_update_rate) return;
@@ -147,11 +155,10 @@ public class VectorField {
     }*/
 
     // Updates closest point on curve using signed GD & binary search
-    public void update_closest(double look_ahead,
-                               double max_rough_iters,
+    public void update_closest(double max_rough_iters,
                                double tune_iters,
                                double rate) {
-        Point pos = Utils.add_v(get_pos(), Utils.mul_v(powers, look_ahead));
+        Point pos = get_pos();
         double path_len = path.F[path.get_bz(T)].est_arclen;
         double update = rate*speed/path_len;
 
@@ -200,7 +207,7 @@ public class VectorField {
 
     // Robot's move vector to path
     public Point move_vector(double speed) {
-        update_closest(0, 50, 5, 1);
+        update_closest(50, 5, 1);
 
         // Base vector (orthogonal & tangent)
         Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
@@ -233,7 +240,7 @@ public class VectorField {
         turn_speed = h_PID.calculate(get_heading(), target_heading);
 
         // Drive
-        drive.drive_limit_power(x_error, y_error, turn_speed, max_speed, get_heading());
+        //drive.drive_limit_power(x_error, y_error, turn_speed, max_speed, get_heading());
     }
 
     public void set_drive_speed(double turn_speed) {
