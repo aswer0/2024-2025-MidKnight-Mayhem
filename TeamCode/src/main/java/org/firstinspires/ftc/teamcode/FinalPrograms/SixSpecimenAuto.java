@@ -31,7 +31,7 @@ public class SixSpecimenAuto extends OpMode {
     Point intake_target;
 
     public static double first_spit_x = 27;
-    public static double first_spit_y = 44;
+    public static double first_spit_y = 38;
     public static double first_spit_angle = 30;
 
     public static double dist_thresh = 2.5;
@@ -43,7 +43,7 @@ public class SixSpecimenAuto extends OpMode {
     public static double power = 1;
 
     public static double target_x = 45; //36.2
-    public static double target_y = 65;
+    //public static double target_y = 65;
     public Point hang_target;
     public Point deposit_target;
 
@@ -55,9 +55,12 @@ public class SixSpecimenAuto extends OpMode {
 
     double sub_intake_slide_pos;
 
-    Point get_specimen_target;
-    Point sub_intake = new Point(0, 0);
-    Point sub_intake_limit = new Point(27.5, 21.3);
+    public static double get_specimen_x = 15;
+    public static double get_specimen_y = 35;
+    Point get_specimen_target = new Point(get_specimen_x, get_specimen_y);
+
+    //Point sub_intake = new Point(0, 0);
+    //Point sub_intake_limit = new Point(27.5, 21.3);
 
     ElapsedTime state_timer;
     EventScheduler event_scheduler;
@@ -107,8 +110,7 @@ public class SixSpecimenAuto extends OpMode {
                 new Point(36.5, 75)
         };
 
-        hang_target = new Point(target_x, target_y);
-        get_specimen_target = new Point(15, 28);
+        hang_target = new Point(target_x, 72);
 
         state_timer = new ElapsedTime();
         event_scheduler = new EventScheduler();
@@ -135,7 +137,23 @@ public class SixSpecimenAuto extends OpMode {
 
     @Override
     public void init_loop() {
+        odometry.opt.update();
+        horizontalSlides.update();
+
         if (gamepad1.left_bumper) {
+            alliance = Alliance.blue;
+        } else if (gamepad1.right_bumper) {
+            alliance = Alliance.red;
+        }
+
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+
+        if (!previousGamepad1.square && currentGamepad1.square) {
+            hang_target.y = vf.get_y();
+            sub_intake_slide_pos = horizontalSlides.getPosition();
+        }
+        /*if (gamepad1.left_bumper) {
             alliance = Alliance.blue;
         } else if (gamepad1.right_bumper) {
             alliance = Alliance.red;
@@ -167,7 +185,7 @@ public class SixSpecimenAuto extends OpMode {
         telemetry.addLine();
         telemetry.addLine("Sample position (relative to robot)");
         telemetry.addData("intake b/f (+ is forward)", sub_intake.x);
-        telemetry.addData("intake l/r (+ is right)", -sub_intake.y);
+        telemetry.addData("intake l/r (+ is right)", -sub_intake.y);*/
     }
 
     public void resetTimers() {
@@ -178,7 +196,6 @@ public class SixSpecimenAuto extends OpMode {
     @Override
     public void start() {
         resetTimers();
-        hang_target = new Point(target_x, target_y+sub_intake.y);
         deposit_target = new Point(hang_target.x, hang_target.y-1.5);
     }
 
@@ -191,13 +208,13 @@ public class SixSpecimenAuto extends OpMode {
         switch (state) {
             case firstPid:
                 // Reverse hang
-                horizontalSlides.setPosition(-sub_intake.x*ticks_per_inch);
+                horizontalSlides.setPosition(sub_intake_slide_pos);
                 vf.pid_to_point(hang_target, 180, 1);
 
                 // Sub intake when it's there
                 if (sensors.isTouchBack() || state_timer.milliseconds() > 2000) {
                     deposit_state++;
-                    horizontalSlides.setPosition(-sub_intake.x*ticks_per_inch);
+                    horizontalSlides.setPosition(sub_intake_slide_pos);
                     wheelControl.stop();
                     lift.toBackChamber2Pos();
                     arm.backOuttakeSpecimen2();
@@ -208,15 +225,16 @@ public class SixSpecimenAuto extends OpMode {
 
             case subIntake: //also back deposit
                 // Bit of delay so not having 2 samples in possession
-                if (state_timer.milliseconds() < 150) break;
+                if (state_timer.milliseconds() < 100) break;
 
                 if (state_timer.milliseconds() > 300) {
-                    lift.intakeSpecimen();
                     arm.openClaw();
+                    arm.toIdlePosition();
+                    lift.intakeSpecimen();
                 }
 
                 // Extend intake slides once at correct position
-                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() + sub_intake.x * ticks_per_inch) <= 25) {
+                if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() - sub_intake_slide_pos) <= 25) {
                     event_scheduler.createIfNew("Extend intake slides");
                     intake.down();
                 }
@@ -228,7 +246,9 @@ public class SixSpecimenAuto extends OpMode {
                 if (intake.hasCorrectSample(false) || state_timer.milliseconds() >= 1500) {
                     intake.stop();
                     intake.up();
+                    horizontalSlides.setPosition(0);
                     intake_state++;
+                    resetTimers();
                     state = State.firstSpit;
                     break;
                 } else {
@@ -239,16 +259,6 @@ public class SixSpecimenAuto extends OpMode {
             case firstSpit:
                 // PID to position
                 vf.pid_to_point(new Point(first_spit_x, first_spit_y), first_spit_angle, 0.6);
-
-                // Spit if there
-                if (odometry.opt.get_heading()<50 || state_timer.milliseconds() > 2000) {;
-                    intake.reverseDown();
-                    intake.reverse();
-                    if (event_scheduler.during("Spit sample", 300)) {
-                        resetTimers();
-                        state = State.intakeSample;
-                    }
-                }
 
                 // Reverse if wrong color
                 if (state_timer.milliseconds() < 300 && !intake.hasCorrectSample(true)) {
@@ -264,6 +274,16 @@ public class SixSpecimenAuto extends OpMode {
                     horizontalSlides.setPosition(0);
                 } else {
                     horizontalSlides.setPosition(horizontal_pos);
+                }
+
+                // Spit if there
+                if (odometry.opt.get_heading()<50 || state_timer.milliseconds() > 2000) {;
+                    intake.reverseDown();
+                    intake.reverse();
+                    if (event_scheduler.during("Spit sample", 300)) {
+                        resetTimers();
+                        state = State.intakeSample;
+                    }
                 }
                 break;
 
@@ -289,12 +309,13 @@ public class SixSpecimenAuto extends OpMode {
                     horizontalSlides.setPosition(horizontal_pos);
                     intake.down();
                     intake.intake();
+                } else {
+                    horizontalSlides.setPosition(0);
                 }
 
                 // Stop when has sample or timer failsafe
                 if (intake.hasCorrectSample(false) || state_timer.milliseconds() > 2500){
                     intake_state++;
-                    arm.toIdlePosition();
                     resetTimers();
                     state = State.setupSpitSample;
                 }
@@ -303,7 +324,7 @@ public class SixSpecimenAuto extends OpMode {
 
             case setupSpitSample:
                 // PID to spit
-                vf.pid_to_point(new Point(30, 30), target_angle_spit, 0.5);
+                vf.pid_to_point(new Point(27, 30), target_angle_spit, 0.5);
                 horizontalSlides.setPosition(-200);
 
                 if (odometry.opt.get_heading()<45 || state_timer.milliseconds() > 1000){
@@ -327,7 +348,6 @@ public class SixSpecimenAuto extends OpMode {
                         horizontalSlides.setPosition(0);
                         state = State.goToSpecimen;
                     } else {
-                        arm.toIdlePosition();
                         state = State.intakeSample;
                     }
                 }
