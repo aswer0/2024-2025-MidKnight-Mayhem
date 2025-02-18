@@ -8,8 +8,8 @@ public class PIDFCoefficients {
 
     public PIDFCoefficients(double p, double i, double d, double f) {
         this.p = p;
-        this.i = i;
-        this.d = d;
-        this.f = f;
+        this.i=i;
+        this.d=d;
+        this.f=f;
     }
 }

@@ -1,12 +1,10 @@
 package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-
-import org.firstinspires.ftc.teamcode.Experiments.Controllers.ScheduledPID;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Controllers.Constants;
-
+import org.firstinspires.ftc.teamcode.Experiments.Controllers.TestPID;
+import org.firstinspires.ftc.teamcode.Experiments.Controllers.HPIDController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.opencv.core.Point;
 
@@ -38,7 +36,7 @@ public class VectorField {
     double PID_dist = 10;
     double stop_speed = 0.2;
     double stop_decay = 0.003;
-    public static double end_decel = 0.05;
+    public static double end_decel = 0.1;
     public Point end_target;
 
     // Heading controls
@@ -54,13 +52,17 @@ public class VectorField {
     public double error = 0;
     public ElapsedTime timer;
 
+    // PID variables
+    public double xp = end_decel, xi = 0.1, xd = 0.01, xithres = 2;
+    public double yp = end_decel, yi = 0.1, yd = 0.01, yithres = 2;
+    public double hp = 0.04, hi = 0.025, hd = 0.003, hithres = 3;
+
+    TestPID x_PID;
+    TestPID y_PID;
+    HPIDController h_PID;
+
     public double x_error;
     public double y_error;
-
-    // PID
-    ScheduledPID x_PID;
-    ScheduledPID y_PID;
-    ScheduledPID h_PID;
 
     // Constructor
     public VectorField(WheelControl w,
@@ -75,14 +77,14 @@ public class VectorField {
         drive.FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         drive.FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        // Set PID controllers
+        x_PID = new TestPID(xp, xi, xd, xithres);
+        y_PID = new TestPID(yp, yi, yd, yithres);
+        h_PID = new HPIDController(hp, hi, hd, hithres);
+
         // Timer
         timer = new ElapsedTime();
         prev_pos = get_pos();
-
-        // PIDs
-        x_PID = Constants.drive_controller;
-        y_PID = Constants.drive_controller;
-        h_PID = Constants.heading_controller;
     }
 
     public void setPath(BCPath path, double end_heading, boolean path_heading) {
@@ -129,14 +131,6 @@ public class VectorField {
         return Utils.limit_angle_rad(h-Math.toRadians(get_heading())) < threshold;
     }
 
-    public boolean at_pose_deg(Point p, double h, double p_thresh, double h_thresh) {
-        return at_point(p, p_thresh) && at_angle_deg(h, h_thresh);
-    }
-
-    public boolean at_pose_rad(Point p, double h, double p_thresh, double h_thresh) {
-        return at_point(p, p_thresh) && at_angle_rad(h, h_thresh);
-    }
-
     // Sets velocity of robot
     public void set_velocity() {
         if (timer.seconds() < velocity_update_rate) return;
@@ -155,10 +149,11 @@ public class VectorField {
     }*/
 
     // Updates closest point on curve using signed GD & binary search
-    public void update_closest(double max_rough_iters,
+    public void update_closest(double look_ahead,
+                               double max_rough_iters,
                                double tune_iters,
                                double rate) {
-        Point pos = get_pos();
+        Point pos = Utils.add_v(get_pos(), Utils.mul_v(powers, look_ahead));
         double path_len = path.F[path.get_bz(T)].est_arclen;
         double update = rate*speed/path_len;
 
@@ -200,14 +195,14 @@ public class VectorField {
 
     // Calculates turn speed based on target angle
     public void set_turn_speed(double target_angle) {
-        turn_speed = Constants.heading_controller.calculate(get_heading(), target_angle);
+        turn_speed = h_PID.calculate(get_heading(), target_angle);
         if (turn_speed > max_turn_speed) turn_speed = max_turn_speed;
         if (turn_speed < -max_turn_speed) turn_speed = -max_turn_speed;
     }
 
     // Robot's move vector to path
     public Point move_vector(double speed) {
-        update_closest(50, 5, 1);
+        update_closest(0, 50, 5, 1);
 
         // Base vector (orthogonal & tangent)
         Point orth = Utils.mul_v(Utils.sub_v(get_closest(), get_pos()), path_corr);
@@ -240,7 +235,7 @@ public class VectorField {
         turn_speed = h_PID.calculate(get_heading(), target_heading);
 
         // Drive
-        //drive.drive_limit_power(x_error, y_error, turn_speed, max_speed, get_heading());
+        drive.drive_limit_power(x_error, y_error, turn_speed, max_speed, get_heading());
     }
 
     public void set_drive_speed(double turn_speed) {

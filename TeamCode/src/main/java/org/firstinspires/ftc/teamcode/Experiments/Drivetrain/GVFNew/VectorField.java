@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Experiments.Controllers.Constants;
-import org.firstinspires.ftc.teamcode.Experiments.Controllers.ScheduledPID;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
+import org.firstinspires.ftc.teamcode.Experiments.Controllers.HPIDController;
+import org.firstinspires.ftc.teamcode.Experiments.Controllers.TestPID;
 import org.opencv.core.Point;
 
 public class VectorField {
@@ -43,10 +43,14 @@ public class VectorField {
     public double error = 0;
     public ElapsedTime timer;
 
-    // PID
-    ScheduledPID x_PID;
-    ScheduledPID y_PID;
-    ScheduledPID h_PID;
+    // PID variables
+    public double xp = end_decel, xi = 0.1, xd = 0.01, xithres = 2;
+    public double yp = end_decel, yi = 0.1, yd = 0.01, yithres = 2;
+    public double hp = 0.02, hi = 0.025, hd = 0.002, hithres = 3;
+
+    public TestPID x_PID;
+    public TestPID y_PID;
+    public HPIDController h_PID;
 
     public double x_error;
     public double y_error;
@@ -62,9 +66,9 @@ public class VectorField {
         drive.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set PID controllers
-        x_PID = Constants.drive_controller;
-        y_PID = Constants.drive_controller;
-        h_PID = Constants.heading_controller;
+        this.x_PID = new TestPID(xp, xi, xd, xithres);
+        this.y_PID = new TestPID(yp, yi, yd, yithres);
+        this.h_PID = new HPIDController(hp, hi, hd, hithres);
 
         // Timer
         timer = new ElapsedTime();

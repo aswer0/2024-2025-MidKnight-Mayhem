@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -21,36 +22,16 @@ import org.opencv.core.Point;
 @Config
 @Autonomous
 public class FourSampleAuto extends OpMode {
-    public static double samplePointX=16;
-    public static double samplePointY=144-16;
-
-    public static double intakeX1=16;
-    public static double intakeY1=117;
-    public static double intake_angle1 = 170;
-
-    public static double intakeX2=16;
-    public static double intakeY2=117;
-    public static double intake_angle2 = 180;
-
-    public static double intakeX3=24;
-    public static double intakeY3=119;
-    public static double intake_angle3 = 225;
-
-
-    Point deposit_point;
-    Point intake_point1;
-    Point intake_point2;
-    Point intake_point3;
+    Point sample_point;
+    double intake_angle = 90;
     double pos = -500;
-    double pid_max_power = 1;
 
     ElapsedTime timer;
     Sensors sensors;
 
     Odometry odometry;
     WheelControl wheelControl;
-    VectorField vf;
-    //Path path;
+    Path path;
 
     State state = State.pid;
     Lift lift;
@@ -59,7 +40,6 @@ public class FourSampleAuto extends OpMode {
     Intake intake;
 
     Alliance alliance = Alliance.red;
-    int intakeState=0;
 
     enum State {
         pid,
@@ -70,29 +50,27 @@ public class FourSampleAuto extends OpMode {
     }
 
     @Override
-    public void init() {
-        deposit_point = new Point(samplePointX, samplePointY); //125.8
-        intake_point1 = new Point(intakeX1, intakeY1);
-        intake_point2 = new Point(intakeX2, intakeY2);
-        intake_point3 = new Point(intakeX3, intakeY3);
+    public void start() {
+        timer.reset();
+    }
 
-        Point[][] follow_path = {{
+    @Override
+    public void init() {
+        sample_point = new Point(16, 125.8);
+
+        Point[] follow_path = {
                 new Point(11, 128.7),
                 new Point(38, 121.8),
                 new Point(65, 125),
                 new Point(76.8, 98.3),
-        }};
-
-        BCPath path = new BCPath(follow_path);
+        };
 
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
-        odometry = new Odometry(hardwareMap, 90, 7.25, 96+7.7, "OTOS");
+        odometry = new Odometry(hardwareMap, 0, 7.875, 113, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-
-        vf = new VectorField(wheelControl, odometry);
-        vf.setPath(path, -90, false);
+        path = new Path(follow_path, wheelControl, odometry, telemetry, 13, 0.01, 90, 1);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -117,11 +95,6 @@ public class FourSampleAuto extends OpMode {
     }
 
     @Override
-    public void start() {
-        timer.reset();
-    }
-
-    @Override
     public void loop() {
         odometry.opt.update();
         lift.update();
@@ -132,77 +105,38 @@ public class FourSampleAuto extends OpMode {
             case pid:
                 intake.up();
                 intake.stop();
-                intakeSlides.setPosition(0);
-                vf.pid_to_point(deposit_point, 135, pid_max_power);
+                arm.closeClaw();
 
-                if (intakeState==0) {
-                    arm.closeClaw();
-                    if (timer.milliseconds() >= 300) {
-                        lift.toHighBasket();
-                    }
+                if (timer.milliseconds() >= 300) {
+                    lift.toHighBasket();
+                }
 
-                    if (timer.milliseconds() >= 2500) {
-                        timer.reset();
-                        intakeState++;
-                        state = State.deposit_sample;
-                    }
-                } else {
-                    boolean transfer;
-                    if (intakeSlides.getPosition()>-20 || timer.milliseconds()>3000) {
-                        lift.intakeSample();
-                        arm.intakeSample();
-                        transfer=true;
-                        timer.reset();
-                    } else {
-                        transfer = false;
-                    }
-                    if (transfer) {
-                        if (timer.milliseconds()>150) {
-                            arm.closeClaw();
-                            if (timer.milliseconds()>150+300) {
-                                lift.toHighBasket();
-                                if (timer.milliseconds()>150+2500) {
-                                    timer.reset();
-                                    intakeState++;
-                                    state = State.deposit_sample;
-                                }
-                            }
-                        }
-                    }
+                path.follow_pid_to_point(sample_point, 135);
+
+                if (timer.milliseconds() >= 2500) {
+                    timer.reset();
+                    state = State.deposit_sample;
                 }
 
                 break;
 
-            case deposit_sample: //and move to intake
+            case deposit_sample:
+                intake.up();
+                intake.stop();
+
                 arm.outtakeSample();
 
                 if (timer.milliseconds() >= 250){
                     arm.openClaw();
                 }
                 if (timer.milliseconds() >= 500){
-                    arm.toIdlePosition();
+                    arm.toAutoStartPosition();
                     lift.intakeSample();
 
-                    if (intakeState==4) {
-                        state = State.park;
-                        timer.reset();
-                    }
-
-                    switch (intakeState) {
-                        case 1:
-                            vf.pid_to_point(intake_point1, intake_angle1, pid_max_power);
-                            break;
-                        case 2:
-                            vf.pid_to_point(intake_point2, intake_angle2, pid_max_power);
-                            break;
-                        case 3:
-                            vf.pid_to_point(intake_point3, intake_angle3, pid_max_power);
-                            break;
-                    }
+                    path.follow_pid_to_point(sample_point, intake_angle);
                 }
                 if (timer.milliseconds() >= 2000){
                     state = State.intake_sample;
-                    timer.reset();
                 }
 
                 break;
@@ -213,7 +147,6 @@ public class FourSampleAuto extends OpMode {
 
                 if (timer.milliseconds() >= 500){
                     intake.down();
-                    wheelControl.drive(0,-0.2,0,Math.toRadians(odometry.opt.get_heading()),1);
                 }
 
                 if (intake.hasCorrectSample(true)) {
@@ -224,10 +157,10 @@ public class FourSampleAuto extends OpMode {
                 break;
 
            case park:
-                vf.move();
+                path.update(true);
 
                 lift.toHighChamber();
-                break;
+
         }
     }
 }
