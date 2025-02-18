@@ -125,8 +125,12 @@ public class SixSpecimenAuto extends OpMode {
         intake = new Intake(hardwareMap, sensors);
         horizontalSlides = new HorizontalSlides(hardwareMap);
         arm = new Arm(hardwareMap);
-        arm.toAutoStartPosition();
+        arm.backOuttakeSpecimen1();
         arm.closeClaw();
+        intake.up();
+        intake.stop();
+        intake.closeDoor();
+        lift.toBackChamber1Pos();
     }
 
     @Override
@@ -187,30 +191,22 @@ public class SixSpecimenAuto extends OpMode {
         switch (state) {
             case firstPid:
                 // Reverse hang
-                intake.up();
-                intake.stop();
-                intake.closeDoor();
-                lift.toBackChamber1Pos();
-                arm.backOuttakeSpecimen1();
                 horizontalSlides.setPosition(-sub_intake.x*ticks_per_inch);
                 vf.pid_to_point(hang_target, 180, 1);
 
                 // Sub intake when it's there
                 if (sensors.isTouchBack() || state_timer.milliseconds() > 2000) {
                     deposit_state++;
+                    horizontalSlides.setPosition(-sub_intake.x*ticks_per_inch);
+                    wheelControl.stop();
+                    lift.toBackChamber2Pos();
+                    arm.backOuttakeSpecimen2();
                     resetTimers();
-                    sub_intake_slide_pos = -sub_intake.x*ticks_per_inch;
                     state = State.subIntake;
                 }
                 break;
 
             case subIntake: //also back deposit
-                // Hang specimen
-                wheelControl.stop();
-                lift.toBackChamber2Pos();
-                arm.backOuttakeSpecimen2();
-                horizontalSlides.setPosition(sub_intake_slide_pos);
-
                 // Bit of delay so not having 2 samples in possession
                 if (state_timer.milliseconds() < 150) break;
 
@@ -225,7 +221,7 @@ public class SixSpecimenAuto extends OpMode {
                     intake.down();
                 }
                 if (event_scheduler.during("Extend intake slides", 300)) {
-                    sub_intake_slide_pos = horizontal_pos;
+                    horizontalSlides.setPosition(-450);
                 }
 
                 // Move on if correct or timer failsafe
@@ -269,7 +265,6 @@ public class SixSpecimenAuto extends OpMode {
                 } else {
                     horizontalSlides.setPosition(horizontal_pos);
                 }
-
                 break;
 
             case intakeSample:
@@ -299,6 +294,7 @@ public class SixSpecimenAuto extends OpMode {
                 // Stop when has sample or timer failsafe
                 if (intake.hasCorrectSample(false) || state_timer.milliseconds() > 2500){
                     intake_state++;
+                    arm.toIdlePosition();
                     resetTimers();
                     state = State.setupSpitSample;
                 }
@@ -307,32 +303,31 @@ public class SixSpecimenAuto extends OpMode {
 
             case setupSpitSample:
                 // PID to spit
-                arm.toIdlePosition();
-                intake.reverseDown();
-
                 vf.pid_to_point(new Point(30, 30), target_angle_spit, 0.5);
                 horizontalSlides.setPosition(-200);
 
-                if (odometry.opt.get_heading()<40 || state_timer.milliseconds() > 1000){
+                if (odometry.opt.get_heading()<45 || state_timer.milliseconds() > 1000){
                     resetTimers();
+                    horizontalSlides.setPosition(horizontal_pos);
+                    intake.reverseDown();
+                    intake.reverse();
                     state = State.spitSample;
                 }
 
                 break;
 
             case spitSample:
-                wheelControl.stop();
-                horizontalSlides.setPosition(horizontal_pos);
-                intake.reverseDown();
-                intake.reverse();
-
                 // Transition to pick up specimen or intake more
                 if (state_timer.milliseconds() >= 300){
                     horizontalSlides.setPosition(0);
                     resetTimers();
                     if (intake_state >= 4) {
+                        intake.down();
+                        intake.stop();
+                        horizontalSlides.setPosition(0);
                         state = State.goToSpecimen;
                     } else {
+                        arm.toIdlePosition();
                         state = State.intakeSample;
                     }
                 }
@@ -340,11 +335,6 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case goToSpecimen:
-                // Setups up picking up specimen
-                intake.down();
-                intake.stop();
-                horizontalSlides.setPosition(0);
-
                 vf.pid_to_point(get_specimen_target, 0, 1);
 
                 if (state_timer.milliseconds() > 500){
@@ -353,11 +343,19 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 if (vf.at_pose_deg(get_specimen_target, 0, 4, 4)) {
+                    arm.intakeSpecimen();
+                    horizontalSlides.setPosition(0);
+                    intake.down();
+                    intake.stop();
                     resetTimers();
                     state = State.pickupSpecimen;
                 }
 
                 if (state_timer.milliseconds() >= 1500) {
+                    arm.intakeSpecimen();
+                    horizontalSlides.setPosition(0);
+                    intake.down();
+                    intake.stop();
                     resetTimers();
                     state = State.pickupSpecimen;
                 }
@@ -365,17 +363,14 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case pickupSpecimen:
-                arm.intakeSpecimen();
-                horizontalSlides.setPosition(0);
-                intake.down();
-                intake.stop();
-
                 // PID to pickup specimen and correct y
-                if (state_timer.milliseconds() < 1000 || sensors.get_front_dist() > dist_thresh) {
+                if (state_timer.milliseconds() < 1500 || sensors.get_front_dist() > dist_thresh) {
                     vf.pid_to_point(new Point(0, get_specimen_target.y), 0, 0.3);
                 } else {
                     wheelControl.stop();
                     arm.closeClaw();
+                    lift.toHighChamber();
+                    arm.outtakeSpecimen1();
                     resetTimers();
                     state = State.depositPid;
                 }
@@ -383,11 +378,6 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case depositPid:
-                if (state_timer.milliseconds() <= 100) break;
-
-                lift.toHighChamber();
-                arm.outtakeSpecimen1();
-
                 // Two step PID to not crash into bar
                 if (vf.get_y()<deposit_target.y-10) {
                     vf.pid_to_point(new Point(deposit_target.x-15, deposit_target.y), 0, 1);
@@ -396,24 +386,29 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 // Deposit when there
-                if (state_timer.milliseconds() > 2500 || sensors.get_front_dist() < 2.5) {
+                if (state_timer.milliseconds() > 2500 || sensors.get_front_dist() < dist_thresh) {
                     resetTimers();
+                    intake.up();
                     state = State.deposit;
                 }
 
                 break;
 
             case deposit:
-                lift.setPosition(0);
-                arm.openClaw();
-                arm.outtakeSpecimen1();
-                deposit_target.y -= 1.5;
-                deposit_state++;
-                resetTimers();
-                if (deposit_state < 6) {
-                    state = State.goToSpecimen;
-                } else {
-                    state = State.park;
+                wheelControl.drive_relative(0.1, -0.9, 0, 1);
+
+                // Decide what to do next
+                if (state_timer.milliseconds() >= 100) {
+                    lift.setPosition(0);
+                    arm.openClaw();
+                    arm.outtakeSpecimen1();
+                    deposit_state++;
+                    resetTimers();
+                    if (deposit_state < 6) {
+                        state = State.goToSpecimen;
+                    } else {
+                        state = State.park;
+                    }
                 }
                 break;
 
