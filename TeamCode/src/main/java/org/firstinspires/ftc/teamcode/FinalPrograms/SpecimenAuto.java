@@ -28,7 +28,7 @@ public class SpecimenAuto extends OpMode {
     //public static double sample_y = 37;
 
     public static double intake_sample_x1 = 26;
-    public static double intake_sample_y1 = 35.5;
+    public static double intake_sample_y1 = 36.5;
     public static double intake_sample_x2 = 27.5;
     public static double intake_sample_y2 = 34;
     public static double intake_sample_x3 = 26;

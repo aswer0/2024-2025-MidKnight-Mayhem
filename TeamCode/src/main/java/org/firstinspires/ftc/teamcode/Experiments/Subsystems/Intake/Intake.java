@@ -151,7 +151,7 @@ public class Intake {
                 85 < intakeSensor.blue() && intakeSensor.blue() < 120;
         boolean yellow = (73 < intakeSensor.red() && intakeSensor.red() < 110 &&
                 114 < intakeSensor.green() && intakeSensor.green() < 160 &&
-                55 < intakeSensor.blue() && intakeSensor.blue() < 80);
+                55 < intakeSensor.blue() && intakeSensor.blue() < 95);
         if(outputDebugInfo) {
             TelemetryPacket packet = new TelemetryPacket();
             packet.put("Intake/Red", intakeSensor.red());
