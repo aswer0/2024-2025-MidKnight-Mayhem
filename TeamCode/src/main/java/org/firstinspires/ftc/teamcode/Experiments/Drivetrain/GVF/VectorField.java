@@ -131,6 +131,14 @@ public class VectorField {
         return Utils.limit_angle_rad(h-Math.toRadians(get_heading())) < threshold;
     }
 
+    public boolean at_pose_deg(Point p, double h, double p_thresh, double h_thresh) {
+        return at_point(p, p_thresh) && at_angle_deg(h, h_thresh);
+    }
+
+    public boolean at_pose_rad(Point p, double h, double p_thresh, double h_thresh) {
+        return at_point(p, p_thresh) && at_angle_rad(h, h_thresh);
+    }
+
     // Sets velocity of robot
     public void set_velocity() {
         if (timer.seconds() < velocity_update_rate) return;
