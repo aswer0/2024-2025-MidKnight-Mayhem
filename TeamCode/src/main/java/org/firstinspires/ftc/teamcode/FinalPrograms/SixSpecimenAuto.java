@@ -237,6 +237,7 @@ public class SixSpecimenAuto extends OpMode {
                 if (Math.abs(horizontalSlides.horizontalSlidesMotor.getCurrentPosition() - sub_intake_slide_pos) <= 25) {
                     event_scheduler.createIfNew("Extend intake slides");
                     intake.down();
+                    intake.intake();
                 }
                 if (event_scheduler.during("Extend intake slides", 300)) {
                     horizontalSlides.setPosition(-450);
@@ -265,7 +266,7 @@ public class SixSpecimenAuto extends OpMode {
                     intake.reverse();
                     intake.reverseDown();
                 } else {
-                    intake.intake();
+                    intake.stop();
                     intake.up();
                 }
 
@@ -277,7 +278,7 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 // Spit if there
-                if (odometry.opt.get_heading()<50 || state_timer.milliseconds() > 2000) {;
+                if (odometry.opt.get_heading()<50 || state_timer.milliseconds() > 2000) {
                     intake.reverseDown();
                     intake.reverse();
                     if (event_scheduler.during("Spit sample", 300)) {
