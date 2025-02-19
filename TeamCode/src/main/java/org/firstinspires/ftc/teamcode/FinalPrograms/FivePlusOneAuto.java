@@ -24,19 +24,19 @@ import org.opencv.core.Point;
 @Autonomous
 @Config
 public class FivePlusOneAuto extends OpMode {
-    //public static double sample_x = 24.5;
-    //public static double sample_y = 37;
+    public static double sample_x = 8;
+    public static double sample_y = 120;
 
-    public static double intake_sample_x1 = 26;
-    public static double intake_sample_y1 = 35.5;
+    public static double intake_sample_x1 = 28;
+    public static double intake_sample_y1 = 34.75;
     public static double intake_sample_x2 = 27.5;
     public static double intake_sample_y2 = 34;
-    public static double intake_sample_x3 = 26;
-    public static double intake_sample_y3 = 17.2;
+    public static double intake_sample_x3 = 26.5;
+    public static double intake_sample_y3 = 17;
     public static double sweep_sample_x = 32;
     public static double sweep_sample_y = 34;
 
-    public static double clampValue = -200;
+    public static double clampValue = -180;
 
 
     public static double pos = 650;
@@ -105,8 +105,8 @@ public class FivePlusOneAuto extends OpMode {
         };
 
         target = new Point(target_x, target_y);
-        get_specimen_target = new Point(14.875, 28);
-        preload_sample = new Point(9, 121);
+        get_specimen_target = new Point(14.875, 30);
+        preload_sample = new Point(sample_x, sample_y); //8 120
         //get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
@@ -160,7 +160,7 @@ public class FivePlusOneAuto extends OpMode {
 
                 if (intake_state == 0){
                     arm.outtakeSpecimen1();
-                    if (timer.milliseconds() >= 300){
+                    if (timer.milliseconds() >= 150){
                         path.follow_pid_to_point(target, 0);
                     }
                 }
@@ -206,7 +206,7 @@ public class FivePlusOneAuto extends OpMode {
                     arm.outtakeSpecimen2();
                 }
 
-                if (timer.milliseconds() >= 400){
+                if (timer.milliseconds() >= 300){
                     // im not sure if it will intake 3 times then move to go to specimen state, check this
                     if (intake_state >= 2 && intake_state < 6){
                         timer.reset();
@@ -232,7 +232,7 @@ public class FivePlusOneAuto extends OpMode {
                     arm.intakeSpecimen();
                 }
 
-                if (path.at_point(get_specimen_target, 5)) { //4
+                if (path.at_point(get_specimen_target, 6)) { //4
                     wheelControl.drive(0, 0, 0, 0, 0.7);
                     timer.reset();
                     state = State.pickupSpecimen;
@@ -246,8 +246,10 @@ public class FivePlusOneAuto extends OpMode {
                 arm.intakeSpecimen();
                 horizontalSlides.setPosition(0);
 
-                if (timer.milliseconds() < 700) { //sensors.get_back_dist() >= intake_dist_thresh &&
-                    wheelControl.drive(0.5, 0, 0, 0, 0.7);
+                if (intake_state >=5 && timer.milliseconds()<400) {
+                    wheelControl.drive(0.5,0,0,0,0.7);
+                } else if (timer.milliseconds() < 600) { //sensors.get_back_dist() >= intake_dist_thresh &&
+                    wheelControl.drive(0.5,0,0,0,0.7);
                 } else {
                     wheelControl.drive(0, 0, 0, 0, 0);
                     arm.closeClaw();
@@ -271,16 +273,10 @@ public class FivePlusOneAuto extends OpMode {
                 int time;
                 if (intake_state > 4){
                     state = State.goToSpecimen;
-                }
-                //if (intake_state==2 || intake_state==3) {
-                //path.follow_pid_to_point(new Point(sweep_sample_x, sweep_sample_y), target_angle_intake);
-                //}
-                if (intake_state==2 || intake_state==3) {
+                } if (intake_state==2 || intake_state==3) {
                     path.follow_pid_to_point(new Point(intake_sample_x1, intake_sample_y1), target_angle_intake1);
-                }
-                if (intake_state==4) {
+                } if (intake_state==4) {
                     path.follow_pid_to_point(new Point(intake_sample_x3, intake_sample_y3), target_angle_intake1);
-
                 }
 
                 //intake.down();
@@ -290,7 +286,7 @@ public class FivePlusOneAuto extends OpMode {
                     time = 500;
                 }
                 else{
-                    time = 1000;
+                    time = 900;
                 }
                 if (timer.milliseconds()>time) {
                     if (horizontalSlides.getPosition()<clampValue) {
@@ -304,11 +300,6 @@ public class FivePlusOneAuto extends OpMode {
                         timer.reset();
                         state = State.setupSpitSample;
                     }
-//                    if ((intake_state==2 || intake_state==3) && path.at_point(new Point(intake_sample_x,intake_sample_y), 3)) {
-//                        timer.reset();
-//                        state = State.setupSpitSample;
-//
-//                    }
                 }
 
                 break;
@@ -322,9 +313,12 @@ public class FivePlusOneAuto extends OpMode {
                 path.follow_pid_to_point(new Point(30, 30), target_angle_spit);
                 horizontalSlides.setPosition(horizontal_pos);
 
-                if (odometry.opt.get_heading()<60 || timer.milliseconds()> 1000){ //original 1000
+                if (odometry.opt.get_heading()<70 || timer.milliseconds()> 900){ //original 1000
                     wheelControl.drive(0,0,0,0, 0);
                     timer.reset();
+                    horizontalSlides.setPosition(horizontal_pos);
+                    intake.reverseDown();
+                    intake.reverse();
                     state = State.spitSample;
                 }
 
@@ -335,10 +329,10 @@ public class FivePlusOneAuto extends OpMode {
                 intake.reverseDown();
                 if (horizontalSlides.getPosition()<-100) intake.reverse();
 
-                if (timer.milliseconds() >= 500){
-                    intake_sample_y1 -= 8.5; //8
-                    intake_sample_x1 += 0.5;
-                    target_angle_intake1 += 3;
+                if (timer.milliseconds() >= 300){
+                    intake_sample_y1 -= 7.25; //8
+                    intake_sample_x1 += 1.75;
+                    target_angle_intake1 += 5.5;
                     intake_state++;
 
                     horizontalSlides.setPosition(-100);
@@ -350,19 +344,27 @@ public class FivePlusOneAuto extends OpMode {
 
             /*==================================*/
             case depositPreloadSample:
-                path.follow_pid_to_point(preload_sample, 90);
-                arm.outtakeSample();
-                lift.toHighBasket();
+                if (timer.milliseconds()>50) {
+                    path.follow_pid_to_point(preload_sample, 100);
+                    arm.outtakeSample();
+                    lift.toHighBasket();
+                }
 
-                if (path.at_point(preload_sample, 3) || timer.milliseconds()>3000){
+                if (path.at_point(preload_sample, 5) || timer.milliseconds()>3000){
+                    wheelControl.drive(0,0,0,0,0);
                     arm.openClaw();
                     state = State.park;
                 }
+                if (odometry.opt.get_y()>115) arm.openClaw();
                 break;
             /*==================================*/
 
             case park:
-                path.follow_pid_to_point(new Point(12, 48), 90);
+                if (odometry.opt.get_y()<80) {
+                    arm.toIdlePosition();
+                    lift.setPosition(0);
+                }
+                if (timer.milliseconds()>100) path.follow_pid_to_point(new Point(12, 48), 90);
                 horizontalSlides.setPosition(horizontal_pos);
 
                 break;
@@ -382,5 +384,9 @@ public class FivePlusOneAuto extends OpMode {
         lift.update();
         telemetry.update();
         horizontalSlides.update();
+    }
+
+    public void stop() {
+        arm.openClaw();
     }
 }

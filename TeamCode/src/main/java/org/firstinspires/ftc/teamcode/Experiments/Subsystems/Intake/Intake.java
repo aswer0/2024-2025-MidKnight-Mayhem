@@ -20,7 +20,10 @@ import java.util.Objects;
 public class Intake {
     public static boolean outputDebugInfo = false;
 
-    public static double DOWN_POS=0.64;
+    public static double slowSpeed=0.15;
+    public static double spitTime=300;
+
+    public static double DOWN_POS=0.65;
     public static double UP_POS=0.893;
 
     public static double DOOR_OPEN_POS=0.55;
@@ -61,7 +64,7 @@ public class Intake {
         setPower(-1);
     }
     public void slowReverse() {
-        setPower(0.1);
+        setPower(slowSpeed);
     }
     public void reverse() {
         setPower(1);
@@ -97,11 +100,11 @@ public class Intake {
             case allianceSpecific:
             case yellow:
                 closeDoor();
-                if(correctSampleSince.milliseconds() > 300) {
+                if(correctSampleSince.milliseconds() > spitTime) {
                     up();
                     intake();
                     return false;
-                } else if (correctSampleSince.milliseconds() >300+150) {
+                } else if (correctSampleSince.milliseconds() >(spitTime+150)) {
                     up();
                     stop();
                     return true;

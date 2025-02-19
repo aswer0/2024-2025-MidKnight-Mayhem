@@ -266,7 +266,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                 case goToSpecimen:
                     intake.down();
                     intakeSlides.setPosition(0);
-                    vf.pid_to_point(new Point(12.875, 32), 0, 1);
+                    vf.pid_to_point(new Point(15.875, 32), 0, 1);
 
                     if (autoTimer.milliseconds() > 500){
                         outtakeSlides.intakeSpecimen();
@@ -423,12 +423,17 @@ public class AndrewsCrappyTeleOp extends OpMode {
                 newOuttakeState = false;
 
                 if (currentGamepad2.circle && outtakeTimer.milliseconds()>=150) {
+                    intake.stop();
                     arm.closeClaw();
+                    intake.openDoor();
                     if (outtakeTimer.milliseconds()>=150+300) {
                         outtakeState = OuttakeState.outtakeSample;
                         outtakeTimer.reset();
                         newOuttakeState = true;
                     }
+                } else {
+                    intake.closeDoor();
+                    intake.intake();
                 }
 
                 if (currentGamepad2.left_bumper && outtakeTimer.milliseconds()>=150) {
@@ -516,6 +521,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
 
                         if (currentGamepad2.triangle) {
+                            intake.closeDoor();
                             outtakeState = OuttakeState.idle;
                             outtakeTimer.reset();
                             newOuttakeState = true;
@@ -531,10 +537,12 @@ public class AndrewsCrappyTeleOp extends OpMode {
             case specOut:
                 if (newOuttakeState) {
                     arm.closeClaw();
-                    outtakeSlides.setPosition(400);
+                    outtakeSlides.setPosition(800);
                     arm.outtakeSample();
                     releaseSample = false;
                 }
+
+                if (outtakeSlides.getPosition()>700) outtakeSlides.setPosition(0);
 
                 newOuttakeState = false;
 
