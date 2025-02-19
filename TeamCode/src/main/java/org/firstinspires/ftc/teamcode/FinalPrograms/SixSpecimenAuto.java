@@ -32,7 +32,7 @@ public class SixSpecimenAuto extends OpMode {
 
     public static double first_spit_x = 27;
     public static double first_spit_y = 38;
-    public static double first_spit_angle = 45;
+    public static double first_spit_angle = 25;
 
     public static double dist_thresh = 2.5;
 
@@ -58,6 +58,7 @@ public class SixSpecimenAuto extends OpMode {
     public static double get_specimen_x = 15;
     public static double get_specimen_y = 35;
     Point get_specimen_target = new Point(get_specimen_x, get_specimen_y);
+    Point sub_intake = new Point(0, 0);
 
     //Point sub_intake = new Point(0, 0);
     //Point sub_intake_limit = new Point(27.5, 21.3);
@@ -133,6 +134,7 @@ public class SixSpecimenAuto extends OpMode {
         intake.stop();
         intake.closeDoor();
         lift.toBackChamber1Pos();
+        state_timer.reset();
     }
 
     @Override
@@ -149,43 +151,32 @@ public class SixSpecimenAuto extends OpMode {
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
 
-        if (!previousGamepad1.square && currentGamepad1.square) {
+        /*if (!previousGamepad1.square && currentGamepad1.square) {
             hang_target.y = vf.get_y();
-            sub_intake_slide_pos = horizontalSlides.getPosition();
-        }
-        /*if (gamepad1.left_bumper) {
-            alliance = Alliance.blue;
-        } else if (gamepad1.right_bumper) {
-            alliance = Alliance.red;
-        }
-
-        previousGamepad1.copy(currentGamepad1);
-        currentGamepad1.copy(gamepad1);
+        }*/
 
         if (!previousGamepad1.dpad_down && currentGamepad1.dpad_down){
             sub_intake.x -= set_pos_tolerance;
-            if (sub_intake.x < -sub_intake_limit.x/2){
-                sub_intake.x = -sub_intake_limit.x/2;
-            }
         }
         if (!previousGamepad1.dpad_up && currentGamepad1.dpad_up){
             sub_intake.x += set_pos_tolerance;
-            if (sub_intake.x > sub_intake_limit.x/2){
-                sub_intake.x = sub_intake_limit.x/2;
-            }
         }
         if (!previousGamepad1.dpad_left && currentGamepad1.dpad_left){
             sub_intake.y += set_pos_tolerance;
+            hang_target = new Point(target_x, 65+sub_intake.y);
         }
         if (!previousGamepad1.dpad_right && currentGamepad1.dpad_right){
             sub_intake.y -= set_pos_tolerance;
+            hang_target = new Point(target_x, 65+sub_intake.y);
         }
 
         telemetry.addData("Alliance", alliance);
         telemetry.addLine();
         telemetry.addLine("Sample position (relative to robot)");
+        //telemetry.addData("intake lr", hang_target.y);
+        telemetry.addData("current point", hang_target);
         telemetry.addData("intake b/f (+ is forward)", sub_intake.x);
-        telemetry.addData("intake l/r (+ is right)", -sub_intake.y);*/
+        telemetry.addData("intake l/r (+ is right)", -sub_intake.y);
     }
 
     public void resetTimers() {
@@ -197,6 +188,7 @@ public class SixSpecimenAuto extends OpMode {
     public void start() {
         resetTimers();
         deposit_target = new Point(hang_target.x, hang_target.y-1.5);
+        sub_intake_slide_pos = -ticks_per_inch*sub_intake.x;
     }
 
     @Override
@@ -214,7 +206,6 @@ public class SixSpecimenAuto extends OpMode {
                 // Sub intake when it's there
                 if (sensors.isTouchBack() || state_timer.milliseconds() > 2000) {
                     deposit_state++;
-                    horizontalSlides.setPosition(sub_intake_slide_pos);
                     wheelControl.stop();
                     lift.toBackChamber2Pos();
                     arm.backOuttakeSpecimen2();
@@ -224,6 +215,8 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case subIntake: //also back deposit
+                wheelControl.drive_relative(0.1, 0, 0, 1);
+
                 // Bit of delay so not having 2 samples in possession
                 if (state_timer.milliseconds() < 100) break;
 
@@ -259,16 +252,17 @@ public class SixSpecimenAuto extends OpMode {
 
             case firstSpit:
                 // Robot movement logic
-                if (odometry.opt.get_heading()<50 || state_timer.milliseconds() > 2000) {
+                if (Math.abs(odometry.opt.get_heading())<50 || state_timer.milliseconds() > 2000) {
                     intake.reverseDown();
                     intake.reverse();
                     vf.pid_to_point(new Point(first_spit_x, first_spit_y), 45, 1);
                     if (event_scheduler.during("Spit sample", 300)) {
                         resetTimers();
+                        arm.intakeSpecimen();
                         state = State.intakeSample;
                     }
                 } else {
-                    vf.pid_to_point(new Point(first_spit_x, first_spit_y), first_spit_angle, 0.6);
+                    vf.pid_to_point(new Point(first_spit_x, first_spit_y), first_spit_angle, 0.4);
                 }
 
                 // Reverse if wrong color
@@ -303,7 +297,7 @@ public class SixSpecimenAuto extends OpMode {
                 if (state_timer.milliseconds() < 2000 && !vf.at_pose_deg(intake_target, target_angle_intake, 2, 5)) {
                     vf.pid_to_point(intake_target, target_angle_intake, 1);
                 } else if (event_scheduler.during("intake", 0, 500)) {
-                    wheelControl.drive_relative(-0.2, -0.1, 0, 1);
+                    wheelControl.drive_limit_power(0.1, -0.15, 0, 1, vf.get_heading());
                 }
 
                 // Extend slides
@@ -326,11 +320,12 @@ public class SixSpecimenAuto extends OpMode {
 
             case setupSpitSample:
                 // PID to spit
-                vf.pid_to_point(new Point(27, 30), target_angle_spit, 0.5);
+                vf.pid_to_point(new Point(27, 30), target_angle_spit, 1);
                 horizontalSlides.setPosition(-200);
 
-                if (odometry.opt.get_heading()<45 || state_timer.milliseconds() > 1000){
+                if (odometry.opt.get_heading()<60 || state_timer.milliseconds() > 1000){
                     resetTimers();
+                    wheelControl.stop();
                     horizontalSlides.setPosition(horizontal_pos);
                     intake.reverseDown();
                     intake.reverse();
@@ -350,6 +345,7 @@ public class SixSpecimenAuto extends OpMode {
                         horizontalSlides.setPosition(0);
                         state = State.goToSpecimen;
                     } else {
+                        arm.intakeSpecimen();
                         state = State.intakeSample;
                     }
                 }
@@ -357,11 +353,11 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case goToSpecimen:
+                arm.intakeSpecimen();
                 vf.pid_to_point(get_specimen_target, 0, 1);
 
                 if (state_timer.milliseconds() > 500){
                     lift.intakeSpecimen();
-                    arm.intakeSpecimen();
                 }
 
                 if (vf.at_pose_deg(get_specimen_target, 0, 4, 4)) {
@@ -388,7 +384,7 @@ public class SixSpecimenAuto extends OpMode {
                 // PID to pickup specimen and correct y
                 if (sensors.get_front_dist() < 5) arm.closeClaw();
 
-                if (state_timer.milliseconds() < 1500 || sensors.get_front_dist() > dist_thresh) {
+                if (state_timer.milliseconds() < 1500 && sensors.get_front_dist() > dist_thresh) {
                     vf.pid_to_point(new Point(0, get_specimen_target.y), 0, 0.3);
                 } else {
                     wheelControl.stop();
@@ -403,7 +399,7 @@ public class SixSpecimenAuto extends OpMode {
             case depositPid:
                 // Two step PID to not crash into bar
                 if (vf.get_y()<deposit_target.y-10) {
-                    wheelControl.drive_relative(0.6, -0.4, 0, 1);
+                    vf.pid_to_point(new Point(deposit_target.x-15, deposit_target.y), 0, 1);
                 } else {
                     vf.pid_to_point(deposit_target, 0, 1);
                 }

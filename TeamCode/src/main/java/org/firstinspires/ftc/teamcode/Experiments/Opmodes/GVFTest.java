@@ -20,6 +20,8 @@ public class GVFTest extends OpMode {
     VectorField vf;
     WheelControl wheelControl;
 
+    public static double k = 1;
+
     @Override
     public void init() {
         // Bezier control points
@@ -48,8 +50,8 @@ public class GVFTest extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
-        vf.move();
-        //wheelControl.drive(-1, 0, 0, 0, 1);
+        //vf.move();
+        wheelControl.drive_relative(0.2, 0.2*k, 0, 1);
         TelemetryPacket telemetry = new TelemetryPacket();
         //vf.set_velocity();
         //telemetry.put("v/p", Utils.len_v(vf.velocity)/vf.speed);

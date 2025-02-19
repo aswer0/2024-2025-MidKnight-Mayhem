@@ -194,7 +194,7 @@ public class VectorFieldOld {
         error = Utils.dist(get_pos(), path.forward(D));
 
         // Angle
-        target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
+        //target_angle = Math.toDegrees(Utils.angle_v(path.derivative(D)));
         set_turn_speed(target_angle);
 
         // Drive according to calculations

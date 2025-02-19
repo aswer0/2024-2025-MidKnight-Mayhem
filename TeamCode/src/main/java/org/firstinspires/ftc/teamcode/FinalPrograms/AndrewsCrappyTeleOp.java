@@ -122,7 +122,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
             alliance = Alliance.blue;
             intake.alliance = alliance;
         }
-        if(currentGamepad1.share && !previousGamepad1.share) {
+        if(gamepad1.share && !previousGamepad1.share) {
             sampleMode = !sampleMode;
         }
 

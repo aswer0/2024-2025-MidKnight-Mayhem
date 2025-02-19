@@ -13,7 +13,7 @@ public class WheelControl {
     public DcMotorEx BL;
     public DcMotorEx FR;
     public DcMotorEx FL;
-    public double f = 0.06;
+    public double f = 0;
     public double strafe_k = 1.5;
     private VoltageSensor voltageSensor;
 
@@ -107,13 +107,13 @@ public class WheelControl {
         / \
          */
 
-        // Make sure forward and right are <= 1
-        double power_scale = max_power/Math.max(max_power, Math.max(forward, right));
-        forward *= power_scale;
-        right *= power_scale;
-
         // Strafe is slower so scale up
         //right *= strafe_k;
+
+        // Make sure forward and right are <= 1
+        double power_scale = max_power/Math.max(max_power, Math.sqrt(forward*forward+right*right));
+        forward *= power_scale;
+        right *= power_scale;
 
         // Calculate motor powers
         double BLPower = -forward + right + rotate_power;

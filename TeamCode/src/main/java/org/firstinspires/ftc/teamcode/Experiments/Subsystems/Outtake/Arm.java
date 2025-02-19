@@ -35,7 +35,7 @@ public class Arm {
     }
     public void applyPreset(Preset preset) {
         outtake_arm_far.setPosition(preset.outtake_arm_far);
-        outtake_arm_near .setPosition(preset.outtake_arm_near );
+        outtake_arm_near.setPosition(preset.outtake_arm_near);
         pivot_left.setPosition(preset.oP);
         pivot_right.setPosition(1-preset.oP);
     }
@@ -75,6 +75,16 @@ public class Arm {
     }
     public void closeClaw() {
         tClaw.setPosition(clawClosePos);
+    }
+
+    public double getNearPosition() {
+        return outtake_arm_near.getPosition();
+    }
+    public double getFarPosition() {
+        return outtake_arm_far.getPosition();
+    }
+    public double getPivotPosition() {
+        return pivot_left.getPosition();
     }
 
     public static class Preset {
