@@ -54,11 +54,12 @@ public class AndrewsCrappyTeleOp extends OpMode {
     //auto values
     public static double power = 1;
     public static double target_x = 50; //36.2
-    public static double target_y = 80;
+    public static double target_y = 88;
     public static double dist_thresh = 2.5;
     public static double intake_dist_thresh = 2.5;
     Point target;
     ElapsedTime autoTimer;
+    ElapsedTime intakeTime;
 
     public static double sample_x = 13;
     public static double sample_y = 123.5;
@@ -102,6 +103,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
         vf = new VectorField(drive, odometry);
         target = new Point(target_x, target_y);
         autoTimer = new ElapsedTime();
+        intakeTime = new ElapsedTime();
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
@@ -331,14 +333,22 @@ public class AndrewsCrappyTeleOp extends OpMode {
                         intake.closeDoor();
                         intake.down();
                     }else {
-                        boolean hasCorrectObject = intake.smartIntake(sampleMode);
-                        if(hasCorrectObject && retractIntakeOnSample) {
-                            intakeSlides.setPosition(0);
+                        if (!intake.hasCorrectSample(sampleMode)) {
+                            intakeTime.reset();
+                            boolean hasCorrectObject = intake.smartIntake(sampleMode);
+                            if (hasCorrectObject && retractIntakeOnSample) {
+                                intakeSlides.setPosition(0);
+                            }
+                        } else if (intakeTime.milliseconds()<600){
+                            intake.smartIntake(sampleMode);
+                        }else {
                             gamepad1.rumble(500);
                             gamepad2.rumble(500);
+                            intakeSlides.setPosition(0);
                         }
                     }
                 } else if (currentGamepad2.right_trigger-currentGamepad2.left_trigger<-0.7){
+                    intake.openDoor();
                     intake.reverseDown();
                     if (intakeTimer.milliseconds()>50) {
                         intake.reverse();

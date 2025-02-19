@@ -60,6 +60,9 @@ public class Intake {
     public void intake() {
         setPower(-1);
     }
+    public void slowReverse() {
+        setPower(0.1);
+    }
     public void reverse() {
         setPower(1);
     }
@@ -93,14 +96,20 @@ public class Intake {
 
             case allianceSpecific:
             case yellow:
-                if(correctSampleSince.milliseconds() > 50) {
-                    intake();
-                } else {
-                    reverse();
-                }
-                up();
                 closeDoor();
-                return true;
+                if(correctSampleSince.milliseconds() > 300) {
+                    up();
+                    intake();
+                    return false;
+                } else if (correctSampleSince.milliseconds() >300+150) {
+                    up();
+                    stop();
+                    return true;
+                }else {
+                    reverseDown();
+                    slowReverse();
+                    return false;
+                }
             case wrong:
                 correctSampleSince.reset();
                 intake();
@@ -144,8 +153,8 @@ public class Intake {
     public SampleColor getColor(){
         if(intakeSensor.getDistance(DistanceUnit.INCH) > 2) return SampleColor.none;
         boolean red = 50 < intakeSensor.red() && intakeSensor.red() < 80 &&
-                50 < intakeSensor.blue() && intakeSensor.blue() < 70 &&
-                60 < intakeSensor.green() && intakeSensor.green() < 80;
+                50 < intakeSensor.blue() && intakeSensor.blue() < 80 &&
+                60 < intakeSensor.green() && intakeSensor.green() < 90;
         boolean blue = 17 < intakeSensor.red() && intakeSensor.red() < 43 &&
                 45 < intakeSensor.green() && intakeSensor.green() < 77 &&
                 85 < intakeSensor.blue() && intakeSensor.blue() < 120;

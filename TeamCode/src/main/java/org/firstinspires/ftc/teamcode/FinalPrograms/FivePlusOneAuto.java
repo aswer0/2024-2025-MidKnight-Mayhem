@@ -106,7 +106,7 @@ public class FivePlusOneAuto extends OpMode {
 
         target = new Point(target_x, target_y);
         get_specimen_target = new Point(14.875, 28);
-        preload_sample = new Point(8, 120);
+        preload_sample = new Point(9, 121);
         //get_sample_target = new Point(sample_x, sample_y);
 
         timer = new ElapsedTime();
@@ -160,7 +160,7 @@ public class FivePlusOneAuto extends OpMode {
 
                 if (intake_state == 0){
                     arm.outtakeSpecimen1();
-                    if (timer.milliseconds() >= 500){
+                    if (timer.milliseconds() >= 300){
                         path.follow_pid_to_point(target, 0);
                     }
                 }
@@ -256,7 +256,7 @@ public class FivePlusOneAuto extends OpMode {
                     target.y -= 2.5; // this has to be tuned better for more space on the right
 
                     /*==================================*/
-                    if (intake_state >= 9){
+                    if (intake_state >= 8){
                         state = State.depositPreloadSample;
                     }
                     else{
@@ -335,7 +335,7 @@ public class FivePlusOneAuto extends OpMode {
                 intake.reverseDown();
                 if (horizontalSlides.getPosition()<-100) intake.reverse();
 
-                if (timer.milliseconds() >= 600){
+                if (timer.milliseconds() >= 500){
                     intake_sample_y1 -= 8.5; //8
                     intake_sample_x1 += 0.5;
                     target_angle_intake1 += 3;
@@ -354,7 +354,7 @@ public class FivePlusOneAuto extends OpMode {
                 arm.outtakeSample();
                 lift.toHighBasket();
 
-                if (path.at_point(preload_sample, 3)){
+                if (path.at_point(preload_sample, 3) || timer.milliseconds()>3000){
                     arm.openClaw();
                     state = State.park;
                 }
@@ -362,7 +362,8 @@ public class FivePlusOneAuto extends OpMode {
             /*==================================*/
 
             case park:
-                path.follow_pid_to_point(new Point(24, 48), 60);
+                path.follow_pid_to_point(new Point(12, 48), 90);
+                horizontalSlides.setPosition(horizontal_pos);
 
                 break;
         }
