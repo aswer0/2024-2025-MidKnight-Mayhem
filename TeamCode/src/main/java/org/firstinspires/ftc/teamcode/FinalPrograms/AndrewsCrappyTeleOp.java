@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFNew.VectorField;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -48,8 +49,8 @@ public class AndrewsCrappyTeleOp extends OpMode {
     boolean grabSample = false;
 
     boolean isAndrewMode = true;
-    boolean autoSpecDrive = false;
-    AutoSpecDriveState autoSpecDriveState = AutoSpecDriveState.start;
+    AutoSpecDriveState autoSpecDriveState = AutoSpecDriveState.idle;
+    Path path;
 
     //auto values
     public static double power = 1;
@@ -60,6 +61,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
     Point target;
     ElapsedTime autoTimer;
     ElapsedTime intakeTime;
+    ElapsedTime speceminTimer;
 
     public static double sample_x = 13;
     public static double sample_y = 123.5;
@@ -85,6 +87,14 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
     @Override
     public void init() {
+        Point[] follow_path = {
+                new Point(11, 28),
+                new Point(10, 65),
+                new Point(37, 70),
+                new Point(38, 50),
+                new Point(41.6, 80.7)
+        };
+
         odometry = new Odometry(hardwareMap, 0, 0, 0, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
         outtakeSlides = new Lift(hardwareMap, false);
@@ -92,6 +102,8 @@ public class AndrewsCrappyTeleOp extends OpMode {
         arm = new Arm(hardwareMap);
         oldClaw = new Manipulator(hardwareMap);
         outtakeTimer = new ElapsedTime();
+
+        path = new Path(follow_path, drive, odometry, telemetry, 0.1, 13, 180, 1);
 
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
         intakeSlides = new HorizontalSlides(hardwareMap, false);
@@ -205,8 +217,13 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
         if (!previousGamepad1.cross && currentGamepad1.cross && outtakeState == OuttakeState.intakeSpecimen) {
             //odometry.opt.setPos(9,32,0);
-            autoSpecDrive=true;
-            autoSpecDriveState = AutoSpecDriveState.start;
+            if (autoSpecDriveState != AutoSpecDriveState.idle){
+                autoSpecDriveState = AutoSpecDriveState.idle;
+            }
+            else{
+                autoSpecDriveState = AutoSpecDriveState.pid;
+            }
+
             outtakeState = OuttakeState.auto;
             gamepad1.rumble(500);
             gamepad2.rumble(500);
@@ -214,88 +231,89 @@ public class AndrewsCrappyTeleOp extends OpMode {
         }
 
          //Drive
-        if (autoSpecDrive) {
-            //failsafe
-            if (Math.abs(currentGamepad1.left_stick_x)>0.1 || Math.abs(currentGamepad1.left_stick_y)>0.1) {
-                outtakeState=OuttakeState.idle;
-                newOuttakeState = true;
-                autoSpecDrive=false;
-            }
-            if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
-                target.y += 2; // this has to be tuned better for more space on the right
-            }
+        switch (autoSpecDriveState){
+            case idle:
+                speceminTimer.reset();
+                break;
 
-            switch (autoSpecDriveState) {
-                case start:
-                    arm.closeClaw();
-                    if (autoTimer.milliseconds()>100) {
-                        odometry.opt.setPos(8,32,0);
-                        autoTimer.reset();
-                        autoSpecDriveState = AutoSpecDriveState.pid;
-                    }
-                    break;
-                case pid:
-                    //outtakeState = OuttakeState.outtakeSpecimen1;
-                    arm.closeClaw();
+            case pid:
+                intake.up();
+                intake.stop();
+                arm.closeClaw();
+
+                outtakeSlides.toHighChamber();
+                if (odometry.opt.get_y()<target_y-36) {
+                    path.follow_pid_to_point(new Point(target_x-12, target_y), 0);
+                } else {
+                    path.follow_pid_to_point(new Point(target_x, target_y), 0);
+                }
+
+                if (speceminTimer.milliseconds() >= 100){
                     arm.outtakeSpecimen1();
-                    outtakeSlides.toHighChamber();
+                }
+                if (sensors.get_front_dist() <= 2.5 && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
+                    autoSpecDriveState = AutoSpecDriveState.deposit;
+                }
+                if (speceminTimer.milliseconds() > 5000) {
+                    autoSpecDriveState = AutoSpecDriveState.deposit;
+                }
 
-                    if (odometry.opt.get_y()<target_y-36) {
-                        vf.pid_to_point(new Point(target_x - 12, target_y), 0, 1);
-                    } else {
-                        vf.pid_to_point(target, 0, 1);
-                    }
+                break;
 
-                    if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
-                        autoTimer.reset();
-                        autoSpecDriveState = AutoSpecDriveState.deposit;
-                    } if (autoTimer.milliseconds() > 5000) {
-                        autoTimer.reset();
-                        autoSpecDriveState = AutoSpecDriveState.deposit;
-                    }
-                    break;
-                case deposit:
-                    arm.openClaw();
-                    if (autoTimer.milliseconds() >= 125) {
-                        outtakeSlides.setPosition(0);
-                        arm.outtakeSpecimen2();
-                    }
-                    if (autoTimer.milliseconds()>400) {
-                        autoTimer.reset();
-                        autoSpecDriveState = AutoSpecDriveState.goToSpecimen;
-                    }
-                    break;
-                case goToSpecimen:
-                    intake.down();
-                    intakeSlides.setPosition(0);
-                    vf.pid_to_point(new Point(15.875, 32), 0, 1);
+            case deposit:
+                intake.stop();
+                intake.down();
 
-                    if (autoTimer.milliseconds() > 500){
-                        outtakeSlides.intakeSpecimen();
-                        arm.intakeSpecimen();
-                    }
-                    if (vf.at_point(new Point(12.875, 30), 5) || autoTimer.milliseconds()>3000 || currentGamepad1.square) { //4
-                        drive.stop();
-                        autoTimer.reset();
-                        autoSpecDriveState = AutoSpecDriveState.pickupSpecimen;
-                    }
-                    break;
-                case pickupSpecimen:
-                    if (/*sensors.get_back_dist() >= intake_dist_thresh || */autoTimer.milliseconds() < 600) {
-                        drive.drive(0.5, 0, 0, 0, 0.7);
-                    } else {
-                        drive.stop();
-                        arm.closeClaw();
+                arm.openClaw();
+                arm.outtakeSpecimen1();
+                drive.drive(0, -0.3, 0, 0, 1);
 
-                        autoTimer.reset();
-                        autoSpecDriveState = AutoSpecDriveState.pid;
-                    }
-                    break;
-            }
-        } else if (currentGamepad1.circle){ //auto pid sample
-            vf.pid_to_point(new Point(sample_x, sample_y), sample_angle, 1);
-        }else {
-            drive.correction_drive(gamepad1.left_stick_y, 1.1 * gamepad1.left_stick_x, -gamepad1.right_stick_x * Math.abs(gamepad1.right_stick_x) * turnPower, Math.toRadians(odometry.opt.get_heading()), drivePower);
+                if (speceminTimer.milliseconds() >= 125) {
+                    outtakeSlides.setPosition(100);
+                }
+
+                if (speceminTimer.milliseconds() >= 400){
+                    speceminTimer.reset();
+                    autoSpecDriveState = AutoSpecDriveState.goToSpecimen;
+                }
+
+                break;
+
+            case goToSpecimen:
+                intake.down();
+                intake.stop();
+                path.follow_pid_to_point(new Point(12.875, 28), 0);
+
+                if (speceminTimer.milliseconds() > 500){
+                    outtakeSlides.intakeSpecimen();
+                    arm.intakeSpecimen();
+                }
+
+                if (path.at_point(new Point(13, 31), 3)) { //4
+                    drive.drive(0, 0, 0, 0, 0);
+                    speceminTimer.reset();
+                    autoSpecDriveState = AutoSpecDriveState.pickupSpecimen;
+                }
+
+                break;
+
+            case pickupSpecimen:
+                intake.down();
+                intake.stop();
+                arm.intakeSpecimen();
+
+                if (/*sensors.get_back_dist() >= 2.5 || */speceminTimer.milliseconds() < 1100) {
+                    drive.drive(0.5, 0, 0, 0, 0.7);
+                } else {
+                    drive.drive(0, 0, 0, 0, 0);
+                    arm.closeClaw();
+
+                    speceminTimer.reset();
+                    autoSpecDriveState = AutoSpecDriveState.pid;
+                }
+
+                break;
+
         }
 
         //manual outtake slides
@@ -596,7 +614,6 @@ public class AndrewsCrappyTeleOp extends OpMode {
         telemetry.addData("Is Andrew Mode?", isAndrewMode);
         telemetry.addData("state", outtakeState);
         telemetry.addLine();
-        telemetry.addData("auto spec drive?", autoSpecDrive);
         telemetry.addData("spec drive state", autoSpecDriveState);
         telemetry.addLine();
         telemetry.addData("x", odometry.opt.get_x());
@@ -628,10 +645,10 @@ public class AndrewsCrappyTeleOp extends OpMode {
     }
 
     enum AutoSpecDriveState {
-        start,
+        idle,
         pid,
+        deposit,
         goToSpecimen,
-        pickupSpecimen,
-        deposit
+        pickupSpecimen
     }
 }
