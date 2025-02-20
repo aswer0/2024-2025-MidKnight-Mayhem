@@ -13,8 +13,9 @@ public class WheelControl {
     public DcMotorEx BL;
     public DcMotorEx FR;
     public DcMotorEx FL;
-    public double f = 0;
-    public double strafe_k = 1.5;
+    public double vf = 0;
+    public double hf = 0;
+    public double rf = 0;
     private VoltageSensor voltageSensor;
 
     Odometry odometry;
@@ -22,6 +23,7 @@ public class WheelControl {
     double target_angle = 0;
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
+
     public WheelControl(HardwareMap hardwareMap, Odometry odometry) {
         this.BR = hardwareMap.get(DcMotorEx.class, "BR");
         this.BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -38,6 +40,12 @@ public class WheelControl {
         this.odometry = odometry;
         this.voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
         this.driveCorrection = new DriveCorrection(odometry);
+    }
+
+    public void setF(double vf, double hf, double rf) {
+        this.vf = vf;
+        this.hf = hf;
+        this.rf = rf;
     }
 
     public void setPowers(double BL, double BR, double FL, double FR, double power) {
@@ -75,20 +83,20 @@ public class WheelControl {
         max = Math.max(FLPower, max);
         max = Math.max(FRPower, max); // Detect the motor with the most power
         if (!(BLPower==0)) {
-            this.BL.setPower(power * (BLPower/max) + this.f*BLPower/Math.abs(BLPower));
+            this.BL.setPower(power * (BLPower/max) + this.vf*BLPower/Math.abs(BLPower));
         } else {
             this.BL.setPower(0);
         }
         if (!(BRPower==0)) {
-            this.BR.setPower(power * (BRPower/max) + this.f*BRPower/Math.abs(BRPower));
+            this.BR.setPower(power * (BRPower/max) + this.vf*BRPower/Math.abs(BRPower));
         } else {
             this.BR.setPower(0);
         }if (!(FLPower==0)) {
-            this.FL.setPower(power * (FLPower/max) + this.f*FLPower/Math.abs(FLPower));
+            this.FL.setPower(power * (FLPower/max) + this.vf*FLPower/Math.abs(FLPower));
         } else {
             this.FL.setPower(0);
         }if (!(FRPower==0)) {
-            this.FR.setPower(power * (FRPower/max) + this.f*FRPower/Math.abs(FRPower));
+            this.FR.setPower(power * (FRPower/max) + this.vf*FRPower/Math.abs(FRPower));
         } else {
             this.FR.setPower(0);
         }
@@ -107,13 +115,15 @@ public class WheelControl {
         / \
          */
 
-        // Strafe is slower so scale up
-        //right *= strafe_k;
-
         // Make sure forward and right are <= 1
-        double power_scale = max_power/Math.max(max_power, Math.sqrt(forward*forward+right*right));
+        double power_scale = max_power/Math.max(max_power, Math.max(forward, right));
         forward *= power_scale;
         right *= power_scale;
+        
+        // Add feedforwards
+        forward += Math.signum(forward)*vf;
+        right += Math.signum(right)*hf;
+        rotate_power += Math.signum(rotate_power)*rf;
 
         // Calculate motor powers
         double BLPower = -forward + right + rotate_power;
@@ -129,10 +139,10 @@ public class WheelControl {
         new_max_power = Math.max(Math.abs(FRPower), new_max_power);
 
         // Set powers
-        this.BL.setPower(BLPower/new_max_power + this.f*Math.signum(BLPower));
-        this.BR.setPower(BRPower/new_max_power + this.f*Math.signum(BRPower));
-        this.FL.setPower(FLPower/new_max_power + this.f*Math.signum(FLPower));
-        this.FR.setPower(FRPower/new_max_power + this.f*Math.signum(FRPower));
+        this.BL.setPower(BLPower/new_max_power);
+        this.BR.setPower(BRPower/new_max_power);
+        this.FL.setPower(FLPower/new_max_power);
+        this.FR.setPower(FRPower/new_max_power);
     }
 
     public void stop() {
