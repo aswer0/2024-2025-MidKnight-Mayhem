@@ -29,13 +29,18 @@ public class HorizontalSlides {
     private double position = 0;
     private State state = State.userControlled;
 
-    public HorizontalSlides (HardwareMap hardwareMap) {
+    public HorizontalSlides (HardwareMap hardwareMap, boolean resetEncoders) {
         horizontalSlidesMotor = hardwareMap.get(DcMotorEx.class,"horizontalSlidesMotor");
-        horizontalSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        if(resetEncoders) {
+            horizontalSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
         horizontalSlidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         horizontalSlidesMotor.setDirection(DcMotor.Direction.REVERSE);
         horizontalSlidesMotor.setCurrentAlert(7, CurrentUnit.AMPS);
 
+    }
+    public HorizontalSlides (HardwareMap hardwareMap) {
+        this(hardwareMap, true);
     }
     public void setPosition(double position, boolean changeState) {
         if(changeState) state = State.runToPosition;

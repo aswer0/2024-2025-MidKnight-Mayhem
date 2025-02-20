@@ -94,7 +94,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
         outtakeTimer = new ElapsedTime();
 
         intake = new Intake(hardwareMap, new Sensors(hardwareMap,telemetry));
-        intakeSlides = new HorizontalSlides(hardwareMap);
+        intakeSlides = new HorizontalSlides(hardwareMap, false);
         gamepad2.setLedColor(1,1,0,Gamepad.LED_DURATION_CONTINUOUS);
         gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
         sensors = new Sensors(hardwareMap, telemetry);
@@ -194,6 +194,8 @@ public class AndrewsCrappyTeleOp extends OpMode {
         }
         if(gamepad2.options) { //reset outtake sldies
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            intakeSlides.horizontalSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);;
+            intakeSlides.horizontalSlidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             outtakeSlides.leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
 
