@@ -23,8 +23,8 @@ public class Arm {
     public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.51,0.44);
     public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.51,0.36);
 
-    public static double clawClosePos = 0.19; //0.385
-    public static double clawOpenPos = 0.4; //0.15
+    public static double clawClosePos = 0.382; //0.385
+    public static double clawOpenPos = 0.6; //0.15
 
     public Arm(HardwareMap hardwareMap) {
         this.outtake_arm_far = hardwareMap.get(Servo.class, "oAF");
