@@ -61,7 +61,7 @@ public class SixSpecimenAuto extends OpMode {
 
     double sub_intake_slide_pos;
 
-    public static double get_specimen_x = 17;
+    public static double get_specimen_x = 15;
     public static double get_specimen_y = 30;
     Point get_specimen_target = new Point(get_specimen_x, get_specimen_y);
     Point sub_intake = new Point(0, 0);
@@ -394,7 +394,7 @@ public class SixSpecimenAuto extends OpMode {
 
             case pickupSpecimen:
                 // PID to pickup specimen and correct y
-                if (state_timer.milliseconds() < 600) {
+                if (state_timer.milliseconds() < 500) {
                     wheelControl.drive_relative(0.5, 0, 0, 1);
                 } else {
                     wheelControl.stop();
