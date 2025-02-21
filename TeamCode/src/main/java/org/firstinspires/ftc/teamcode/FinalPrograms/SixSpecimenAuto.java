@@ -67,7 +67,7 @@ public class SixSpecimenAuto extends OpMode {
     Point sub_intake = new Point(0, 0);
 
     public static double deposit_pid_x = 45;
-    public static double deposit_pid_y = 75;
+    public static double deposit_pid_y = 70;
     public static double pid_tuner_1 = 15;
     public static double pid_tuner_2 = 20;
 
