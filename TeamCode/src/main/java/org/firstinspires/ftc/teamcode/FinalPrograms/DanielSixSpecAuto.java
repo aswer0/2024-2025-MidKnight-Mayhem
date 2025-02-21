@@ -62,7 +62,7 @@ public class DanielSixSpecAuto extends OpMode {
     double sub_intake_slide_pos;
 
     public static double get_specimen_x = 15;
-    public static double get_specimen_y = 35;
+    public static double get_specimen_y = 30;
     Point get_specimen_target = new Point(get_specimen_x, get_specimen_y);
     Point sub_intake = new Point(0, 0);
 
@@ -373,7 +373,7 @@ public class DanielSixSpecAuto extends OpMode {
                     lift.intakeSpecimen();
                 }
 
-                if (Math.abs(vf.get_y()-get_specimen_y) < 4 && vf.at_angle_deg(0, 10)) {
+                if (Math.abs(vf.get_y()-get_specimen_y) < 6 && vf.at_angle_deg(0, 10)) {
                     arm.intakeSpecimen();
                     horizontalSlides.setPosition(0);
                     intake.down();
@@ -397,7 +397,7 @@ public class DanielSixSpecAuto extends OpMode {
                 // PID to pickup specimen and correct y
                 wheelControl.drive_relative(-0.5, 0, 0, 1);
                 if (vf.get_x() < 12) {
-                    if (event_scheduler.during("pickup", 150)) {
+                    if (event_scheduler.during("pickup", 200)) {
                         wheelControl.stop();
                         lift.toHighChamber();
                         arm.closeClaw();

@@ -71,6 +71,9 @@ public class SixSpecimenAuto extends OpMode {
     public static double pid_tuner_1 = 15;
     public static double pid_tuner_2 = 20;
 
+    public static double pickup_time_1 = 500;
+    public static double pickup_time_2 = 350;
+
     //Point sub_intake = new Point(0, 0);
     //Point sub_intake_limit = new Point(27.5, 21.3);
 
@@ -369,7 +372,7 @@ public class SixSpecimenAuto extends OpMode {
                 arm.openClaw();
                 path.follow_pid_to_point(get_specimen_target, 0);
 
-                if (state_timer.milliseconds() > 400){
+                if (state_timer.milliseconds() > 500){
                     lift.intakeSpecimen();
                 }
 
@@ -395,21 +398,42 @@ public class SixSpecimenAuto extends OpMode {
 
             case pickupSpecimen:
                 // PID to pickup specimen and correct y
-                if (state_timer.milliseconds() < 500) {
-                    wheelControl.drive_relative(-0.5, 0, 0, 1);
-                } else {
-                    wheelControl.stop();
-                    lift.toHighChamber();
-                    arm.closeClaw();
-                    arm.outtakeSpecimen1();
-                    resetTimers();
-                    if (deposit_state >= 6) {
-                        state = State.depositSample;
-                    } else {
-                        state = State.depositPid;
+//                if (deposit_state == 1) {
+//                    if (state_timer.milliseconds() < pickup_time_1) {
+//                        wheelControl.drive_relative(-0.5, 0, 0, 1);
+//                        break;
+//                    }
+//                } else {
+//                    if (state_timer.milliseconds() < pickup_time_2) {
+//                        wheelControl.drive_relative(-0.5, 0, 0, 1);
+//                        break;
+//                    }
+//                }
+//                wheelControl.stop();
+//                lift.toHighChamber();
+//                arm.closeClaw();
+//                arm.outtakeSpecimen1();
+//                resetTimers();
+//                if (deposit_state >= 6) {
+//                    state = State.depositSample;
+//                } else {
+//                    state = State.depositPid;
+//                }
+                wheelControl.drive_relative(-0.5, 0, 0, 1);
+                if (vf.get_x() < 12) {
+                    if (event_scheduler.during("pickup", 200)) {
+                        wheelControl.stop();
+                        lift.toHighChamber();
+                        arm.closeClaw();
+                        arm.outtakeSpecimen1();
+                        resetTimers();
+                        if (deposit_state >= 6) {
+                            state = State.depositSample;
+                        } else {
+                            state = State.depositPid;
+                        }
                     }
                 }
-
                 break;
 
             case depositPid:
