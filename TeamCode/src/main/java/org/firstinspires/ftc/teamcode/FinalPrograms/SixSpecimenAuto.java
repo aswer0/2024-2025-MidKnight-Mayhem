@@ -266,7 +266,7 @@ public class SixSpecimenAuto extends OpMode {
                     intake.reverseDown();
                     intake.reverse();
                     vf.pid_to_point(new Point(first_spit_x, first_spit_y), 45, 1);
-                    if (event_scheduler.during("Spit sample", 400)) {
+                    if (event_scheduler.during("Spit sample", 300)) {
                         resetTimers();
                         arm.intakeSpecimen();
                         wheelControl.stop();
@@ -277,7 +277,7 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 // Reverse if wrong color
-                if (state_timer.milliseconds() < 400 && !intake.hasCorrectSample(true)) {
+                if (state_timer.milliseconds() < 300 && !intake.hasCorrectSample(true)) {
                     intake.reverse();
                     intake.reverseDown();
                 } else {
@@ -317,7 +317,7 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 // Stop when has sample or timer failsafe
-                if (intake.hasCorrectSample(false) || state_timer.milliseconds() > 1400){
+                if (intake.hasCorrectSample(false) || state_timer.milliseconds() > 1300){
                     intake_state++;
                     resetTimers();
                     state = State.setupSpitSample;
