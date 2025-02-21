@@ -51,7 +51,7 @@ public class SixSpecimenAuto extends OpMode {
 
     public static double sample_x = 8;
     public static double sample_y = 120;
-    public Point preload_sample = new Point(sample_x, sample_y);
+    public Point sample_deposit = new Point(sample_x, sample_y);
 
     public static double set_pos_tolerance = 1;
     public static double ticks_per_inch = 70;
@@ -322,7 +322,7 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 // Stop when has sample or timer failsafe
-                if (intake.hasCorrectSample(false) || state_timer.milliseconds() > 1300){
+                if (intake.hasCorrectSample(false) || state_timer.milliseconds() > 1200){
                     intake_state++;
                     resetTimers();
                     state = State.setupSpitSample;
@@ -394,7 +394,7 @@ public class SixSpecimenAuto extends OpMode {
 
             case pickupSpecimen:
                 // PID to pickup specimen and correct y
-                if (state_timer.milliseconds() < 700 && sensors.get_front_dist() > dist_thresh) {
+                if (state_timer.milliseconds() < 600) {
                     wheelControl.drive_relative(0.5, 0, 0, 1);
                 } else {
                     wheelControl.stop();
@@ -449,12 +449,12 @@ public class SixSpecimenAuto extends OpMode {
 
             case depositSample:
                 if (state_timer.milliseconds()>50) {
-                    path.follow_pid_to_point(preload_sample, 100);
+                    path.follow_pid_to_point(sample_deposit, 100);
                     arm.outtakeSample();
                     lift.toHighBasket();
                 }
 
-                if (path.at_point(preload_sample, 5) || state_timer.milliseconds()>3000){
+                if (path.at_point(sample_deposit, 5) || state_timer.milliseconds()>3000){
                     arm.openClaw();
                     resetTimers();
                     state = State.park;
@@ -467,8 +467,12 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case park:
-                vf.pid_to_point(new Point(20, 20), 0, 1);
-                horizontalSlides.setPosition(0);
+                if (odometry.opt.get_y()<80) {
+                    arm.toIdlePosition();
+                    lift.setPosition(0);
+                }
+                if (state_timer.milliseconds()>100) vf.pid_to_point(new Point(13, 48), 90, 1);
+                horizontalSlides.setPosition(horizontal_pos);
                 break;
         }
 
