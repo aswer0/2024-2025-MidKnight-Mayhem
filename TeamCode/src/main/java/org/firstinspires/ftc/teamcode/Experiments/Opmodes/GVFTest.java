@@ -38,7 +38,7 @@ public class GVFTest extends OpMode {
 
         odometry = new Odometry(hardwareMap, 0, 0, 72, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
-        wheelControl.setF(0.045, 0.125, 0.03);
+        //wheelControl.setF(0.045, 0.125, 0.03);
 
         path = new BCPath(cp);
         vf = new VectorField(wheelControl, odometry);
@@ -54,12 +54,11 @@ public class GVFTest extends OpMode {
     public void loop() {
         odometry.opt.update();
         //vf.move();
-        wheelControl.drive_relative(fwd, right, turn, 1);
         //wheelControl.drive_relative(0.2, 0.2*k, 0, 1);
         TelemetryPacket telemetry = new TelemetryPacket();
         //vf.set_velocity();
         //telemetry.put("v/p", Utils.len_v(vf.velocity)/vf.speed);
-        //vf.pid_to_point(new Point(28, 72), -90, 0.7);
+        vf.pid_to_point(new Point(28, 72), -90, 0.7);
         telemetry.put("turn speed", vf.turn_speed);
 //        telemetry.put("temp", vf.temp_turn);
 //        telemetry.put("derivative", Math.toDegrees(Utils.angle_v(vf.path.derivative(vf.D))));
