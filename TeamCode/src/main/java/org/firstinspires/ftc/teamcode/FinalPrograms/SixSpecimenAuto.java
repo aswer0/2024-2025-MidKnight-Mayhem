@@ -366,6 +366,7 @@ public class SixSpecimenAuto extends OpMode {
 
             case goToSpecimen:
                 arm.intakeSpecimen();
+                arm.openClaw();
                 path.follow_pid_to_point(get_specimen_target, 0);
 
                 if (state_timer.milliseconds() > 500){
