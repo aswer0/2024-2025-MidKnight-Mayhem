@@ -247,7 +247,7 @@ public class SixSpecimenAuto extends OpMode {
                     intake.down();
                     intake.intake();
                 }
-                if (event_scheduler.during("Extend intake slides", 400)) {
+                if (event_scheduler.during("Extend intake slides", 500)) {
                     horizontalSlides.setPosition(horizontal_pos);
                 }
 
