@@ -373,7 +373,7 @@ public class DanielSixSpecAuto extends OpMode {
                     lift.intakeSpecimen();
                 }
 
-                if (Math.abs(vf.get_y()-get_specimen_y) < 2) {
+                if (Math.abs(vf.get_y()-get_specimen_y) < 4 && vf.at_angle_deg(0, 10)) {
                     arm.intakeSpecimen();
                     horizontalSlides.setPosition(0);
                     intake.down();
@@ -395,25 +395,25 @@ public class DanielSixSpecAuto extends OpMode {
 
             case pickupSpecimen:
                 // PID to pickup specimen and correct y
-                if (state_timer.milliseconds() < 400) {
-                    wheelControl.drive_relative(0.5, 0, 0, 1);
-                } else {
-                    wheelControl.stop();
-                    lift.toHighChamber();
-                    arm.closeClaw();
-                    arm.outtakeSpecimen1();
-                    resetTimers();
-                    if (deposit_state >= 6) {
-                        state = State.depositSample;
-                    } else {
-                        state = State.depositPid;
+                wheelControl.drive_relative(-0.5, 0, 0, 1);
+                if (vf.get_x() < 12) {
+                    if (event_scheduler.during("pickup", 150)) {
+                        wheelControl.stop();
+                        lift.toHighChamber();
+                        arm.closeClaw();
+                        arm.outtakeSpecimen1();
+                        resetTimers();
+                        if (deposit_state >= 6) {
+                            state = State.depositSample;
+                        } else {
+                            state = State.depositPid;
+                        }
                     }
                 }
-
                 break;
 
             case depositPid:
-                if (state_timer.milliseconds() < 100) break;
+                if (state_timer.milliseconds() < 50) break;
 
                 // Two step PID to not crash into bar
                 if (vf.get_y()<deposit_target.y-pid_tuner_1) {
