@@ -242,7 +242,7 @@ public class SixSpecimenAuto extends OpMode {
                     intake.down();
                     intake.intake();
                 }
-                if (event_scheduler.during("Extend intake slides", 300)) {
+                if (event_scheduler.during("Extend intake slides", 400)) {
                     horizontalSlides.setPosition(horizontal_pos);
                 }
 
@@ -413,7 +413,7 @@ public class SixSpecimenAuto extends OpMode {
                 }
 
                 // Deposit when there
-                if (state_timer.milliseconds() > 2500 || sensors.get_front_dist() < dist_thresh) {
+                if (state_timer.milliseconds() > 3000 || sensors.get_front_dist() < dist_thresh) {
                     resetTimers();
                     intake.up();
                     state = State.deposit;
