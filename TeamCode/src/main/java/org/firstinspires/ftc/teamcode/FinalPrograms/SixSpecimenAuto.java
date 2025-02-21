@@ -49,6 +49,10 @@ public class SixSpecimenAuto extends OpMode {
     public Point hang_target;
     public Point deposit_target;
 
+    public static double sample_x = 8;
+    public static double sample_y = 120;
+    public Point preload_sample = new Point(sample_x, sample_y);
+
     public static double set_pos_tolerance = 1;
     public static double ticks_per_inch = 70;
 
@@ -63,7 +67,7 @@ public class SixSpecimenAuto extends OpMode {
     Point sub_intake = new Point(0, 0);
 
     public static double deposit_pid_x = 45;
-    public static double deposit_pid_y = 70;
+    public static double deposit_pid_y = 75;
     public static double pid_tuner_1 = 15;
     public static double pid_tuner_2 = 20;
 
@@ -107,6 +111,7 @@ public class SixSpecimenAuto extends OpMode {
         intakeSample,
         spitSample,
         setupSpitSample,
+        depositSample,
         park
     }
 
@@ -389,15 +394,19 @@ public class SixSpecimenAuto extends OpMode {
 
             case pickupSpecimen:
                 // PID to pickup specimen and correct y
-                if (state_timer.milliseconds() < 800 && sensors.get_front_dist() > dist_thresh) {
-                    wheelControl.drive(0.4, 0, 0, 0, 1);
+                if (state_timer.milliseconds() < 700 && sensors.get_front_dist() > dist_thresh) {
+                    wheelControl.drive_relative(0.5, 0, 0, 1);
                 } else {
                     wheelControl.stop();
                     lift.toHighChamber();
                     arm.closeClaw();
                     arm.outtakeSpecimen1();
                     resetTimers();
-                    state = State.depositPid;
+                    if (deposit_state >= 6) {
+                        state = State.depositSample;
+                    } else {
+                        state = State.depositPid;
+                    }
                 }
 
                 break;
@@ -422,7 +431,7 @@ public class SixSpecimenAuto extends OpMode {
                 break;
 
             case deposit:
-                wheelControl.drive_relative(0, -1, 0, 1);
+                wheelControl.drive_relative(-1, 0, 0, 1);
                 if (state_timer.milliseconds() > 150) {
                     lift.setPosition(0);
                     arm.openClaw();
@@ -438,8 +447,27 @@ public class SixSpecimenAuto extends OpMode {
                 }
                 break;
 
+            case depositSample:
+                if (state_timer.milliseconds()>50) {
+                    path.follow_pid_to_point(preload_sample, 100);
+                    arm.outtakeSample();
+                    lift.toHighBasket();
+                }
+
+                if (path.at_point(preload_sample, 5) || state_timer.milliseconds()>3000){
+                    arm.openClaw();
+                    resetTimers();
+                    state = State.park;
+                }
+                if (odometry.opt.get_y()>115) {
+                    arm.openClaw();
+                    resetTimers();
+                    state = State.park;
+                }
+                break;
+
             case park:
-                vf.pid_to_point(new Point(15, 30), 0, 1);
+                vf.pid_to_point(new Point(20, 20), 0, 1);
                 horizontalSlides.setPosition(0);
                 break;
         }
