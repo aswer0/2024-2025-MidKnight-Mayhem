@@ -58,7 +58,7 @@ public class SixSpecimenAuto extends OpMode {
     double sub_intake_slide_pos;
 
     public static double get_specimen_x = 17;
-    public static double get_specimen_y = 35;
+    public static double get_specimen_y = 30;
     Point get_specimen_target = new Point(get_specimen_x, get_specimen_y);
     Point sub_intake = new Point(0, 0);
 
@@ -367,7 +367,7 @@ public class SixSpecimenAuto extends OpMode {
                     lift.intakeSpecimen();
                 }
 
-                if (vf.at_pose_deg(get_specimen_target, 0, 5, 5)) {
+                if (vf.at_pose_deg(get_specimen_target, 0, 6, 10)) {
                     arm.intakeSpecimen();
                     horizontalSlides.setPosition(0);
                     intake.down();
@@ -389,7 +389,7 @@ public class SixSpecimenAuto extends OpMode {
 
             case pickupSpecimen:
                 // PID to pickup specimen and correct y
-                if (state_timer.milliseconds() < 1000/* && sensors.get_front_dist() > dist_thresh*/) {
+                if (state_timer.milliseconds() < 800 && sensors.get_front_dist() > dist_thresh) {
                     wheelControl.drive(0.4, 0, 0, 0, 1);
                 } else {
                     wheelControl.stop();
