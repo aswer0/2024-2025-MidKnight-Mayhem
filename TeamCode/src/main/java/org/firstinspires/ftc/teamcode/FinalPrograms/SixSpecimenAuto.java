@@ -54,7 +54,7 @@ public class SixSpecimenAuto extends OpMode {
     public Point sample_deposit = new Point(sample_x, sample_y);
 
     public static double set_pos_tolerance = 1;
-    public static double ticks_per_inch = 70;
+    public static double ticks_per_inch = 75;
 
     double intake_state = 0;
     double deposit_state = 0;
