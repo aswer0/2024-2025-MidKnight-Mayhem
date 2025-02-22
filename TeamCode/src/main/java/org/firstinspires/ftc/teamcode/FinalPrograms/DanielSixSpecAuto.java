@@ -67,7 +67,7 @@ public class DanielSixSpecAuto extends OpMode {
     Point sub_intake = new Point(0, 0);
 
     public static double deposit_pid_x = 45;
-    public static double deposit_pid_y = 70;
+    public static double deposit_pid_y = 80;
     public static double pid_tuner_1 = 15;
     public static double pid_tuner_2 = 20;
 
@@ -267,7 +267,7 @@ public class DanielSixSpecAuto extends OpMode {
 
             case firstSpit:
                 // Robot movement logic
-                if (Math.abs(odometry.opt.get_heading())<50 || state_timer.milliseconds() > 2000) {
+                if (Math.abs(odometry.opt.get_heading())<60 || state_timer.milliseconds() > 2000) {
                     intake.reverseDown();
                     intake.reverse();
                     vf.pid_to_point(new Point(first_spit_x, first_spit_y), 45, 1);
@@ -335,7 +335,7 @@ public class DanielSixSpecAuto extends OpMode {
                 vf.pid_to_point(new Point(27, 30), target_angle_spit, 1);
                 horizontalSlides.setPosition(-300);
 
-                if (odometry.opt.get_heading()<60 || state_timer.milliseconds() > 1000){
+                if (odometry.opt.get_heading()<75 || state_timer.milliseconds() > 1000){
                     resetTimers();
                     wheelControl.stop();
                     horizontalSlides.setPosition(horizontal_pos);

@@ -23,14 +23,14 @@ import org.opencv.core.Point;
 @Config
 @Autonomous
 public class FourSampleAuto extends OpMode {
-    public static double samplePointX=19;
+    public static double samplePointX=18;
     public static double samplePointY=144-19;
 
-    public static double intakeX1=17;
+    public static double intakeX1=24;
     public static double intakeY1=123;
     public static double intake_angle1 = 170;
 
-    public static double intakeX2=17;
+    public static double intakeX2=24;
     public static double intakeY2=125;
     public static double intake_angle2 = 180;
 

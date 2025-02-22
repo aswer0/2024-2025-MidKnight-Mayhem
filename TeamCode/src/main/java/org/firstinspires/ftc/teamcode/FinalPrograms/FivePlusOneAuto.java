@@ -32,7 +32,7 @@ public class FivePlusOneAuto extends OpMode {
     public static double intake_sample_x2 = 27.5;
     public static double intake_sample_y2 = 34;
     public static double intake_sample_x3 = 26.5;
-    public static double intake_sample_y3 = 17;
+    public static double intake_sample_y3 = 17.5;
     public static double sweep_sample_x = 32;
     public static double sweep_sample_y = 34;
 

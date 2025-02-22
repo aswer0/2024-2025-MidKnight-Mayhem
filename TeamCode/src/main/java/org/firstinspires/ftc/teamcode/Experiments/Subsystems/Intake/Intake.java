@@ -23,10 +23,10 @@ public class Intake {
     public static double slowSpeed=0.15;
     public static double spitTime=300;
 
-    public static double DOWN_POS=0.7;
-    public static double UP_POS=0.943;
+    public static double DOWN_POS=0.73;
+    public static double UP_POS=0.963;
 
-    public static double DOOR_OPEN_POS=0.55;
+    public static double DOOR_OPEN_POS=0.65;
     public static double DOOR_CLOSE_POS=0.2;
     public DcMotorEx intakeMotor;
 
@@ -79,7 +79,7 @@ public class Intake {
     }
     public void up() {setPivot(UP_POS);}
     public void down() {setPivot(DOWN_POS);}
-    public void reverseDown() {setPivot(0.78);}
+    public void reverseDown() {setPivot(0.8);}
     public void openDoor() {intakeDoor.setPosition(DOOR_OPEN_POS);}
     public void closeDoor() {intakeDoor.setPosition(DOOR_CLOSE_POS);}
 

@@ -12,16 +12,16 @@ public class Arm {
     Servo pivot_right;
     Servo tClaw;
 
-    public static Preset outtakeSpecimen1 = new Preset(0.1,0.46,0.08);
-    public static Preset outtakeSpecimen2 = new Preset(0.1,0.12,0.08);
-    public static Preset outtakeSample = new Preset(0.1,0.6,0.16);
-    public static Preset intakeSpecimen = new Preset(0.85,0.54,0.59);
-    public static Preset intakeSample = new Preset(0.09,0.225,0.62);
-    public static Preset idlePosition = new Preset(0.1,0.24,0.53);
-    public static Preset specIdlePosition = new Preset(0.85,0.225,0.53);
-    public static Preset autoStartPosition = new Preset(0.85,0.76,0.56);
-    public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.51,0.44);
-    public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.51,0.36);
+    public static Preset outtakeSpecimen1 = new Preset(0.1,0.46,0.05);
+    public static Preset outtakeSpecimen2 = new Preset(0.1,0.12,0.05);
+    public static Preset outtakeSample = new Preset(0.1,0.5,0.12);
+    public static Preset intakeSpecimen = new Preset(0.85,0.54,0.55);
+    public static Preset intakeSample = new Preset(0.09,0.235,0.54);
+    public static Preset idlePosition = new Preset(0.1,0.235,0.49);
+    public static Preset specIdlePosition = new Preset(0.85,0.225,0.49);
+    public static Preset autoStartPosition = new Preset(0.85,0.76,0.52);
+    public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.51,0.40);
+    public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.51,0.32);
 
     public static double clawClosePos = 0.382; //0.385
     public static double clawOpenPos = 0.6; //0.15
