@@ -254,21 +254,20 @@ public class DanielsCrappyTeleOp extends OpMode {
                         path.follow_pid_to_point(new Point(target_x, target_y-30), 0);
                     }
 
-                    if (sensors.get_front_dist() <= dist_thresh && odometry.opt.get_heading() > -50 && odometry.opt.get_heading() < 50) {
+                    if (sensors.get_front_dist() <= dist_thresh || autoTimer.milliseconds() > 5000) {
                         autoTimer.reset();
                         autoSpecDriveState = AutoSpecDriveState.deposit;
-                    } if (autoTimer.milliseconds() > 5000) {
-                    autoTimer.reset();
-                    autoSpecDriveState = AutoSpecDriveState.deposit;
-                }
+                    }
                     break;
+
                 case deposit:
-                    arm.openClaw();
-                    if (autoTimer.milliseconds() >= 125) {
+                    drive.drive_relative(0.1, -0.9, 0, 1);
+                    if (autoTimer.milliseconds() >= 150) {
                         outtakeSlides.setPosition(0);
                         arm.outtakeSpecimen2();
+                        arm.openClaw();
                     }
-                    if (autoTimer.milliseconds()>400) {
+                    if (autoTimer.milliseconds()>250) {
                         autoTimer.reset();
                         autoSpecDriveState = AutoSpecDriveState.goToSpecimen;
                     }
