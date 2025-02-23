@@ -38,6 +38,7 @@ public class DanielsCrappyTeleOp extends OpMode {
     Manipulator oldClaw;
     ElapsedTime outtakeTimer;
     ElapsedTime rejectTimer;
+    ElapsedTime hangTimer;
     OuttakeState outtakeState = OuttakeState.start;
     HangState hangState = HangState.hanging1;
     boolean newOuttakeState = true;
@@ -61,6 +62,7 @@ public class DanielsCrappyTeleOp extends OpMode {
     Point target;
     ElapsedTime autoTimer;
     ElapsedTime intakeTime;
+    boolean isHanging = false;
 
     public static double sample_x = 13;
     public static double sample_y = 123.5;
@@ -618,10 +620,18 @@ public class DanielsCrappyTeleOp extends OpMode {
                 outtakeSlides.setPosition(2450);
                 hangState = HangState.hanging2;
             } else {
-                outtakeSlides.setPosition(1500);
+                hangTimer.reset();
+                isHanging = !isHanging;
                 hangState = HangState.hanging1;
             }
         }
+        if (hangTimer.milliseconds() < 100) {
+            drive.drive_relative(-0.2, 0, 0, 1);
+        } else {
+            outtakeSlides.setPosition(1500);
+        }
+
+
         telemetry.addData("Alliance", alliance);
         telemetry.addLine();
         telemetry.addData("sample mode?",sampleMode);
