@@ -249,9 +249,9 @@ public class DanielsCrappyTeleOp extends OpMode {
                     outtakeSlides.toHighChamber();
 
                     if (odometry.opt.get_y()<target_y-36) {
-                        path.follow_pid_to_point(new Point(target_x - 12, target_y), 0);
+                        path.follow_pid_to_point(new Point(target_x - 12, 92), 0);
                     } else {
-                        path.follow_pid_to_point(new Point(target_x, target_y-30), 0);
+                        drive.drive_relative(1, 0, 0, 1);
                     }
 
                     if (sensors.get_front_dist() <= dist_thresh || autoTimer.milliseconds() > 5000) {
@@ -275,7 +275,12 @@ public class DanielsCrappyTeleOp extends OpMode {
                 case goToSpecimen:
                     intake.down();
                     intakeSlides.setPosition(0);
-                    path.follow_pid_to_point(new Point(15.875, 32), 0);
+
+                    if (autoTimer.milliseconds() > 500) {
+                        path.follow_pid_to_point(new Point(15.875, 32), 0);
+                    } else {
+                        drive.drive_relative(-1, 0, 0, 1);
+                    }
 
                     if (autoTimer.milliseconds() > 500){
                         outtakeSlides.intakeSpecimen();
