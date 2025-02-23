@@ -124,7 +124,7 @@ public class DanielSixSpecAuto extends OpMode {
                 new Point(36.5, 75)
         };
 
-        hang_target = new Point(target_x, 72);
+        hang_target = new Point(target_x, target_y);
 
         state_timer = new ElapsedTime();
         event_scheduler = new EventScheduler();
