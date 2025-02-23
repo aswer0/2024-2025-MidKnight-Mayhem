@@ -281,7 +281,7 @@ public class DanielsCrappyTeleOp extends OpMode {
                     if (autoTimer.milliseconds() > 500) {
                         path.follow_pid_to_point(new Point(15.875, 32), 0);
                     } else {
-                        drive.drive_relative(-1, 0, 0, 1);
+                        drive.drive_relative(-0.8, 0.2, 0, 1);
                     }
 
                     if (autoTimer.milliseconds() > 500){
