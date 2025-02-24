@@ -249,7 +249,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
                     arm.outtakeSpecimen1();
                     outtakeSlides.toHighChamber();
 
-                    if (odometry.opt.get_y()<target_y-36) {
+                    if (odometry.opt.get_y()<57) { //target_y=36
                         path.follow_pid_to_point(new Point(target_x - 12, target_y), 0);
                     } else {
                         path.follow_pid_to_point(target, 0);
@@ -277,27 +277,30 @@ public class AndrewsCrappyTeleOp extends OpMode {
                 case goToSpecimen:
                     intake.down();
                     intakeSlides.setPosition(0);
-                    path.follow_pid_to_point(new Point(15.875, 32), 0);
+                    path.follow_pid_to_point(new Point(15.875, 30), 0);
 
                     if (autoTimer.milliseconds() > 500){
                         outtakeSlides.intakeSpecimen();
                         arm.intakeSpecimen();
                     }
-                    if (path.at_point(new Point(15.875, 32), 6) || autoTimer.milliseconds()>3000 || currentGamepad1.square) { //4
+                    if (path.at_point(new Point(15.875, 30), 6) || autoTimer.milliseconds()>3000 || currentGamepad1.square || odometry.opt.get_y()<34) { //4
                         drive.stop();
                         autoTimer.reset();
                         autoSpecDriveState = AutoSpecDriveState.pickupSpecimen;
                     }
                     break;
                 case pickupSpecimen:
-                    if (/*sensors.get_back_dist() >= intake_dist_thresh || */autoTimer.milliseconds() < 600) {
+                    if (/*sensors.get_back_dist() >= intake_dist_thresh || */autoTimer.milliseconds() < 650 && !gamepad1.right_bumper) {
                         drive.drive(0.5, 0, 0, 0, 0.7);
+                        autoTimer.reset();
                     } else {
                         drive.stop();
                         arm.closeClaw();
 
-                        autoTimer.reset();
-                        autoSpecDriveState = AutoSpecDriveState.pid;
+                        if (autoTimer.milliseconds()>100) {
+                            autoTimer.reset();
+                            autoSpecDriveState = AutoSpecDriveState.pid;
+                        }
                     }
                     break;
             }
@@ -312,6 +315,11 @@ public class AndrewsCrappyTeleOp extends OpMode {
             outtakeSlides.trySetPower(-gamepad2.left_stick_y*1);
         } else if (outtakeSlides.leftSlide.getPower() != 0 && outtakeSlides.getState() == Lift.State.userControlled) {
             outtakeSlides.trySetPower(0);
+        }
+        if (gamepad2.dpad_down) {
+            outtakeSlides.toOldSpecIntake();
+        } else if (gamepad2.dpad_left) {
+            outtakeSlides.toOldSpecOuttake();
         }
 
         switch (outtakeState) {
@@ -612,6 +620,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
 
 
         if(!previousGamepad2.share && currentGamepad2.share) {
+            drivePower=1;
             if(hangState == HangState.hanging1) {
                 outtakeSlides.setPosition(2450);
                 hangState = HangState.hanging2;
