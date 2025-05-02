@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.PIDFController;
 public class HorizontalSlides {
     public static boolean outputDebugInfo = false;
 
-    final static int MIN = -450;
+    final static int MIN = -650;
     final static int MAX = 0;
 
     public DcMotorEx horizontalSlidesMotor;
