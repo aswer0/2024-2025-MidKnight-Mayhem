@@ -18,14 +18,17 @@ public class Lift {
     public static int MIN = 0;
     public static int MAX = 2500;
 
-    public static double highBasketPos=1900;
-    public static double highChamberPos=280;
+    public static double highBasketPos=2200;
+    public static double highChamberPos=260;
     public static double lowBasketPos=90;
     public static double lowChamberPos=0;
     public static double intakeSpecimenPos=25;
     public static double intakeSamplePos=0;
     public static double backChamber1Pos=450;
     public static double backChamber2Pos=1000;
+
+    public static double oldSpecIntake=200;
+    public static double oldSpecOuttake=1500;
 
 
     public DcMotorEx leftSlide;
@@ -93,6 +96,9 @@ public class Lift {
     }
     public void toBackChamber1Pos() {setPosition(backChamber1Pos);}
     public void toBackChamber2Pos() {setPosition(backChamber2Pos);}
+
+    public void toOldSpecIntake() {setPosition(oldSpecIntake);}
+    public void toOldSpecOuttake() {setPosition(oldSpecOuttake);}
 
     public void setPosition(double position, boolean changeState) {
         setPosition(position, changeState, Double.POSITIVE_INFINITY);

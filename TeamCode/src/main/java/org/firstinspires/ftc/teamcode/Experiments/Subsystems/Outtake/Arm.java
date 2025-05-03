@@ -12,18 +12,19 @@ public class Arm {
     Servo pivot_right;
     Servo tClaw;
 
-    public static Preset outtakeSpecimen1 = new Preset(0.1,0.46,0.05);
-    public static Preset outtakeSpecimen2 = new Preset(0.1,0.12,0.05);
-    public static Preset outtakeSample = new Preset(0.1,0.5,0.12);
-    public static Preset intakeSpecimen = new Preset(0.85,0.54,0.55);
-    public static Preset intakeSample = new Preset(0.09,0.235,0.54);
-    public static Preset idlePosition = new Preset(0.1,0.235,0.49);
-    public static Preset specIdlePosition = new Preset(0.85,0.225,0.49);
-    public static Preset autoStartPosition = new Preset(0.85,0.76,0.52);
-    public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.51,0.40);
-    public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.51,0.32);
+    public static Preset outtakeSpecimen1 = new Preset(0.1,0.46,0.02);
+    public static Preset outtakeSpecimen2 = new Preset(0.1,0.1,0.02);
+    public static Preset outtakeSample = new Preset(0.5,0.9,0.1);
+    public static Preset intakeSpecimen = new Preset(0.85,0.52,0.5);
+    public static Preset intakeSample = new Preset(0.09,0.215,0.47);
+    public static Preset idlePosition = new Preset(0.1,0.215,0.42);
+    public static Preset specIdlePosition = new Preset(0.85,0.205,0.42);
+    public static Preset autoStartPosition = new Preset(0.85,0.74,0.49);
+    public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.49,0.37);
+    public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.49,0.29);
 
-    public static double clawClosePos = 0.382; //0.385
+    public static double clawClosePos = 0.335; //0.385
+    public static double clawHalfOpenPos = 0.34;
     public static double clawOpenPos = 0.6; //0.15
 
     public Arm(HardwareMap hardwareMap) {
@@ -72,6 +73,9 @@ public class Arm {
 
     public void openClaw() {
         tClaw.setPosition(clawOpenPos);
+    }
+    public void halfOpenClaw() {
+        tClaw.setPosition(clawHalfOpenPos);
     }
     public void closeClaw() {
         tClaw.setPosition(clawClosePos);

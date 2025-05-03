@@ -31,8 +31,8 @@ public class FivePlusOneAuto extends OpMode {
     public static double intake_sample_y1 = 34.75;
     public static double intake_sample_x2 = 27.5;
     public static double intake_sample_y2 = 34;
-    public static double intake_sample_x3 = 26.5;
-    public static double intake_sample_y3 = 17.5;
+    public static double intake_sample_x3 = 26.8;
+    public static double intake_sample_y3 = 16.5;
     public static double sweep_sample_x = 32;
     public static double sweep_sample_y = 34;
 
@@ -296,7 +296,15 @@ public class FivePlusOneAuto extends OpMode {
                     }
                     horizontalSlides.setPosition(horizontal_pos);
 
-                    if (intake.hasCorrectSample(false) || timer.milliseconds() >= 1500){ //original 2500
+                    if (intake.hasCorrectSample(false)){ //original 2500
+                        timer.reset();
+                        state = State.setupSpitSample;
+                    }
+
+                    if (intake_state >=3 && timer.milliseconds() >= 1500) {
+                        timer.reset();
+                        state = State.setupSpitSample;
+                    } else if (timer.milliseconds()>=1900) {
                         timer.reset();
                         state = State.setupSpitSample;
                     }
@@ -332,7 +340,7 @@ public class FivePlusOneAuto extends OpMode {
                 if (timer.milliseconds() >= 300){
                     intake_sample_y1 -= 7.25; //8
                     intake_sample_x1 += 1.75;
-                    target_angle_intake1 += 5.5;
+                    target_angle_intake1 += 3.5;
                     intake_state++;
 
                     horizontalSlides.setPosition(-100);
@@ -345,7 +353,7 @@ public class FivePlusOneAuto extends OpMode {
             /*==================================*/
             case depositPreloadSample:
                 if (timer.milliseconds()>50) {
-                    path.follow_pid_to_point(preload_sample, 100);
+                    path.follow_pid_to_point(preload_sample, 110);
                     arm.outtakeSample();
                     lift.toHighBasket();
                 }
