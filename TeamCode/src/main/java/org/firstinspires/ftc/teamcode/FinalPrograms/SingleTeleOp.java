@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
+import static org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift.hangHigh;
+import static org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift.hangLow;
 import static org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift.highBasketPos;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -9,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
@@ -17,6 +20,7 @@ import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
 import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
+import org.opencv.core.Point;
 
 import java.util.List;
 
@@ -25,6 +29,7 @@ import java.util.List;
 public class SingleTeleOp extends OpMode {
     Odometry odometry;
     WheelControl drive;
+    Path path;
     Alliance alliance = Alliance.red;
 
     State state = State.start;
@@ -41,21 +46,34 @@ public class SingleTeleOp extends OpMode {
     HorizontalSlides intakeSlides;
 
     Sensors sensors;
-
     List<LynxModule> allHubs;
+    HangState hangState = HangState.hanging1;
+    boolean autoSampleDrive=false;
 
-    public static double MAX_DRIVE_POWER=0.5;
-
+    public static double MAX_DRIVE_POWER=1;
     double drivePower=MAX_DRIVE_POWER;
     double turnPower=1;
+
+    public static double sampleX=18;
+    public static double sampleY=126;
+    public static double sampleAngle=135;
+    Point sampleTarget = new Point(sampleX, sampleY);
 
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
 
     @Override
     public void init() {
-        odometry = new Odometry(hardwareMap, 90, 0, 0, "OTOS");
+        Point[] follow_path = {
+                new Point(11,28),
+                new Point(10.3, 65.5),
+                new Point(19.2, 68.2),
+                new Point(36.5, 75)
+        };
+
+        odometry = new Odometry(hardwareMap, 0, 100, 100, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
+        path = new Path(follow_path, drive, odometry, telemetry,0.1,13,180,1);
         outtakeSlides = new Lift(hardwareMap, false);
         outtakeSlides.brakeSlides(true);
         arm = new Arm(hardwareMap);
@@ -90,6 +108,18 @@ public class SingleTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        if(gamepad1.options && !previousGamepad1.options && (alliance == Alliance.blue)) {
+            gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
+            odometry.opt.setPos(0,0,0);
+            alliance = Alliance.red;
+            intake.alliance = alliance;
+        } else if (gamepad1.options && !previousGamepad1.options) {
+            gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
+            odometry.opt.setPos(0,0,0);
+            alliance = Alliance.blue;
+            intake.alliance = alliance;
+        }
+
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
 
@@ -99,12 +129,21 @@ public class SingleTeleOp extends OpMode {
         intakeSlides.update();
         intake.hasCorrectSample(true);
 
-        drive.drive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x*turnPower,0, drivePower);
+        if (autoSampleDrive) {
+            path.follow_pid_to_point(sampleTarget,sampleAngle);
+            if (Math.abs(currentGamepad1.left_stick_x)>0.1 || Math.abs(currentGamepad1.left_stick_y)>0.1 || Math.abs(currentGamepad1.right_stick_x)>0.1) {
+                autoSampleDrive=false;
+            }
+        } else {
+            //drive.drive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x*turnPower,0, drivePower);
+            drive.drive(gamepad1.left_stick_y, 1.2 * gamepad1.left_stick_x, -gamepad1.right_stick_x * turnPower, Math.toRadians(odometry.opt.get_heading()), drivePower);
+        }
 
         switch (state) {
             case start:
                 if (currentGamepad1.left_bumper) {
                     intakeSlides.setPosition(0);
+                    intake.setReadyPos();
                     state = State.ready;
                     stateTimer.reset();
                     newState = true;
@@ -138,14 +177,19 @@ public class SingleTeleOp extends OpMode {
                         }
                         //intake
                         if (currentGamepad1.right_bumper) {
-                            turnPower=0.6;
-                            intake.down();
-                            intake.smartIntake(true);
-                            intake.closeDoor();
-                            //move on if detecting sample
-                            if (intake.hasCorrectSample(true)) {
-                                intakeState = IntakeState.detected;
-                                intakeTimer.reset();
+                            if (currentGamepad1.left_bumper) {
+                                intake.reverseDown();
+                                intake.reverse();
+                            } else {
+                                turnPower = 0.6;
+//                                intake.down();
+//                                intake.intake();
+//                                intake.closeDoor();
+                                //move on if detecting sample
+                                if (intake.smarterIntake(true)) { //intake.hasCorrectSample(true)
+                                    intakeState = IntakeState.detected;
+                                    intakeTimer.reset();
+                                }
                             }
                         } else {
                             intake.up();
@@ -158,7 +202,7 @@ public class SingleTeleOp extends OpMode {
                                 turnPower = 1;
                             }
                         }
-                        //failsafe retract
+                        //manual retract
                         if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
                             intakeState = IntakeState.retract;
                             stateTimer.reset();
@@ -166,12 +210,13 @@ public class SingleTeleOp extends OpMode {
                         }
                         break;
                     case detected: //spit out briefly in case there is two samples
+                        intakeSlides.setPosition(0);
                         intake.closeDoor();
                         intake.reverseDown();
-                        if (intakeTimer.milliseconds()<70) {
+                        if (intakeTimer.milliseconds()<60) {
                             intake.reverse();
-                        } else if (intakeTimer.milliseconds()<150) {
-                            intake.intake();
+//                        } else if (intakeTimer.milliseconds()<150) {
+//                            intake.intake();
                         } else {
                             intakeState = IntakeState.retract;
                             stateTimer.reset();
@@ -179,17 +224,18 @@ public class SingleTeleOp extends OpMode {
                         }
                         break;
                     case retract:
-                        intake.stop();
+                        intake.intake();
                         intake.up();
                         intakeSlides.setPosition(0);
-                        if (intakeSlides.getPosition()>-10 || currentGamepad1.left_bumper && !previousGamepad1.left_bumper) intakeState = IntakeState.transfer;
+                        if (intakeSlides.getPosition()>-20 || currentGamepad1.left_bumper && !previousGamepad1.left_bumper) intakeState = IntakeState.transfer;
                         break;
                     case transfer:
-                        if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+                        intake.stop();
+                        //if (currentGamepad1.left_bumper || (odometry.opt.get_x()<54 && odometry.opt.get_y()>100)) {
                             state = State.transfer;
                             intakeState = IntakeState.ready;
                             stateTimer.reset();
-                        }
+                        //}
                         break;
                 }
                 break;
@@ -202,19 +248,23 @@ public class SingleTeleOp extends OpMode {
                 }
                 newState=false;
 
-                if (stateTimer.milliseconds()<200) {
+                if ((currentGamepad1.left_trigger>0.3) && !(previousGamepad1.left_trigger>0.3)) autoSampleDrive = true;
+
+                if (stateTimer.milliseconds()<175) {
                     arm.intakeSample();
                     intake.closeDoor();
                     intake.intake();
-                } else if (stateTimer.milliseconds()<600) {
+                } else if (stateTimer.milliseconds()<500) {
                     arm.intakeSample();
                     intake.stop();
                     intake.openDoor();
                     arm.closeClaw();
                 } else {
+                    intakeSlides.setPosition(-150);
+                    intake.reverse();
                     outtakeSlides.toHighBasket();
-                    if (outtakeSlides.getPosition()>(highBasketPos-400)) {
-                        //arm.halfOpenClaw(); //LRG depo method (sideways)
+                    if (outtakeSlides.getCurrentPos()>(highBasketPos-700)) {
+                        turnPower=0.6;
                         arm.outtakeSample();
                         intake.closeDoor();
                         state = State.outtake;
@@ -223,18 +273,22 @@ public class SingleTeleOp extends OpMode {
                 }
                 break;
             case outtake:
-                if (!currentGamepad1.left_bumper && previousGamepad1.left_bumper) { //falling edge detector
-                    turnPower=0.6;
-                    odometry.opt.setPos(0,0,225);
+                intakeSlides.setPosition(-300);
+                intake.stop();
+                if ((currentGamepad1.left_trigger>0.3) && !(previousGamepad1.left_trigger>0.3)) autoSampleDrive = true;
+                if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) { //rising edge detector
+                    autoSampleDrive=false;
+                    odometry.opt.setPos(sampleX, sampleY,odometry.opt.get_heading()); //(0,0,225)
                     arm.openClaw();
                     stateTimer.reset();
                     state = State.retract;
                 }
                 break;
             case retract:
+                intakeSlides.setPosition(0);
                 if (stateTimer.milliseconds()>100) {
                     arm.toIdlePosition();
-                    if (odometry.opt.get_x()>4 || odometry.opt.get_y()>4) { //auto retract to not lvl 4 hang
+                    if (odometry.opt.get_x()>(sampleX+4) || odometry.opt.get_y()<(sampleY-4)) { //auto retract to not lvl 4 hang
                         turnPower = 1;
                         state = State.ready;
                         newState=true;
@@ -246,11 +300,23 @@ public class SingleTeleOp extends OpMode {
                 }
                 break;
         }
-        telemetry.addData("state", state);
-        telemetry.addData("intake state", intakeState);
-        telemetry.addData("drive power", drivePower);
-        telemetry.addData("turn speed", turnPower);
-        telemetry.addData("intake slides pos", intakeSlides.getPosition());
+
+        if(!previousGamepad1.share && currentGamepad1.share) {
+            turnPower = 1;
+            if(hangState == HangState.hanging1) {
+                outtakeSlides.setPosition(hangHigh);
+                hangState = HangState.hanging2;
+            } else {
+                outtakeSlides.setPosition(hangLow);
+                hangState = HangState.hanging1;
+            }
+        }
+
+        telemetry.addData("",alliance);
+        //telemetry.addData("drive power", drivePower);
+        //telemetry.addData("turn speed", turnPower);
+        //telemetry.addData("intake slides pos", intakeSlides.getPosition());
+        //telemetry.addData("heading", odometry.opt.get_heading());
     }
 
     enum State {
@@ -266,5 +332,10 @@ public class SingleTeleOp extends OpMode {
         detected,
         retract,
         transfer
+    }
+
+    enum HangState {
+        hanging1,
+        hanging2
     }
 }

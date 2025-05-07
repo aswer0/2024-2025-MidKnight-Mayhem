@@ -18,14 +18,16 @@ public class Lift {
     public static int MIN = 0;
     public static int MAX = 2500;
 
-    public static double highBasketPos=2200;
-    public static double highChamberPos=260;
+    public static double highBasketPos=2100;
+    public static double highChamberPos=170;
     public static double lowBasketPos=90;
     public static double lowChamberPos=0;
     public static double intakeSpecimenPos=25;
     public static double intakeSamplePos=0;
     public static double backChamber1Pos=450;
     public static double backChamber2Pos=1000;
+    public static double hangHigh=2450;
+    public static double hangLow=1400;
 
     public static double oldSpecIntake=200;
     public static double oldSpecOuttake=1500;
@@ -136,6 +138,9 @@ public class Lift {
     public double getPosition() {
         return position;
     }
+    public double getCurrentPos() {
+        return leftSlide.getCurrentPosition();
+    }
     public boolean resetSlides() {
         if (!leftSlide.isOverCurrent()) {
             leftSlide.setPower(-1);
@@ -154,7 +159,7 @@ public class Lift {
     }
     public void update() {
         if (state == State.runToPosition) {
-            double input = Math.min(motorController.update(leftSlide.getCurrentPosition() - position), cap);
+            double input = Math.min(motorController.update(getCurrentPos() - position), cap);
             leftSlide.setPower(input);
             rightSlide.setPower(input);
             if(Math.abs(leftSlide.getCurrentPosition() - position) < 5 && position == 0) {

@@ -25,6 +25,8 @@ public class Intake {
 
     public static double DOWN_POS=0.75;
     public static double UP_POS=0.983;
+    public static double REVERSE_DOWN_POS=0.85;
+    public static double READY_POS=0.9;
 
     public static double DOOR_OPEN_POS=0.65;
     public static double DOOR_CLOSE_POS=0.2;
@@ -79,7 +81,9 @@ public class Intake {
     }
     public void up() {setPivot(UP_POS);}
     public void down() {setPivot(DOWN_POS);}
-    public void reverseDown() {setPivot(0.85);}
+    public void reverseDown() {setPivot(REVERSE_DOWN_POS);}
+    public void setReadyPos() {setPivot(READY_POS);}
+
     public void openDoor() {intakeDoor.setPosition(DOOR_OPEN_POS);}
     public void closeDoor() {intakeDoor.setPosition(DOOR_CLOSE_POS);}
 
@@ -143,11 +147,18 @@ public class Intake {
             case allianceSpecific:
                 stop(); up(); closeDoor();
                 return true;
+
+            case wrong:
+                intake(); down(); openDoor();
+                return false;
+
+            case none:
+                intake(); down(); closeDoor();
+                return false;
         }
-        setPower(-0.3);
-        down();
         return false;
     }
+
 
     public boolean hasCorrectSample(boolean detectYellow) {
         SampleColor color = getColor();
