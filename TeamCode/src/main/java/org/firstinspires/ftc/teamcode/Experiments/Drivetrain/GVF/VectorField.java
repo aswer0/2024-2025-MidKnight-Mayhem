@@ -139,6 +139,10 @@ public class VectorField {
         return at_point(p, p_thresh) && at_angle_rad(h, h_thresh);
     }
 
+    public boolean at_end(double threshold) {
+        return at_point(path.final_point, threshold);
+    }
+
     // Sets velocity of robot
     public void set_velocity() {
         if (timer.seconds() < velocity_update_rate) return;

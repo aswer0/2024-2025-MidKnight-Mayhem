@@ -6,7 +6,7 @@ public class BCPath {
     BezierCurve[] F;
     int n_bz;
     double est_arclen;
-    Point final_point;
+    public Point final_point;
 
     // Path constructor with Bezier curves
     public BCPath(BezierCurve[] F){
