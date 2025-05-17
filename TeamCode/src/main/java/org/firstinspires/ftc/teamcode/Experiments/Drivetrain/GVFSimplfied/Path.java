@@ -120,6 +120,10 @@ public class Path {
         }
     }
 
+    public void set_path(BezierCurve new_path){
+        this.bz = new_path;
+    }
+
     public void update(double target_angle){
         Point p = this.bz.forward(this.D);
         double dist = this.get_dist(p, new Point(odometry.opt.get_x(), odometry.opt.get_y()));
