@@ -177,21 +177,19 @@ public class SingleTeleOp extends OpMode {
                         }
                         //intake
                         if (currentGamepad1.right_bumper) {
-                            if (currentGamepad1.left_bumper) {
-                                intake.reverseDown();
-                                intake.reverse();
-                            } else {
-                                turnPower = 0.6;
+                            turnPower = 0.6;
 //                                intake.down();
 //                                intake.intake();
 //                                intake.closeDoor();
-                                //move on if detecting sample
-                                if (intake.smarterIntake(true)) { //intake.hasCorrectSample(true)
-                                    intakeState = IntakeState.detected;
-                                    intakeTimer.reset();
-                                }
+                            //move on if detecting sample
+                            if (intake.smarterIntake(true)) { //intake.hasCorrectSample(true)
+                                intakeState = IntakeState.detected;
+                                intakeTimer.reset();
                             }
-                        } else {
+                        } else if (currentGamepad1.cross) {
+                            intake.reverseDown();
+                            intake.reverse();
+                        }else {
                             intake.up();
                             intakeTimer.reset();
                             intake.setPower(0);
@@ -301,7 +299,7 @@ public class SingleTeleOp extends OpMode {
                 break;
         }
 
-        if(!previousGamepad1.share && currentGamepad1.share) {
+        if(!previousGamepad1.dpad_up && currentGamepad1.dpad_up) {
             turnPower = 1;
             if(hangState == HangState.hanging1) {
                 outtakeSlides.setPosition(hangHigh);
@@ -313,6 +311,7 @@ public class SingleTeleOp extends OpMode {
         }
 
         telemetry.addData("",alliance);
+        telemetry.addData("intakeState", intakeState);
         //telemetry.addData("drive power", drivePower);
         //telemetry.addData("turn speed", turnPower);
         //telemetry.addData("intake slides pos", intakeSlides.getPosition());
