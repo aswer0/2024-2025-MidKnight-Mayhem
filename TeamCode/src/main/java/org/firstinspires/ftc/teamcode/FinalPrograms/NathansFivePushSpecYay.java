@@ -42,6 +42,15 @@ public class NathansFivePushSpecYay extends OpMode {
     Point get_specimen_target;
     Point preload_sample;
 
+    Point stop_pos_1 = new Point(0, 0);
+    Point stop_pos_2 = new Point(0, 0);
+    Point stop_pos_3 = new Point(0, 0);
+    Point[] end_points = {
+        stop_pos_1,
+        stop_pos_2,
+        stop_pos_3,
+    };
+
     ElapsedTime timer;
     ElapsedTime intakeShakeTimer;
     Sensors sensors;
@@ -201,7 +210,7 @@ public class NathansFivePushSpecYay extends OpMode {
 
                 if (timer.milliseconds() >= 300){
                     // im not sure if it will intake 3 times then move to go to specimen state, check this
-                    if (intake_state >= 2 && intake_state <= 5){
+                    if (intake_state >= 2 && intake_state < 5){
                         timer.reset();
                         intakeShakeTimer.reset();
 
@@ -267,7 +276,7 @@ public class NathansFivePushSpecYay extends OpMode {
             case gvfPush:
                 path.update(0);
 
-                if (path.at_point(at_end_dist)){
+                if (path.at_point(end_points[(int)(intake_state-2)], at_end_dist)){
                     intake_state++;
                     if (intake_state == 5){
                         state = State.pickupSpecimen;

@@ -38,6 +38,7 @@ public class CameraTest extends OpMode {
     List<LynxModule> allHubs;
 
     double powerLevel = 1;
+    double target_pos;
 
     ElapsedTime timer;
 
@@ -110,13 +111,13 @@ public class CameraTest extends OpMode {
         if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
             drive.drive(
                     0,
-                    horizontal.calculate(odometry.opt.get_y(), processor.nearestSampleDistance),
+                    horizontal.calculate(odometry.opt.get_y(), target_pos),
                     -gamepad1.right_stick_x,
                     0,
                     0.7
             );
 
-            if (at_point(processor.nearestSampleDistance, 0.5)) {
+            if (at_point(target_pos, 0.5)) {
                 if (!intake.hasCorrectSample(true)) {
                     horizontalSlides.setPosition(processor.nearestSampleDepth * inch_to_ticks);
                     intake.down();
@@ -127,10 +128,14 @@ public class CameraTest extends OpMode {
                 }
             }
         }
+        if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper){
+            target_pos = odometry.opt.get_y()+processor.nearestSampleDistance;
+        }
 
         drive.drive(gamepad1.left_stick_y, 1.1 * gamepad1.left_stick_x, -gamepad1.right_stick_x, 0, powerLevel);
 
         telemetry.addData("Nearest Distance", processor.nearestSampleDistance);
         telemetry.addData("Nearest Distance Depth", processor.nearestSampleDepth);
+        telemetry.addData("Target Position", target_pos);
     }
 }
