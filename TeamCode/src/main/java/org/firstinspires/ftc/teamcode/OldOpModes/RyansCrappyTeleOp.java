@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.teamcode.FinalPrograms;
+package org.firstinspires.ftc.teamcode.OldOpModes;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,17 +10,18 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.HorizontalSlides;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Arm;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Manipulator;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 
 import java.util.List;
 
 @TeleOp
+@Disabled
 public class RyansCrappyTeleOp extends OpMode {
     double lastTime = getRuntime();
 

@@ -52,7 +52,7 @@ public class GVFTest3 extends OpMode {
         telemetry.put("turn_power", vf.turn_power);
         telemetry.put("x_error", vf.x_error);
         telemetry.put("y_error", vf.y_error);
-        telemetry.put("weird", vf.h_PID.error);
+        //telemetry.put("weird", vf.h_PID.error);
         //vf.set_velocity();
         //telemetry.put("v/p", Utils.len_v(vf.velocity)/vf.speed);
         //vf.move_to_point(new Point(28, 72), 0, 0.7);

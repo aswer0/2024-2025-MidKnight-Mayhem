@@ -9,13 +9,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.HorizontalSlides;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Arm;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
-import org.firstinspires.ftc.teamcode.FinalPrograms.SpecimenAuto;
 import org.opencv.core.Point;
 
 @Disabled

@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
-import static org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift.hangHigh;
-import static org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift.hangLow;
-import static org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift.highBasketPos;
+import static org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift.hangHigh;
+import static org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift.hangLow;
+import static org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift.highBasketPos;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -14,10 +14,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.HorizontalSlides;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Arm;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.HorizontalSlides;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Arm;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import org.opencv.core.Point;

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.FinalPrograms;
+package org.firstinspires.ftc.teamcode.OldOpModes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -12,9 +12,9 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.Utils;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Intake.Intake;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Lift;
-import org.firstinspires.ftc.teamcode.Experiments.Subsystems.Outtake.Manipulator;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Manipulator;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
 import org.opencv.core.Point;
 
