@@ -26,8 +26,8 @@ public class CameraTest extends OpMode {
     VisionPortal portal;
     FtcDashboard dashboard;
 
-    Odometry odometry;
-    WheelControl drive;
+//    Odometry odometry;
+//    WheelControl drive;
 
     List<LynxModule> allHubs;
 
@@ -55,12 +55,12 @@ public class CameraTest extends OpMode {
                 .enableLiveView(true)
                 .build();
         dashboard = FtcDashboard.getInstance();
-        dashboard.startCameraStream(processor, 0);
+        dashboard.startCameraStream(processor, 60);
 
         //================================================
 
-        odometry = new Odometry(hardwareMap, 0, 0, 0,"OTOS");
-        drive = new WheelControl(hardwareMap, odometry);
+//        odometry = new Odometry(hardwareMap, 0, 0, 0,"OTOS");
+//        drive = new WheelControl(hardwareMap, odometry);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -68,7 +68,7 @@ public class CameraTest extends OpMode {
     }
     @Override
     public void loop() {
-        odometry.opt.update();
+        //odometry.opt.update();
         processor.filterYellow = filterYellow;
 
         previousGamepad1.copy(currentGamepad1);
@@ -80,7 +80,10 @@ public class CameraTest extends OpMode {
         if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) powerLevel -= 0.1;
         if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) powerLevel += 0.1;
 
-        drive.drive(gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, -gamepad1.right_stick_x, 0, powerLevel);
+        //drive.drive(gamepad1.left_stick_y, 1.1*gamepad1.left_stick_x, -gamepad1.right_stick_x, 0, powerLevel);
+
+        telemetry.addData("Nearest Distance", processor.nearestSampleDistance);
+        telemetry.addData("Nearest Distance Depth", processor.nearestSampleDepth);
     }
 
 

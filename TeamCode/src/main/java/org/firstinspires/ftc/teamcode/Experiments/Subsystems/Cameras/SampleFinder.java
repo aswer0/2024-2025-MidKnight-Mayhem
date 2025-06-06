@@ -43,6 +43,10 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public static double areaThreshold = 5000;
     public static double centerLine = 320;
 
+    public static double depth_scalar = 750;
+    public static double horizontal_scalar = 35;
+    public static double horizontal_offset = 7;
+
     AtomicReference<Bitmap> lastFrame = new AtomicReference<>(Bitmap.createBitmap(1,1, Bitmap.Config.RGB_565));
 
     /** your alliance color (red/blue)*/
@@ -50,8 +54,11 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     /** whether to filter  */
     public boolean filterYellow = true;
 
-    /**The distance (in pixels) of the nearest sample's center; negative means left, positive means right */
+    /** Inches to encoder ticks for slides are required*/
+    /**The distance (tuned to inches now) of the nearest sample's center; negative means left, positive means right */
     public double nearestSampleDistance = 0;
+    /**The depth (tuned to inches now) of the neartest sample horizontally */
+    public double nearestSampleDepth = 0;
     /** If the contour is inside the center line */
     public boolean insideContour = false;
 
@@ -113,8 +120,9 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         ArrayList<Contour> processedContours = new ArrayList<>();
         for(int i = 0; i < coloredContours.size(); i++ ) {
             // Process contours here
+            double area = Imgproc.contourArea(coloredContours.get(i));
 
-            if(Imgproc.contourArea(coloredContours.get(i)) < areaThreshold) continue;
+            if(area < areaThreshold) continue;
             Imgproc.drawContours(frame, coloredContours, i, new Scalar(255,0,255), 3);
             Moments moments = Imgproc.moments(coloredContours.get(i));
 
@@ -122,7 +130,10 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             double cX = moments.m10/moments.m00;
             double cY = moments.m01/moments.m00;
             Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
-            if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)) nearestDistance = cX - centerLine;
+            if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)){
+                this.nearestSampleDepth = depth_scalar / Math.sqrt(area);
+                nearestDistance = (cX - centerLine) / horizontal_scalar - horizontal_offset;
+            }
 
             // Check if center line intersects the contour
             Point[] points = coloredContours.get(i).toArray();
@@ -173,6 +184,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         yellowMat.release();
         Imgproc.drawMarker(frame, new Point(320,240), new Scalar(0,255,255));
         telemetryPacket.put("Nearest Distance", nearestDistance);
+        telemetryPacket.put("Depth", nearestSampleDepth);
         telemetryPacket.put("Inside Contour", insideContour);
         telemetryPacket.put("Num Contours", contours.size());
         this.nearestSampleDistance = nearestDistance;
