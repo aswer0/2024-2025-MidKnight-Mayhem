@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
@@ -38,14 +39,17 @@ public class CameraTest extends OpMode {
     List<LynxModule> allHubs;
 
     double powerLevel = 1;
-    double target_pos;
+    Point target_pos;
 
     ElapsedTime timer;
 
-    PIDController horizontal;
     Sensors sensors;
     Intake intake;
     HorizontalSlides horizontalSlides;
+    Path path;
+    Point[] cp = {
+            new Point(0, 0)
+    };
 
     public static double p = 1.0;
     public static double i = 0.0;
@@ -77,10 +81,10 @@ public class CameraTest extends OpMode {
         odometry = new Odometry(hardwareMap, 0, 0, 0,"OTOS");
         drive = new WheelControl(hardwareMap, odometry);
 
-        horizontal.setConstants(p, i, d);
         horizontalSlides = new HorizontalSlides(hardwareMap);
         sensors = new Sensors(hardwareMap, telemetry);
         intake = new Intake(hardwareMap, sensors);
+        path = new Path(cp, drive, odometry, telemetry, 0, 0, 0, powerLevel);
         intake.setAlliance(Alliance.red);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
@@ -108,18 +112,12 @@ public class CameraTest extends OpMode {
         currentGamepad1.copy(gamepad1);
         currentGamepad2.copy(gamepad2);
 
-        if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
-            drive.drive(
-                    0,
-                    horizontal.calculate(odometry.opt.get_y(), target_pos),
-                    -gamepad1.right_stick_x,
-                    0,
-                    0.7
-            );
+        if (currentGamepad1.left_bumper) {
+            path.pid_to_point(target_pos, 0);
 
-            if (at_point(target_pos, 0.5)) {
+            if (path.at_point(target_pos, 0.5)) {
                 if (!intake.hasCorrectSample(true)) {
-                    horizontalSlides.setPosition(processor.nearestSampleDepth * inch_to_ticks);
+                    horizontalSlides.setPosition(-processor.nearestSampleDepth * inch_to_ticks);
                     intake.down();
                     intake.intake();
                 } else {
@@ -129,7 +127,7 @@ public class CameraTest extends OpMode {
             }
         }
         if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper){
-            target_pos = odometry.opt.get_y()+processor.nearestSampleDistance;
+            target_pos = new Point(odometry.opt.get_x(), odometry.opt.get_y()+processor.nearestSampleDistance);
         }
 
         drive.drive(gamepad1.left_stick_y, 1.1 * gamepad1.left_stick_x, -gamepad1.right_stick_x, 0, powerLevel);
@@ -137,5 +135,6 @@ public class CameraTest extends OpMode {
         telemetry.addData("Nearest Distance", processor.nearestSampleDistance);
         telemetry.addData("Nearest Distance Depth", processor.nearestSampleDepth);
         telemetry.addData("Target Position", target_pos);
+        telemetry.addData("Target Depth Position", -processor.nearestSampleDepth * inch_to_ticks);
     }
 }
