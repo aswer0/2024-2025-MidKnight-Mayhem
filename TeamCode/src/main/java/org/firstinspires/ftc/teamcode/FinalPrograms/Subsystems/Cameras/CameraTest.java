@@ -104,6 +104,8 @@ public class CameraTest extends OpMode {
     @Override
     public void loop() {
         odometry.opt.update();
+        horizontalSlides.update();
+
         processor.filterYellow = filterYellow;
 
         previousGamepad1.copy(currentGamepad1);
