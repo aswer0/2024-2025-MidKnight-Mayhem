@@ -26,6 +26,29 @@ import java.util.List;
 
 @TeleOp
 @Config
+/*
+CONTROLS:
+left joystick x                 strafe
+left joystick y                 forward/backward
+right joystick x                turning
+share button                    toggle sample/specimen mode
+options button                  reset field-orientation/toggle alliance
+
+dpad up                         hang
+right trigger                   extend intake slides
+left trigger                    retract intake slides
+right bumper                    intake
+cross button                    reverse intake
+
+Sample Mode:
+left bumper                     transfer failsafe/deposit/retract failsafe
+TODO: circle button             auto drive to basket (WIP) - need to tune
+
+Specimen Mode:
+TODO: left bumper               grab spec/deposit spec/retract arm (WIP)
+TODO: circle button             auto specimen drive sequence (WIP)
+
+ */
 public class SingleTeleOp extends OpMode {
     Odometry odometry;
     WheelControl drive;
@@ -48,7 +71,9 @@ public class SingleTeleOp extends OpMode {
     Sensors sensors;
     List<LynxModule> allHubs;
     HangState hangState = HangState.hanging1;
-    boolean autoSampleDrive=false;
+
+    boolean autoSampleDrive = false;
+    boolean sampleMode = true;
 
     public static double MAX_DRIVE_POWER=1;
     double drivePower=MAX_DRIVE_POWER;
@@ -104,24 +129,30 @@ public class SingleTeleOp extends OpMode {
             alliance = Alliance.blue;
             intake.alliance = alliance;
         }
+
+        previousGamepad1.copy(gamepad1);
+        telemetry.addData("",alliance);
     }
 
     @Override
     public void loop() {
-        if(gamepad1.options && !previousGamepad1.options && (alliance == Alliance.blue)) {
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+
+        if(currentGamepad1.options && !previousGamepad1.options && (alliance == Alliance.blue)) {
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(0,0,0);
             alliance = Alliance.red;
             intake.alliance = alliance;
-        } else if (gamepad1.options && !previousGamepad1.options) {
+        } else if (currentGamepad1.options && !previousGamepad1.options) {
             gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
             odometry.opt.setPos(0,0,0);
             alliance = Alliance.blue;
             intake.alliance = alliance;
         }
-
-        previousGamepad1.copy(currentGamepad1);
-        currentGamepad1.copy(gamepad1);
+        if (currentGamepad1.share && !previousGamepad1.share) {
+            sampleMode = !sampleMode;
+        }
 
         // Updates
         odometry.opt.update();
@@ -246,7 +277,7 @@ public class SingleTeleOp extends OpMode {
                 }
                 newState=false;
 
-                if ((currentGamepad1.left_trigger>0.3) && !(previousGamepad1.left_trigger>0.3)) autoSampleDrive = true;
+                if (currentGamepad1.circle) autoSampleDrive = true;
 
                 if (stateTimer.milliseconds()<175) {
                     arm.intakeSample();
@@ -273,7 +304,7 @@ public class SingleTeleOp extends OpMode {
             case outtake:
                 intakeSlides.setPosition(-300);
                 intake.stop();
-                if ((currentGamepad1.left_trigger>0.3) && !(previousGamepad1.left_trigger>0.3)) autoSampleDrive = true;
+                if (currentGamepad1.circle) autoSampleDrive = true;
                 if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) { //rising edge detector
                     autoSampleDrive=false;
                     odometry.opt.setPos(sampleX, sampleY,odometry.opt.get_heading()); //(0,0,225)
@@ -311,7 +342,8 @@ public class SingleTeleOp extends OpMode {
         }
 
         telemetry.addData("",alliance);
-        telemetry.addData("intakeState", intakeState);
+        telemetry.addData("Sample Mode", sampleMode);
+        //telemetry.addData("intakeState", intakeState);
         //telemetry.addData("drive power", drivePower);
         //telemetry.addData("turn speed", turnPower);
         //telemetry.addData("intake slides pos", intakeSlides.getPosition());
