@@ -44,8 +44,8 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public static double centerLine = 320;
 
     public static double depth_scalar = 750;
-    public static double horizontal_scalar = 35;
-    public static double horizontal_offset = 7;
+    public static double horizontal_scalar = 27.75;
+    public static double horizontal_offset = 4.5;
 
     AtomicReference<Bitmap> lastFrame = new AtomicReference<>(Bitmap.createBitmap(1,1, Bitmap.Config.RGB_565));
 

@@ -63,13 +63,13 @@ public class Intake {
     }
 
     public void intake() {
-        setPower(-1);
+        setPower(1);
     }
     public void slowReverse() {
-        setPower(slowSpeed);
+        setPower(-slowSpeed);
     }
     public void reverse() {
-        setPower(1);
+        setPower(-1);
     }
     public void stop() {
         setPower(0);

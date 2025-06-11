@@ -103,6 +103,7 @@ public class Vision {
                         timer.reset();
                     }
                 }
+                break;
 
             case retract:
                 intake.up();
@@ -111,6 +112,7 @@ public class Vision {
                 if (timer.milliseconds() >= 350){
                     return true;
                 }
+                break;
 
         };
 
