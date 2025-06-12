@@ -55,7 +55,7 @@ public class SingleTeleOp extends OpMode {
     Path path;
     Alliance alliance = Alliance.red;
 
-    State state = State.start;
+    SAMPLEState state = SAMPLEState.start;
     ElapsedTime stateTimer;
     boolean newState = true;
 
@@ -75,12 +75,16 @@ public class SingleTeleOp extends OpMode {
     boolean autoSampleDrive = false;
     boolean sampleMode = true;
 
+    public static int spitTime=60;
+    public static int transferTime1=175;
+    public static int transferTime2=500;
+
     public static double MAX_DRIVE_POWER=1;
     double drivePower=MAX_DRIVE_POWER;
     double turnPower=1;
 
     public static double sampleX=18;
-    public static double sampleY=126;
+    public static double sampleY=124;
     public static double sampleAngle=135;
     Point sampleTarget = new Point(sampleX, sampleY);
 
@@ -172,10 +176,12 @@ public class SingleTeleOp extends OpMode {
 
         switch (state) {
             case start:
-                if (currentGamepad1.left_bumper) {
+                if (currentGamepad1.right_bumper) {
+                    arm.toTeleStartPosition();
+                } if (currentGamepad1.left_bumper) {
                     intakeSlides.setPosition(0);
                     intake.setReadyPos();
-                    state = State.ready;
+                    state = SAMPLEState.ready;
                     stateTimer.reset();
                     newState = true;
                 }
@@ -242,10 +248,8 @@ public class SingleTeleOp extends OpMode {
                         intakeSlides.setPosition(0);
                         intake.closeDoor();
                         intake.reverseDown();
-                        if (intakeTimer.milliseconds()<60) {
+                        if (intakeTimer.milliseconds()<spitTime) {
                             intake.reverse();
-//                        } else if (intakeTimer.milliseconds()<150) {
-//                            intake.intake();
                         } else {
                             intakeState = IntakeState.retract;
                             stateTimer.reset();
@@ -261,7 +265,7 @@ public class SingleTeleOp extends OpMode {
                     case transfer:
                         intake.stop();
                         //if (currentGamepad1.left_bumper || (odometry.opt.get_x()<54 && odometry.opt.get_y()>100)) {
-                            state = State.transfer;
+                            state = SAMPLEState.transfer;
                             intakeState = IntakeState.ready;
                             stateTimer.reset();
                         //}
@@ -279,11 +283,11 @@ public class SingleTeleOp extends OpMode {
 
                 if (currentGamepad1.circle) autoSampleDrive = true;
 
-                if (stateTimer.milliseconds()<175) {
+                if (stateTimer.milliseconds()<transferTime1) {
                     arm.intakeSample();
                     intake.closeDoor();
                     intake.intake();
-                } else if (stateTimer.milliseconds()<500) {
+                } else if (stateTimer.milliseconds()<transferTime2) {
                     arm.intakeSample();
                     intake.stop();
                     intake.openDoor();
@@ -296,7 +300,7 @@ public class SingleTeleOp extends OpMode {
                         turnPower=0.6;
                         arm.outtakeSample();
                         intake.closeDoor();
-                        state = State.outtake;
+                        state = SAMPLEState.outtake;
                         stateTimer.reset();
                     }
                 }
@@ -310,7 +314,7 @@ public class SingleTeleOp extends OpMode {
                     odometry.opt.setPos(sampleX, sampleY,odometry.opt.get_heading()); //(0,0,225)
                     arm.openClaw();
                     stateTimer.reset();
-                    state = State.retract;
+                    state = SAMPLEState.retract;
                 }
                 break;
             case retract:
@@ -319,11 +323,11 @@ public class SingleTeleOp extends OpMode {
                     arm.toIdlePosition();
                     if (odometry.opt.get_x()>(sampleX+4) || odometry.opt.get_y()<(sampleY-4)) { //auto retract to not lvl 4 hang
                         turnPower = 1;
-                        state = State.ready;
+                        state = SAMPLEState.ready;
                         newState=true;
                     } if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) { //failsafe
                         turnPower = 1;
-                        state = State.ready;
+                        state = SAMPLEState.ready;
                         newState=true;
                     }
                 }
@@ -350,12 +354,20 @@ public class SingleTeleOp extends OpMode {
         //telemetry.addData("heading", odometry.opt.get_heading());
     }
 
-    enum State {
+    enum SAMPLEState {
         start,
         ready,
         transfer,
         outtake,
         retract
+    }
+
+    enum SpecState {
+        start,
+        idle,
+        intakeSpecimen,
+        outtakeSpecimen1,
+        outtakeSpecimen2
     }
 
     enum IntakeState {

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Opmodes;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -14,6 +15,7 @@ import org.opencv.core.Point;
 
 @Config
 @TeleOp
+@Disabled
 public class GVFTest extends OpMode {
     Odometry odometry;
     BCPath path;

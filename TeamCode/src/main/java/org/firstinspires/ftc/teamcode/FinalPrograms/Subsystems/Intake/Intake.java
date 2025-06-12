@@ -23,10 +23,10 @@ public class Intake {
     public static double slowSpeed=0.15;
     public static double spitTime=300;
 
-    public static double DOWN_POS=0.75;
-    public static double UP_POS=0.983;
-    public static double REVERSE_DOWN_POS=0.85;
-    public static double READY_POS=0.9;
+    public static double DOWN_POS=0.73;
+    public static double UP_POS=0.963;
+    public static double REVERSE_DOWN_POS=0.83;
+    public static double READY_POS=UP_POS;
 
     public static double DOOR_OPEN_POS=0.65;
     public static double DOOR_CLOSE_POS=0.2;

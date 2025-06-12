@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms;
 
+import static org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift.highBasketPos;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -22,19 +24,19 @@ import org.opencv.core.Point;
 @Autonomous
 public class FourSampleAuto extends OpMode {
     public static double samplePointX=18;
-    public static double samplePointY=144-19;
+    public static double samplePointY=125;
 
     public static double intakeX1=24;
-    public static double intakeY1=123;
+    public static double intakeY1=124;
     public static double intake_angle1 = 170;
 
     public static double intakeX2=24;
-    public static double intakeY2=125;
-    public static double intake_angle2 = 180;
+    public static double intakeY2=124;
+    public static double intake_angle2 = 190;
 
-    public static double intakeX3=37;
-    public static double intakeY3=116;
-    public static double intake_angle3 = 225;
+    public static double intakeX3=38;
+    public static double intakeY3=118;
+    public static double intake_angle3 = 265;
 
 
     Point deposit_point;
@@ -160,9 +162,9 @@ public class FourSampleAuto extends OpMode {
                     if (transfer) {
                         if (timer.milliseconds()>150) {
                             arm.closeClaw();
-                            if (timer.milliseconds()>150+300) {
+                            if (timer.milliseconds()>450) {
                                 lift.toHighBasket();
-                                if (timer.milliseconds()>150+2500) {
+                                if (lift.getCurrentPos() > (highBasketPos-700)) {
                                     timer.reset();
                                     intakeState++;
                                     state = State.deposit_sample;
@@ -175,46 +177,50 @@ public class FourSampleAuto extends OpMode {
                 break;
 
             case deposit_sample: //and move to intake
+                wheelControl.drive(0,0,0,0,0);
                 arm.outtakeSample();
 
-                if (timer.milliseconds() >= 1250){
+                if (timer.milliseconds() >= 1000){
                     arm.openClaw();
                 }
-                if (timer.milliseconds() >= 2000){
+                if (timer.milliseconds() >= 1200){
                     arm.toIdlePosition();
-                    lift.intakeSample();
-
                     state = State.intake_sample;
                     timer.reset();
-
                     if (intakeState==4) {
                         state = State.park;
                         timer.reset();
                     }
-
                 }
 
                 break;
 
            case intake_sample:
+               if (odometry.opt.get_x()>(samplePointX+4) || odometry.opt.get_y()<(samplePointY-4)) {
+                   lift.intakeSample();
+               }
                 intakeSlides.setPosition(pos);
                 intake.intake();
 
                switch (intakeState) {
                    case 1:
                        vf.pid_to_point(intake_point1, intake_angle1, pid_max_power);
+                       if (vf.at_point(intake_point1,3)) intake.down();
                        break;
                    case 2:
                        vf.pid_to_point(intake_point2, intake_angle2, pid_max_power);
+                       if (vf.at_point(intake_point2,3)) intake.down();
+
                        break;
                    case 3:
                        vf.pid_to_point(intake_point3, intake_angle3, pid_max_power);
+                       if (vf.at_point(intake_point3,3)) intake.down();
+
                        break;
                }
 
-                if (timer.milliseconds() >= 500){
+                if (timer.milliseconds() >= 1500){
                     intake.down();
-                    //wheelControl.drive(0,-0.2,0,Math.toRadians(odometry.opt.get_heading()),1);
                 }
 
                 if (intake.hasCorrectSample(true)) {
@@ -233,7 +239,7 @@ public class FourSampleAuto extends OpMode {
                 if (timer.milliseconds()<5000) vf.move();
                 lift.toHighChamber();
                 if (timer.milliseconds()>5000) {
-                    arm.outtakeSpecimen2();
+                    arm.toTeleStartPosition();
                     wheelControl.drive_relative(0.2,0,0,1);
                 }
                 break;

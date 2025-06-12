@@ -14,6 +14,7 @@ import org.opencv.core.Point;
 
 @Config
 @TeleOp
+@Disabled
 public class GVFTest2 extends OpMode {
     Odometry odometry;
     WheelControl wheelControl;

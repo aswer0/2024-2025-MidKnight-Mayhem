@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Experiments.Opmodes;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -15,6 +16,7 @@ import org.opencv.core.Point;
 import java.util.List;
 
 @TeleOp
+@Disabled
 public class FieldOrientedDrive extends OpMode {
     Odometry odometry;
     DriveCorrection driveCorrection;

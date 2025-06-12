@@ -1,7 +1,8 @@
-package org.firstinspires.ftc.teamcode.FinalPrograms;
+package org.firstinspires.ftc.teamcode.OldOpModes;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -21,7 +22,8 @@ import org.opencv.core.Point;
 
 @Autonomous
 @Config
-public class SampleAuto extends OpMode {
+@Disabled
+public class OldSampleAuto extends OpMode {
     double intake_slide_extend = -450;
     double corner_offset = 18;
     Point start_point;
