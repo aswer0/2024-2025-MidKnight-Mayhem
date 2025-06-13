@@ -55,7 +55,7 @@ public class SingleTeleOp extends OpMode {
     Path path;
     Alliance alliance = Alliance.red;
 
-    SAMPLEState state = SAMPLEState.start;
+    State state = State.start;
     ElapsedTime stateTimer;
     boolean newState = true;
 
@@ -74,7 +74,10 @@ public class SingleTeleOp extends OpMode {
 
     boolean autoSampleDrive = false;
     boolean sampleMode = true;
+    boolean outtakeSpec=false;
+    boolean releaseSpec=false;
 
+    public static int inTime=60;
     public static int spitTime=60;
     public static int transferTime1=175;
     public static int transferTime2=500;
@@ -181,7 +184,7 @@ public class SingleTeleOp extends OpMode {
                 } if (currentGamepad1.left_bumper) {
                     intakeSlides.setPosition(0);
                     intake.setReadyPos();
-                    state = SAMPLEState.ready;
+                    state = State.ready;
                     stateTimer.reset();
                     newState = true;
                 }
@@ -197,7 +200,11 @@ public class SingleTeleOp extends OpMode {
                 newState=false;
 
                 //slower when slides extended
-                //if (intakeSlides.getPosition()<-250) drivePower = MAX_DRIVE_POWER*1; //(0.6+0.4*(1+intakeSlides.getPosition()/650))
+                if (intakeSlides.getPosition()<-300) turnPower=0.5;
+
+                if (!sampleMode && currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+                    state = State.intakeSpec;
+                }
 
                 switch (intakeState) {
                     case ready:
@@ -248,8 +255,10 @@ public class SingleTeleOp extends OpMode {
                         intakeSlides.setPosition(0);
                         intake.closeDoor();
                         intake.reverseDown();
-                        if (intakeTimer.milliseconds()<spitTime) {
-                            intake.reverse();
+                        if (intakeTimer.milliseconds()<inTime) {
+                            intake.intake();
+                        } else if (intakeTimer.milliseconds()< (inTime+spitTime)) {
+                            intake.slowReverse();
                         } else {
                             intakeState = IntakeState.retract;
                             stateTimer.reset();
@@ -260,15 +269,17 @@ public class SingleTeleOp extends OpMode {
                         intake.intake();
                         intake.up();
                         intakeSlides.setPosition(0);
-                        if (intakeSlides.getPosition()>-20 || currentGamepad1.left_bumper && !previousGamepad1.left_bumper) intakeState = IntakeState.transfer;
+                        if (intakeSlides.getPosition()>-20 || currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+                            intakeState = IntakeState.transfer;
+                        }
                         break;
                     case transfer:
                         intake.stop();
-                        //if (currentGamepad1.left_bumper || (odometry.opt.get_x()<54 && odometry.opt.get_y()>100)) {
-                            state = SAMPLEState.transfer;
-                            intakeState = IntakeState.ready;
+                        intakeState = IntakeState.ready;
+                        if (sampleMode) {
+                            state = State.transfer;
                             stateTimer.reset();
-                        //}
+                        }
                         break;
                 }
                 break;
@@ -300,12 +311,12 @@ public class SingleTeleOp extends OpMode {
                         turnPower=0.6;
                         arm.outtakeSample();
                         intake.closeDoor();
-                        state = SAMPLEState.outtake;
+                        state = State.outtakeSample;
                         stateTimer.reset();
                     }
                 }
                 break;
-            case outtake:
+            case outtakeSample:
                 intakeSlides.setPosition(-300);
                 intake.stop();
                 if (currentGamepad1.circle) autoSampleDrive = true;
@@ -314,7 +325,7 @@ public class SingleTeleOp extends OpMode {
                     odometry.opt.setPos(sampleX, sampleY,odometry.opt.get_heading()); //(0,0,225)
                     arm.openClaw();
                     stateTimer.reset();
-                    state = SAMPLEState.retract;
+                    state = State.retract;
                 }
                 break;
             case retract:
@@ -323,12 +334,74 @@ public class SingleTeleOp extends OpMode {
                     arm.toIdlePosition();
                     if (odometry.opt.get_x()>(sampleX+4) || odometry.opt.get_y()<(sampleY-4)) { //auto retract to not lvl 4 hang
                         turnPower = 1;
-                        state = SAMPLEState.ready;
+                        state = State.ready;
                         newState=true;
                     } if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) { //failsafe
                         turnPower = 1;
-                        state = SAMPLEState.ready;
+                        state = State.ready;
                         newState=true;
+                    }
+                }
+                break;
+
+            case intakeSpec:
+                if (newState) {
+                    outtakeSlides.intakeSpecimen();
+                    intakeSlides.setPosition(0);
+                    arm.intakeSpecimen();
+                    arm.openClaw();
+                    intake.down();
+                    outtakeSpec=false;
+                }
+                newState = false;
+
+                if (currentGamepad1.right_trigger>0.3 || currentGamepad1.right_bumper) { //break out of spec cycle loop
+                    state = State.ready;
+                    stateTimer.reset();
+                    newState = true;
+                }
+
+                if (currentGamepad1.square && !previousGamepad1.square) {
+                    arm.closeClaw();
+                    stateTimer.reset();
+                    outtakeSpec=true;
+                }
+                if (outtakeSpec && stateTimer.milliseconds()>100) {
+                    state = State.outtakeSpec;
+                    stateTimer.reset();
+                    newState = true;
+                }
+                break;
+
+            case outtakeSpec:
+                if (newState) {
+                    outtakeSlides.toHighChamber();
+                    arm.closeClaw();
+                    arm.outtakeSpecimen1();
+                    releaseSpec = false;
+                }
+                newState=false;
+
+                if (previousGamepad1.left_bumper && !currentGamepad1.left_bumper) {
+                    odometry.opt.setPos(40,odometry.opt.get_y());
+                    arm.openClaw();
+                    stateTimer.reset();
+                    releaseSpec=true;
+                }
+                if (releaseSpec && stateTimer.milliseconds()>125) {
+                    arm.openClaw();
+                    arm.outtakeSpecimen2();
+                    outtakeSlides.setPosition(0);
+
+                    if (currentGamepad1.right_trigger>0.3 || currentGamepad1.right_bumper) {
+                        state = State.ready;
+                        stateTimer.reset();
+                        newState = true;
+                    }
+                    if (odometry.opt.get_x()<24) {
+                        state = State.intakeSpec;
+                        stateTimer.reset();
+                        newState = true;
                     }
                 }
                 break;
@@ -354,20 +427,14 @@ public class SingleTeleOp extends OpMode {
         //telemetry.addData("heading", odometry.opt.get_heading());
     }
 
-    enum SAMPLEState {
+    enum State {
         start,
         ready,
         transfer,
-        outtake,
-        retract
-    }
-
-    enum SpecState {
-        start,
-        idle,
-        intakeSpecimen,
-        outtakeSpecimen1,
-        outtakeSpecimen2
+        outtakeSample,
+        retract,
+        intakeSpec,
+        outtakeSpec
     }
 
     enum IntakeState {
