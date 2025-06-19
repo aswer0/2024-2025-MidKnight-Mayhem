@@ -199,10 +199,9 @@ public class SingleTeleOp extends OpMode {
                 }
                 newState=false;
 
-                //slower when slides extended
-                if (intakeSlides.getPosition()<-300) turnPower=0.5;
-
                 if (!sampleMode && currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+                    stateTimer.reset();
+                    newState = true;
                     state = State.intakeSpec;
                 }
 
@@ -215,18 +214,12 @@ public class SingleTeleOp extends OpMode {
                         } else if (intakeSlides.horizontalSlidesMotor.getPower() != 0 && intakeSlides.getState() == HorizontalSlides.State.userControlled) { // in the dead zone and not running to target
                             intakeSlides.trySetPower(0);
                         }
-                        //preset horizontal extension
-                        if (currentGamepad1.circle && !previousGamepad1.circle) {
-                            intakeSlides.setPosition(-400);
-                        }
+
                         //intake
                         if (currentGamepad1.right_bumper) {
                             turnPower = 0.6;
-//                                intake.down();
-//                                intake.intake();
-//                                intake.closeDoor();
                             //move on if detecting sample
-                            if (intake.smarterIntake(true)) { //intake.hasCorrectSample(true)
+                            if (intake.smarterIntake(true)) {
                                 intakeState = IntakeState.detected;
                                 intakeTimer.reset();
                             }
@@ -244,6 +237,7 @@ public class SingleTeleOp extends OpMode {
                                 turnPower = 1;
                             }
                         }
+
                         //manual retract
                         if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
                             intakeState = IntakeState.retract;
