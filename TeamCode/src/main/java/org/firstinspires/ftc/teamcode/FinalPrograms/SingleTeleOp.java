@@ -44,7 +44,7 @@ Sample Mode:
 left bumper                     transfer failsafe/deposit/retract failsafe
 TODO: circle button             auto drive to basket (WIP) - need to tune
 
-Specimen Mode:
+Specimen Mode:ƒ
 TODO: left bumper               grab spec/deposit spec/retract arm (WIP)
 TODO: circle button             auto specimen drive sequence (WIP)
 

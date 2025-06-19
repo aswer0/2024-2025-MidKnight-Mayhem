@@ -12,17 +12,17 @@ public class Arm {
     Servo pivot_right;
     Servo tClaw;
 
-    public static Preset outtakeSpecimen1 = new Preset(0.1,0.5,0.28);
-    public static Preset outtakeSpecimen2 = new Preset(0.1,0.1,0.28);
-    public static Preset outtakeSample = new Preset(0.5,0.93,0.35);
-    public static Preset intakeSpecimen = new Preset(0.85,0.56,0.73);
-    public static Preset intakeSample = new Preset(0.09,0.25,0.74);
-    public static Preset idlePosition = new Preset(0.1,0.215,0.67);
-    public static Preset specIdlePosition = new Preset(0.85,0.205,0.69);
-    public static Preset autoStartPosition = new Preset(0.5,0.93,0.72);
-    public static Preset teleStartPosition = new Preset(0.1,0.5,0.42);
-    public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.49,0.64);
-    public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.49,0.56);
+    public static Preset outtakeSpecimen1 = new Preset(0.1,0.5,0.26);
+    public static Preset outtakeSpecimen2 = new Preset(0.1,0.1,0.26);
+    public static Preset outtakeSample = new Preset(0.5,0.93,0.33);
+    public static Preset intakeSpecimen = new Preset(0.85,0.56,0.71);
+    public static Preset intakeSample = new Preset(0.09,0.25,0.72);
+    public static Preset idlePosition = new Preset(0.1,0.215,0.65);
+    public static Preset specIdlePosition = new Preset(0.85,0.205,0.67);
+    public static Preset autoStartPosition = new Preset(0.5,0.93,0.7);
+    public static Preset teleStartPosition = new Preset(0.1,0.5,0.345);
+    public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.49,0.62);
+    public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.49,0.54);
 
     public static double clawClosePos = 0.335; //0.385
     public static double clawHalfOpenPos = 0.34;

@@ -49,9 +49,11 @@ public class ArmPresetTest extends OpMode {
                 outtakeSlides.toHighBasket();
                 break;
             case outtakeSpecimen1:
+                outtakeSlides.toHighChamber();
                 arm.outtakeSpecimen1();
                 break;
             case outtakeSpecimen2:
+                outtakeSlides.setPosition(0);
                 arm.outtakeSpecimen2();
                 break;
             case toIdlePosition:

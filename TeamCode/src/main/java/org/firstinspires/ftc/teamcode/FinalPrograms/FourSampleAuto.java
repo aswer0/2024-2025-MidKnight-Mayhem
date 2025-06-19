@@ -34,9 +34,9 @@ public class FourSampleAuto extends OpMode {
     public static double intakeY2=124;
     public static double intake_angle2 = 190;
 
-    public static double intakeX3=38;
-    public static double intakeY3=118;
-    public static double intake_angle3 = 265;
+    public static double intakeX3=40;
+    public static double intakeY3=120;
+    public static double intake_angle3 = 260;
 
 
     Point deposit_point;
@@ -234,6 +234,8 @@ public class FourSampleAuto extends OpMode {
                 }
 
                 break;
+
+
 
            case park:
                 if (timer.milliseconds()<5000) vf.move();

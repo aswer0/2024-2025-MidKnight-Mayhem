@@ -32,7 +32,6 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public static Scalar yellowLowerBound = new Scalar(10, 100, 100);
     public static Scalar yellowUpperBound = new Scalar(30,255,255);
 
-
     public static Scalar redLowerBound = new Scalar(170,100,50);
     public static Scalar redUpperBound = new Scalar(10,255,255);
 
@@ -45,7 +44,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
 
     public static double depth_scalar = 750;
     public static double horizontal_scalar = 27.75;
-    public static double horizontal_offset = 4.5;
+    public static double horizontal_offset = 5.5;
 
     AtomicReference<Bitmap> lastFrame = new AtomicReference<>(Bitmap.createBitmap(1,1, Bitmap.Config.RGB_565));
 
@@ -100,7 +99,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             Core.inRange(coloredMat, blueLowerBound, blueUpperBound, filteredMat);
         }
         Mat yellowMat = new Mat();
-        Core.inRange(frame, yellowLowerBound, yellowUpperBound, yellowMat);
+        Core.inRange(coloredMat, yellowLowerBound, yellowUpperBound, yellowMat);
         filteredMat.copyTo(coloredMat);
         filteredMat.release();
 
@@ -116,6 +115,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
 
 
         double nearestDistance = Double.POSITIVE_INFINITY;
+        double nearestSampleDepth = Double.POSITIVE_INFINITY;
         insideContour = false;
         ArrayList<Contour> processedContours = new ArrayList<>();
         for(int i = 0; i < coloredContours.size(); i++ ) {
@@ -131,7 +131,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             double cY = moments.m01/moments.m00;
             Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
             if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)){
-                this.nearestSampleDepth = depth_scalar / Math.sqrt(area);
+                nearestSampleDepth = depth_scalar / Math.sqrt(area);
                 nearestDistance = (cX - centerLine) / horizontal_scalar - horizontal_offset;
             }
 
@@ -153,8 +153,9 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         }
         for(int i = 0; i < yellowContours.size(); i++ ) {
             // Process contours here
+            double area = Imgproc.contourArea(yellowContours.get(i));
 
-            if(Imgproc.contourArea(yellowContours.get(i)) < areaThreshold) continue;
+            if(area < areaThreshold) continue;
             Imgproc.drawContours(frame, yellowContours, i, new Scalar(255,0,255), 3);
             Moments moments = Imgproc.moments(yellowContours.get(i));
 
@@ -162,7 +163,10 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             double cX = moments.m10/moments.m00;
             double cY = moments.m01/moments.m00;
             Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
-            if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)) nearestDistance = cX - centerLine;
+            if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)){
+                nearestSampleDepth = depth_scalar / Math.sqrt(area);
+                nearestDistance = (cX - centerLine) / horizontal_scalar - horizontal_offset;
+            }
             Contour contour = new Contour();
             contour.colored = true;
             contour.size = Imgproc.contourArea(yellowContours.get(i));
@@ -181,13 +185,13 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             }
         }
         this.contours = processedContours;
-        yellowMat.release();
         Imgproc.drawMarker(frame, new Point(320,240), new Scalar(0,255,255));
         telemetryPacket.put("Nearest Distance", nearestDistance);
         telemetryPacket.put("Depth", nearestSampleDepth);
         telemetryPacket.put("Inside Contour", insideContour);
         telemetryPacket.put("Num Contours", contours.size());
         this.nearestSampleDistance = nearestDistance;
+        this.nearestSampleDepth = nearestSampleDepth;
 
         dashboard.sendTelemetryPacket(telemetryPacket);
 
@@ -195,6 +199,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
         Utils.matToBitmap(frame, bitmap);
         lastFrame.set(bitmap);
         coloredMat.release();
+        yellowMat.release();
         return null;
     }
     @Override

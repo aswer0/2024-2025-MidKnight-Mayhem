@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Cameras;
 
 
-import android.graphics.Point;
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -12,6 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.State;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
@@ -19,9 +19,12 @@ import org.firstinspires.ftc.teamcode.Experiments.Utils.Alliance;
 import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.HorizontalSlides;
 import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.opencv.core.Point;
+
+import java.util.Optional;
 
 public class Vision {
-    WheelControl wheelControl;
+    VectorField vf;
     Telemetry telemetry;
     Odometry odometry;
     HorizontalSlides horizontalSlides;
@@ -35,25 +38,25 @@ public class Vision {
     State state = State.setPosition;
     ElapsedTime timer;
 
-    double target_position;
+    Point target_position;
+    double target_depth;
     double inch_to_ticks = 35;
-    int sign;
 
     enum State{
         setPosition,
-        moveHorizontal,
+        move,
         intake,
         retract
     }
 
-    public Vision(Odometry odometry, Telemetry telemetry, WheelControl wheelControl, HardwareMap hardwareMap, HorizontalSlides horizontalSlides, Intake intake){
+    public Vision(Odometry odometry, Telemetry telemetry, VectorField vectorField, HardwareMap hardwareMap, HorizontalSlides horizontalSlides, Intake intake, Alliance a){
         this.telemetry = telemetry;
-        this.wheelControl = wheelControl;
+        this.vf = vectorField;
         this.horizontalSlides = horizontalSlides;
         this.intake = intake;
         this.odometry = odometry;
 
-        this.processor = new SampleFinder(intake.alliance);
+        this.processor = new SampleFinder(a);
         camera = hardwareMap.get(CameraName.class, "Webcam 1");
         portal = new VisionPortal
                 .Builder()
@@ -64,52 +67,76 @@ public class Vision {
                 .build();
         dashboard = FtcDashboard.getInstance();
         dashboard.startCameraStream(processor, 60);
+
+        timer = new ElapsedTime();
     }
 
-    public boolean get_sample(double powerLevel, double collision_threshold, char orientation){
+    public boolean get_sample(double powerLevel, double target_angle, double collision_threshold, char orientation){
         switch (state){
             case setPosition:
-                target_position = odometry.opt.get_y()+processor.nearestSampleDistance;
-                sign = (int)(processor.nearestSampleDistance/Math.abs(processor.nearestSampleDistance));
+                if (orientation == 'x'){
+                    target_position = new Point(
+                            odometry.opt.get_x()+processor.nearestSampleDistance,
+                            odometry.opt.get_y()
+                    );
+                }
+                else{
+                    target_position = new Point(
+                            odometry.opt.get_x(),
+                            odometry.opt.get_y()+processor.nearestSampleDistance
+                    );
+                }
+                target_depth = -processor.nearestSampleDepth*inch_to_ticks;
 
-                state = State.moveHorizontal;
+                state = State.move;
 
                 break;
 
-            case moveHorizontal:
-                wheelControl.drive(0, sign, 0, 0, powerLevel);
+            case move:
+                intake.up();
+                vf.pid_to_point(target_position, target_angle, powerLevel);
 
-                if (Math.abs(odometry.opt.get_x()-target_position) <= collision_threshold && orientation == 'x'){
-                    state = State.intake;
+                if (vf.at_point(target_position, collision_threshold)){
                     timer.reset();
-                }
-                else{
-                    if (Math.abs(odometry.opt.get_y()-target_position) <= collision_threshold){
-                        state = State.intake;
-                        timer.reset();
-                    }
+                    state = State.intake;
                 }
 
                 break;
 
             case intake:
-                horizontalSlides.setPosition(-processor.nearestSampleDepth * inch_to_ticks);
-                if (timer.milliseconds() >= 350){
+                vf.pid_to_point(target_position, target_angle, powerLevel);
+                horizontalSlides.setPosition(target_depth);
+
+                if (timer.milliseconds() >= 1000){
                     intake.down();
                     intake.intake();
 
                     if (intake.hasCorrectSample(true)) {
-                        state = State.retract;
                         timer.reset();
+                        state = State.retract;
                     }
                 }
+                else{
+                    intake.up();
+                }
+
                 break;
 
             case retract:
                 intake.up();
-                horizontalSlides.setPosition(0);
 
-                if (timer.milliseconds() >= 350){
+                if (timer.milliseconds() >= 500){
+                    horizontalSlides.setPosition(0);
+                }
+                if (timer.milliseconds() >= 800 && timer.milliseconds() <= 860){
+                    intake.reverse();
+                }
+                else{
+                    intake.intake();
+                }
+
+                if (timer.milliseconds() >= 1000){
+                    intake.stop();
                     return true;
                 }
                 break;
@@ -117,6 +144,16 @@ public class Vision {
         };
 
         return false;
+    }
+
+    public SampleFinder get_processor(){
+        return this.processor;
+    }
+    public void filter_yellow(boolean filterYellow){
+        this.processor.filterYellow = filterYellow;
+    }
+    public void reset(){
+        state = State.setPosition;
     }
 
 }
