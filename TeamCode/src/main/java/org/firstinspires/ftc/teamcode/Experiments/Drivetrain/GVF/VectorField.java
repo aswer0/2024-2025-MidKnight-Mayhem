@@ -53,9 +53,9 @@ public class VectorField {
     public ElapsedTime timer;
 
     // PID variables
-    public double xp = end_decel, xi = 0.1, xd = 0.01, xithres = 2;
-    public double yp = end_decel, yi = 0.1, yd = 0.01, yithres = 2;
-    public double hp = 0.04, hi = 0.025, hd = 0.003, hithres = 3;
+    public double xp = end_decel, xi = 0, xd = 0.01, xithres = 2;
+    public double yp = end_decel, yi = 0, yd = 0.01, yithres = 2;
+    public double hp = 0.025, hi = 0, hd = 0.003, hithres = 3;
 
     TestPID x_PID;
     TestPID y_PID;

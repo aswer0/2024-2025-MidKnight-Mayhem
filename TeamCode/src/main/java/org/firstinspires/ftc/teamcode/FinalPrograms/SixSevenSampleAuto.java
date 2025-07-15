@@ -89,7 +89,7 @@ public class SixSevenSampleAuto extends OpMode {
                 new Point(17, 118),
                 new Point(37, 109),
                 new Point(52, 110),
-                new Point(54, 92.5),
+                new Point(54, 88),
         }};
 
         path = new BCPath(follow_path);
@@ -175,19 +175,10 @@ public class SixSevenSampleAuto extends OpMode {
                             arm.closeClaw();
                             if (timer.milliseconds()>550) {
                                 lift.toHighBasket();
-                                if (lift.getCurrentPos() > (highBasketPos-700)) {
-                                    if (intakeState >= 3){
-                                        if (vf.at_point(deposit_point, 1)) {
-                                            timer.reset();
-                                            intakeState++;
-                                            state = State.deposit_sample;
-                                        }
-                                    }
-                                    else{
-                                        timer.reset();
-                                        intakeState++;
-                                        state = State.deposit_sample;
-                                    }
+                                if (lift.getCurrentPos() > (highBasketPos-700) && vf.at_point(deposit_point, 1)) {
+                                    timer.reset();
+                                    intakeState++;
+                                    state = State.deposit_sample;
                                 }
                             }
                         }
@@ -206,7 +197,8 @@ public class SixSevenSampleAuto extends OpMode {
                 if (timer.milliseconds() >= 875){
                     arm.toIdlePosition();
 
-                    if (intakeState == 5){
+                    /* make this 5 for 5 sample and park */
+                    if (intakeState == 6){
                         vf.setPath(path, -90, false);
                         timer.reset();
                         state = State.park;
@@ -278,7 +270,7 @@ public class SixSevenSampleAuto extends OpMode {
                 pid_max_power = 0.1;
 
                 if (sensors.isTouchBack()){
-                    pid_max_power = 0.825;
+                    pid_max_power = 0.9;
                     wheelControl.stop();
                     vision.reset();
                     state = State.visionIntake;
@@ -294,10 +286,10 @@ public class SixSevenSampleAuto extends OpMode {
                 break;
 
             case park:
+                arm.toTeleStartPosition();
                 if (timer.milliseconds()<5000) vf.move();
                 lift.toHighChamber();
                 if (timer.milliseconds()>5000) {
-                    arm.toTeleStartPosition();
                     wheelControl.drive_relative(0.2,0,0,1);
                 }
                 break;
