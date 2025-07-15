@@ -38,6 +38,7 @@ public class Odometry {
     private IMU imu;
     public OptOdometry opt;
     public TwoWheelOdometry two;
+    public TwoWheelOdometryV2 twoV2;
 
     ElapsedTime imuTimer = new ElapsedTime();
 
@@ -80,6 +81,7 @@ public class Odometry {
                                     String vertical_string,
                                     String horizontal_string) {
         two = new TwoWheelOdometry(hardwareMap, start_heading, start_x, start_y, vertical_string, horizontal_string);
+        twoV2 = new TwoWheelOdometryV2(hardwareMap, start_heading, start_x, start_y, vertical_string, horizontal_string);
     }
 
     public double getxPos() {

@@ -65,6 +65,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
     public static double sample_x = 13;
     public static double sample_y = 123.5;
     public static double sample_angle = 135;
+    public static double slide_pos_test = 0;
 
     Intake intake;
     HorizontalSlides intakeSlides;
@@ -324,7 +325,7 @@ public class AndrewsCrappyTeleOp extends OpMode {
         switch (outtakeState) {
             case start:
                 if (currentGamepad2.triangle) {
-                    intakeSlides.setPosition(0);
+                    intakeSlides.setPosition(slide_pos_test);
                     outtakeState = OuttakeState.idle;
                     outtakeTimer.reset();
                     newOuttakeState = true;

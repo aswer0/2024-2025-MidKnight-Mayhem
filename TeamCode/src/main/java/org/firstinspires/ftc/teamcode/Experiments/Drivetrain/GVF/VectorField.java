@@ -264,7 +264,7 @@ public class VectorField {
         // PID at the end
         if (T > T_from_end(PID_dist)) {
             PID = true;
-            pid_to_point(path.final_point, end_heading, max_speed);
+            pid_to_point(path.final_point, end_heading, min_speed);
             return;
         }
 

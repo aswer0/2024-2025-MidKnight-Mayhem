@@ -13,7 +13,6 @@ import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
 import java.util.List;
 
 @TeleOp
-@Disabled
 public class TestDrive extends OpMode {
     Odometry odometry;
     WheelControl drive;

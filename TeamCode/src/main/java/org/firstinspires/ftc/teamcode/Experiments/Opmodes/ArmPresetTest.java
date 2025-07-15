@@ -4,6 +4,8 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Experiments.Utils.Sensors;
+import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Arm;
 import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift;
 
@@ -12,16 +14,22 @@ import org.firstinspires.ftc.teamcode.FinalPrograms.Subsystems.Outtake.Lift;
 public class ArmPresetTest extends OpMode {
     Arm arm;
     Lift outtakeSlides;
+    Intake intake;
+    Sensors sensors;
     public static ArmPreset state = ArmPreset.intakeSample;
     @Override
     public void init() {
         arm = new Arm(hardwareMap);
         outtakeSlides = new Lift(hardwareMap, true);
+        sensors = new Sensors(hardwareMap, telemetry);
+        intake = new Intake(hardwareMap, sensors);
     }
 
     @Override
     public void loop() {
         outtakeSlides.update();
+        intake.up();
+
         if (gamepad1.right_bumper) {
             arm.openClaw();
         } else {

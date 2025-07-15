@@ -12,12 +12,16 @@ public class Arm {
     Servo pivot_right;
     Servo tClaw;
 
-    public static Preset outtakeSpecimen1 = new Preset(0.1,0.5,0.26);
-    public static Preset outtakeSpecimen2 = new Preset(0.1,0.1,0.26);
-    public static Preset outtakeSample = new Preset(0.5,0.93,0.33);
-    public static Preset intakeSpecimen = new Preset(0.85,0.56,0.71);
-    public static Preset intakeSample = new Preset(0.09,0.25,0.72);
-    public static Preset idlePosition = new Preset(0.1,0.215,0.65);
+    public static Preset outtakeSpecimen1 = new Preset(0.1,0.65,0.26);
+    public static Preset outtakeSpecimen2 = new Preset(0.1,0.25,0.26);
+    public static Preset outtakeSample = new Preset(0.6,0.15,0.33);
+    public static Preset intakeSpecimen = new Preset(0.85,0.56,0.735);
+    /*=======================================*/
+    /* This is tuned such that it pushes really down so claw does not get stuck on surgical tubing*/
+    /* Warning that there may be a chance of it getting stuck as it pushes down*/
+    public static Preset intakeSample = new Preset(0.85,0.95,0.75);
+    /*=======================================*/
+    public static Preset idlePosition = new Preset(0.85,0.95,0.65);
     public static Preset specIdlePosition = new Preset(0.85,0.205,0.67);
     public static Preset autoStartPosition = new Preset(0.5,0.93,0.7);
     public static Preset teleStartPosition = new Preset(0.1,0.5,0.345);

@@ -74,9 +74,10 @@ public class Vision {
     public boolean get_sample(double powerLevel, double target_angle, double collision_threshold, char orientation){
         switch (state){
             case setPosition:
+                intake.down();
                 if (orientation == 'x'){
                     target_position = new Point(
-                            odometry.opt.get_x()+processor.nearestSampleDistance,
+                            odometry.opt.get_x()-processor.nearestSampleDistance,
                             odometry.opt.get_y()
                     );
                 }
@@ -88,7 +89,10 @@ public class Vision {
                 }
                 target_depth = -processor.nearestSampleDepth*inch_to_ticks;
 
-                state = State.move;
+                if (timer.milliseconds() >= 700){
+                    timer.reset();
+                    state = State.move;
+                }
 
                 break;
 
@@ -96,7 +100,7 @@ public class Vision {
                 intake.up();
                 vf.pid_to_point(target_position, target_angle, powerLevel);
 
-                if (vf.at_point(target_position, collision_threshold)){
+                if (timer.milliseconds() >= 1000){
                     timer.reset();
                     state = State.intake;
                 }
@@ -107,11 +111,11 @@ public class Vision {
                 vf.pid_to_point(target_position, target_angle, powerLevel);
                 horizontalSlides.setPosition(target_depth);
 
-                if (timer.milliseconds() >= 1000){
+                if (timer.milliseconds() >= 300){
                     intake.down();
                     intake.intake();
 
-                    if (intake.hasCorrectSample(true)) {
+                    if (intake.hasCorrectSample(true) || timer.milliseconds() >= 2000) {
                         timer.reset();
                         state = State.retract;
                     }
@@ -125,17 +129,17 @@ public class Vision {
             case retract:
                 intake.up();
 
-                if (timer.milliseconds() >= 500){
+                if (timer.milliseconds() >= 200){
                     horizontalSlides.setPosition(0);
                 }
-                if (timer.milliseconds() >= 800 && timer.milliseconds() <= 860){
+                if (timer.milliseconds() >= 500 && timer.milliseconds() <= 560){
                     intake.reverse();
                 }
                 else{
                     intake.intake();
                 }
 
-                if (timer.milliseconds() >= 1000){
+                if (timer.milliseconds() >= 750){
                     intake.stop();
                     return true;
                 }
@@ -152,8 +156,12 @@ public class Vision {
     public void filter_yellow(boolean filterYellow){
         this.processor.filterYellow = filterYellow;
     }
+    public Point get_target_position(){
+        return this.target_position;
+    }
     public void reset(){
         state = State.setPosition;
+        timer.reset();
     }
 
 }
