@@ -21,7 +21,7 @@ import org.opencv.core.Point;
 
 @Config
 @Autonomous
-public class NathansFivePushSpecYay extends OpMode {
+public class A_COMPETITION_SPECIMEN_AUTO extends OpMode {
     public static double sample_x = 8;
     public static double sample_y = 120;
 

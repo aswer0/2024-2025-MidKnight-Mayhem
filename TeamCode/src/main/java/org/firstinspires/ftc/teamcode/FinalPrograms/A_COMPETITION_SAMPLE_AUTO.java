@@ -6,7 +6,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
@@ -25,7 +24,7 @@ import org.opencv.core.Point;
 
 @Config
 @Autonomous
-public class SixSevenSampleAuto extends OpMode {
+public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
     public static double samplePointX=17;
     public static double samplePointY=119.25;
 
@@ -166,7 +165,9 @@ public class SixSevenSampleAuto extends OpMode {
                     boolean transfer;
                     if (intakeSlides.getPosition()>-20 || timer.milliseconds()>3000) {
                         lift.intakeSample();
-                        arm.intakeSample();
+                        if (lift.getCurrentPos() < (highBasketPos-600)){
+                            arm.intakeSample();
+                        }
                         transfer=true;
                     } else {
                         timer.reset();

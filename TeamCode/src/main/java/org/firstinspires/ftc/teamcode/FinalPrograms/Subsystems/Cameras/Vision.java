@@ -74,7 +74,14 @@ public class Vision {
     public boolean get_sample(double powerLevel, double target_angle, double collision_threshold, char orientation){
         switch (state){
             case setPosition:
-                intake.down();
+                if (timer.milliseconds() <= 60){
+                    intake.reverse();
+                    intake.up();
+                }
+                else{
+                    intake.down();
+                    intake.stop();
+                }
                 if (orientation == 'x'){
                     target_position = new Point(
                             odometry.opt.get_x()-processor.nearestSampleDistance,
@@ -141,6 +148,9 @@ public class Vision {
 
                 if (timer.milliseconds() >= 650){
                     intake.stop();
+                    if (!intake.hasCorrectSample(true)){
+                        reset();
+                    }
                     return true;
                 }
                 break;

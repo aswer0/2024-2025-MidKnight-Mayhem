@@ -49,7 +49,7 @@ TODO: left bumper               grab spec/deposit spec/retract arm (WIP)
 TODO: circle button             auto specimen drive sequence (WIP)
 
  */
-public class SingleTeleOp extends OpMode {
+public class A_COMPETITION_TELEOP extends OpMode {
     Odometry odometry;
     WheelControl drive;
     Path path;

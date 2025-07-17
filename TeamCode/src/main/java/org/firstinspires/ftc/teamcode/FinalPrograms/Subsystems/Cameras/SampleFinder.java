@@ -42,8 +42,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public static double areaThreshold = 3750;
     public static double centerLine = 320;
 
-    public static double depth_scalar = 750;
-    public static double b_scalar = 1.69420;
+    public static double depth_scalar = 950;
     public static double horizontal_scalar = 27.75;
     public static double horizontal_offset = 5.5;
 
