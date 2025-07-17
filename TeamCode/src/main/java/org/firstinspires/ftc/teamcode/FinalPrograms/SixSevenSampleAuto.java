@@ -177,11 +177,13 @@ public class SixSevenSampleAuto extends OpMode {
                             arm.closeClaw();
                             if (timer.milliseconds()>450) {
                                 lift.toHighBasket();
-                                if (lift.getCurrentPos() > (highBasketPos-700) && vf.at_point(deposit_point, 1.1)) {
+                                if (lift.getCurrentPos() > (highBasketPos-700)) {
                                     arm.outtakeSample();
-                                    timer.reset();
-                                    intakeState++;
-                                    state = State.deposit_sample;
+                                    if (vf.at_point(deposit_point, 1.1)) {
+                                        timer.reset();
+                                        intakeState++;
+                                        state = State.deposit_sample;
+                                    }
                                 }
                             }
                         }
@@ -194,10 +196,10 @@ public class SixSevenSampleAuto extends OpMode {
                 wheelControl.drive(0,0,0,0,0);
                 arm.outtakeSample();
 
-                if (timer.milliseconds() >= 575){
+                if (timer.milliseconds() >= 575 || intakeState>4){
                     arm.openClaw();
                 }
-                if (timer.milliseconds() >= 675){
+                if (timer.milliseconds() >= 675 || (timer.milliseconds()>100 && intakeState>4)){
                     arm.toIdlePosition();
 
                     /* make this 5 for 5 sample and park */
@@ -268,7 +270,8 @@ public class SixSevenSampleAuto extends OpMode {
 
             case subIntake:
                 arm.toIdlePosition();
-                lift.intakeSample();
+                if (timer.milliseconds()>500) lift.intakeSample();
+                intake.up();
                 vf.move();
                 pid_max_power = 0.1;
 
@@ -291,7 +294,7 @@ public class SixSevenSampleAuto extends OpMode {
             case park:
                 arm.toTeleStartPosition();
                 if (timer.milliseconds()<5000) vf.move();
-                lift.toHighChamber();
+                if (timer.milliseconds()>1000) lift.toHighChamber(); //prevent l4 hang
                 if (timer.milliseconds()>5000) {
                     wheelControl.drive_relative(0.2,0,0,1);
                 }
