@@ -163,7 +163,7 @@ public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
                     }
                 } else {
                     boolean transfer;
-                    if (intakeSlides.getPosition()>-20 || timer.milliseconds()>3000) {
+                    if (intakeSlides.getPosition()>-20 || timer.milliseconds()>2250) {
                         lift.intakeSample();
                         if (lift.getCurrentPos() < (highBasketPos-600)){
                             arm.intakeSample();
@@ -180,7 +180,7 @@ public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
                                 lift.toHighBasket();
                                 if (lift.getCurrentPos() > (highBasketPos-700)) {
                                     arm.outtakeSample();
-                                    if (vf.at_point(deposit_point, 1.1)) {
+                                    if (vf.at_point(deposit_point, 1.1) || timer.milliseconds() > 3000) {
                                         timer.reset();
                                         intakeState++;
                                         state = State.deposit_sample;

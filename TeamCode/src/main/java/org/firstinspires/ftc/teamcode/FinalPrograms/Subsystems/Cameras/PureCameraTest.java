@@ -34,8 +34,10 @@ public class PureCameraTest extends OpMode {
     CameraName camera;
     VisionPortal portal;
     FtcDashboard dashboard;
+    HorizontalSlides slides;
 
     List<LynxModule> allHubs;
+
 
     public static boolean filterYellow = false;
 
@@ -43,6 +45,7 @@ public class PureCameraTest extends OpMode {
     public void init() {
         processor = new SampleFinder(Alliance.blue);
         camera = hardwareMap.get(CameraName.class, "Webcam 1");
+        slides = new HorizontalSlides(hardwareMap);
         portal = new VisionPortal
                 .Builder()
                 .addProcessor(processor)
@@ -61,5 +64,6 @@ public class PureCameraTest extends OpMode {
         processor.filterYellow = filterYellow;
 
         telemetry.addData("Nearest Distance", processor.nearestSampleDistance);
+        telemetry.addData("slides range", slides.horizontalSlidesMotor.getCurrentPosition());
     }
 }

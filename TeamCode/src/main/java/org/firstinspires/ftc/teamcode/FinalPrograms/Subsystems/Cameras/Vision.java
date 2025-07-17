@@ -94,7 +94,7 @@ public class Vision {
                             odometry.opt.get_y()+processor.nearestSampleDistance
                     );
                 }
-                target_depth = -processor.nearestSampleDepth*inch_to_ticks;
+                target_depth = processor.nearestSampleDepth; //-processor.nearestSampleDepth*inch_to_ticks;
 
                 if (timer.milliseconds() >= 500){
                     timer.reset();
