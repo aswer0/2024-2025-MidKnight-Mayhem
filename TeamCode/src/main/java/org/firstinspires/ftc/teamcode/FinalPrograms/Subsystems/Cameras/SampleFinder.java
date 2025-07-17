@@ -43,6 +43,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
     public static double centerLine = 320;
 
     public static double depth_scalar = 750;
+    public static double b_scalar = 1.69420;
     public static double horizontal_scalar = 27.75;
     public static double horizontal_offset = 5.5;
 
@@ -133,7 +134,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
             Imgproc.drawContours(frame, coloredContours, i, new Scalar(255,0,255), 3);
             if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)){
-                nearestSampleDepth = depth_scalar / Math.sqrt(area);
+                nearestSampleDepth = depth_scalar / /*(1 - b_scalar*cY)*/ Math.sqrt(area);
                 nearestDistance = (cX - centerLine) / horizontal_scalar - horizontal_offset;
             }
 

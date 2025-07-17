@@ -19,7 +19,7 @@ public class HorizontalSlides {
     final static int MAX = 0;
 
     public DcMotorEx horizontalSlidesMotor;
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.015,0,-0,0);
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(-0.015,0,-0,-0);
     public PIDFController pidController = new PIDFController(coefficients);
     public enum State {
         userControlled,
@@ -88,12 +88,13 @@ public class HorizontalSlides {
 
     public void update() {
         if (state == State.runToPosition) {
-            horizontalSlidesMotor.setPower(pidController.update(horizontalSlidesMotor.getCurrentPosition() - position));
+            double power = pidController.update(horizontalSlidesMotor.getCurrentPosition() - position);
+            horizontalSlidesMotor.setPower(position == 0 ? Math.max(power,0.2) : power);
             // Brake if already in position
-            if (Math.abs(horizontalSlidesMotor.getCurrentPosition() - position) < 5) {
+            /*if (Math.abs(horizontalSlidesMotor.getCurrentPosition() - position) < 5) {
                 state = State.userControlled;
                 setPower(0);
-            }
+            }*/
         }
         if(outputDebugInfo) {
             FtcDashboard dashboard = FtcDashboard.getInstance();

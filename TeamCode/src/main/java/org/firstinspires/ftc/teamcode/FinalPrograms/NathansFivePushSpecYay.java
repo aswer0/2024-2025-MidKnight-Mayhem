@@ -6,7 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.BezierCurve;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
+import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.VectorField;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVFSimplfied.Path;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.Odometry;
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.WheelControl;
@@ -34,22 +35,13 @@ public class NathansFivePushSpecYay extends OpMode {
     public static double intake_state = 0;
 
     public static double power = 1;
-    public static double at_end_dist = 5;
+    public static double at_end_dist = 2;
     public static double gvf_speed = 0.1;
     public static double gvf_thresh = 13;
 
     Point target;
     Point get_specimen_target;
     Point preload_sample;
-
-    Point stop_pos_1 = new Point(0, 0);
-    Point stop_pos_2 = new Point(0, 0);
-    Point stop_pos_3 = new Point(0, 0);
-    Point[] end_points = {
-        stop_pos_1,
-        stop_pos_2,
-        stop_pos_3,
-    };
 
     ElapsedTime timer;
     ElapsedTime intakeShakeTimer;
@@ -59,29 +51,30 @@ public class NathansFivePushSpecYay extends OpMode {
     WheelControl wheelControl;
     Path path;
 
-    Point[] follow_path1 = {
-            new Point(23.15,46.75),
+    public static Point[][] follow_path1 = {{
+            new Point(23.15,34),
             new Point(17.42, 34.4),
-            new Point(116.66, 29.11),
-            new Point(20, 24.26),
-    };
-    Point[] follow_path2 = {
+            new Point(97, 29.11),
+            new Point(20, 30),
+    }};
+    public static Point[][] follow_path2 = {{
             new Point(10.8,24.26),
             new Point(110.9, 28),
             new Point(44.55, 8.38),
             new Point(20, 14.77),
-    };
-    Point[] follow_path3 = {
+    }};
+    public static Point[][] follow_path3 = {{
             new Point(12.13,14.33),
             new Point(110.9, 11.69),
             new Point(36.8, 7.28),
             new Point(36.83, 7.28),
+    }};
+    BCPath[] follow_path = {
+            new BCPath(follow_path1),
+            new BCPath(follow_path3),
+            new BCPath(follow_path2),
     };
-    BezierCurve[] follow_path = {
-            new BezierCurve(follow_path1),
-            new BezierCurve(follow_path2),
-            new BezierCurve(follow_path3),
-    };
+    VectorField vf;
 
     State state = State.pid;
     Lift lift;
@@ -109,6 +102,8 @@ public class NathansFivePushSpecYay extends OpMode {
 
     @Override
     public void init() {
+        Point[] p = {new Point(0, 0)};
+
         target = new Point(target_x, target_y);
         get_specimen_target = new Point(14.875, 30);
         preload_sample = new Point(sample_x, sample_y);
@@ -120,7 +115,8 @@ public class NathansFivePushSpecYay extends OpMode {
         odometry = new Odometry(hardwareMap, 0, 7.875, 66, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
-        path = new Path(follow_path1, wheelControl, odometry, telemetry, gvf_speed, gvf_thresh, 180, power);
+        path = new Path(p, wheelControl, odometry, telemetry, gvf_speed, gvf_thresh, 180, power);
+        vf = new VectorField(wheelControl, odometry);
 
         wheelControl.change_mode(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -214,7 +210,7 @@ public class NathansFivePushSpecYay extends OpMode {
                         timer.reset();
                         intakeShakeTimer.reset();
 
-                        path.set_path(follow_path[(int)(intake_state-2)]);
+                        vf.setPath(follow_path[(int)(intake_state-2)], 0, false);
                         state = State.gvfPush;
                     }
                     else {
@@ -274,9 +270,10 @@ public class NathansFivePushSpecYay extends OpMode {
                 break;
 
             case gvfPush:
-                path.update(0);
+                vf.move();
+                arm.intakeSpecimen();
 
-                if (path.at_point(end_points[(int)(intake_state-2)], at_end_dist)){
+                if (vf.at_end(at_end_dist)){
                     intake_state++;
                     if (intake_state == 5){
                         state = State.pickupSpecimen;

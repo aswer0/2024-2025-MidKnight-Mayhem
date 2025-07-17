@@ -89,7 +89,7 @@ public class Vision {
                 }
                 target_depth = -processor.nearestSampleDepth*inch_to_ticks;
 
-                if (timer.milliseconds() >= 700){
+                if (timer.milliseconds() >= 500){
                     timer.reset();
                     state = State.move;
                 }
@@ -100,7 +100,7 @@ public class Vision {
                 intake.up();
                 vf.pid_to_point(target_position, target_angle, powerLevel);
 
-                if (timer.milliseconds() >= 1000){
+                if (timer.milliseconds() >= 500){
                     timer.reset();
                     state = State.intake;
                 }
@@ -132,14 +132,14 @@ public class Vision {
                 if (timer.milliseconds() >= 200){
                     horizontalSlides.setPosition(0);
                 }
-                if (timer.milliseconds() >= 500 && timer.milliseconds() <= 560){
+                if (timer.milliseconds() >= 400 && timer.milliseconds() <= 460){
                     intake.reverse();
                 }
                 else{
                     intake.intake();
                 }
 
-                if (timer.milliseconds() >= 750){
+                if (timer.milliseconds() >= 650){
                     intake.stop();
                     return true;
                 }

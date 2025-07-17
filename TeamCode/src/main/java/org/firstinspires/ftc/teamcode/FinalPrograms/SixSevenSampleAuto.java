@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Experiments.Drivetrain.GVF.BCPath;
@@ -109,6 +110,7 @@ public class SixSevenSampleAuto extends OpMode {
         arm = new Arm(hardwareMap);
         intake = new Intake(hardwareMap, sensors);
         intakeSlides = new HorizontalSlides(hardwareMap);
+        intakeSlides.horizontalSlidesMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         vision = new Vision(odometry, telemetry, vf, hardwareMap, intakeSlides, intake, alliance);
         vision.reset();
@@ -171,11 +173,12 @@ public class SixSevenSampleAuto extends OpMode {
                         transfer = false;
                     }
                     if (transfer) {
-                        if (timer.milliseconds()>250) {
+                        if (timer.milliseconds() > 250) {
                             arm.closeClaw();
-                            if (timer.milliseconds()>550) {
+                            if (timer.milliseconds()>450) {
                                 lift.toHighBasket();
-                                if (lift.getCurrentPos() > (highBasketPos-700) && vf.at_point(deposit_point, 1)) {
+                                if (lift.getCurrentPos() > (highBasketPos-700) && vf.at_point(deposit_point, 1.1)) {
+                                    arm.outtakeSample();
                                     timer.reset();
                                     intakeState++;
                                     state = State.deposit_sample;
@@ -191,10 +194,10 @@ public class SixSevenSampleAuto extends OpMode {
                 wheelControl.drive(0,0,0,0,0);
                 arm.outtakeSample();
 
-                if (timer.milliseconds() >= 600){
+                if (timer.milliseconds() >= 575){
                     arm.openClaw();
                 }
-                if (timer.milliseconds() >= 875){
+                if (timer.milliseconds() >= 675){
                     arm.toIdlePosition();
 
                     /* make this 5 for 5 sample and park */
@@ -269,8 +272,8 @@ public class SixSevenSampleAuto extends OpMode {
                 vf.move();
                 pid_max_power = 0.1;
 
-                if (sensors.isTouchBack()){
-                    pid_max_power = 0.9;
+                if (sensors.isTouchBack() || vf.at_end(1.65)){
+                    pid_max_power = 1;
                     wheelControl.stop();
                     vision.reset();
                     state = State.visionIntake;
