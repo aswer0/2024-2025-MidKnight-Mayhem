@@ -120,7 +120,7 @@ public class Vision {
 
                 if (timer.milliseconds() >= 300){
                     intake.down();
-                    intake.intake();
+                    intake.smarterIntake(true);
 
                     if (intake.hasCorrectSample(true) || timer.milliseconds() >= 2000) {
                         timer.reset();

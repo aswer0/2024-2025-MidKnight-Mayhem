@@ -126,7 +126,8 @@ public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
         } else if (gamepad1.right_bumper) {
             alliance = Alliance.red;
         }
-
+        intake.alliance = alliance;
+        vision.get_processor().alliance = alliance;
         telemetry.addData("Alliance", alliance);
     }
 
@@ -308,5 +309,11 @@ public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
         telemetry.addData("target position", vision.get_target_position());
         telemetry.addData("touch button", sensors.isTouchBack());
         telemetry.addData("has correct sample", intake.hasCorrectSample(true));
+    }
+
+    @Override
+    public void stop() {
+        arm.openClaw();
+        getRuntime();
     }
 }

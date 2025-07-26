@@ -298,10 +298,10 @@ public class A_COMPETITION_TELEOP extends OpMode {
                     intake.openDoor();
                     arm.closeClaw();
                 } else {
-                    intakeSlides.setPosition(-150);
                     intake.reverse();
                     outtakeSlides.toHighBasket();
                     if (outtakeSlides.getCurrentPos()>(highBasketPos-700)) {
+                        intakeSlides.setPosition(-150);
                         turnPower=0.6;
                         arm.outtakeSample();
                         intake.closeDoor();
