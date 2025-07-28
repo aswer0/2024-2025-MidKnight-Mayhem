@@ -76,6 +76,7 @@ public class A_COMPETITION_TELEOP extends OpMode {
     boolean sampleMode = true;
     boolean outtakeSpec=false;
     boolean releaseSpec=false;
+    boolean verticalDepo = false;
 
     public static int inTime=60;
     public static int spitTime=60;
@@ -103,7 +104,7 @@ public class A_COMPETITION_TELEOP extends OpMode {
                 new Point(36.5, 75)
         };
 
-        odometry = new Odometry(hardwareMap, 0, 100, 100, "OTOS");
+        odometry = new Odometry(hardwareMap, 90, 100, 100, "OTOS");
         drive = new WheelControl(hardwareMap, odometry);
         path = new Path(follow_path, drive, odometry, telemetry,0.1,13,180,1);
         outtakeSlides = new Lift(hardwareMap, false);
@@ -148,12 +149,12 @@ public class A_COMPETITION_TELEOP extends OpMode {
 
         if(currentGamepad1.options && !previousGamepad1.options && (alliance == Alliance.blue)) {
             gamepad1.setLedColor(1,0,0,Gamepad.LED_DURATION_CONTINUOUS);
-            odometry.opt.setPos(0,0,0);
+            odometry.opt.setPos(0,0,90);
             alliance = Alliance.red;
             intake.alliance = alliance;
         } else if (currentGamepad1.options && !previousGamepad1.options) {
             gamepad1.setLedColor(0, 0, 1, Gamepad.LED_DURATION_CONTINUOUS);
-            odometry.opt.setPos(0,0,0);
+            odometry.opt.setPos(0,0,90);
             alliance = Alliance.blue;
             intake.alliance = alliance;
         }
@@ -219,7 +220,7 @@ public class A_COMPETITION_TELEOP extends OpMode {
                         if (currentGamepad1.right_bumper) {
                             turnPower = 0.6;
                             //move on if detecting sample
-                            if (intake.smarterIntake(true)) {
+                            if (intake.smarterIntake(sampleMode)) {
                                 intakeState = IntakeState.detected;
                                 intakeTimer.reset();
                             }
@@ -314,6 +315,12 @@ public class A_COMPETITION_TELEOP extends OpMode {
                 intakeSlides.setPosition(-300);
                 intake.stop();
                 if (currentGamepad1.circle) autoSampleDrive = true;
+                if (currentGamepad1.triangle && !previousGamepad1.triangle) verticalDepo = !verticalDepo;
+                if (verticalDepo) {
+                    arm.outtakeSampleVertical();
+                } else {
+                    arm.outtakeSample();
+                }
                 if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) { //rising edge detector
                     autoSampleDrive=false;
                     odometry.opt.setPos(sampleX, sampleY,odometry.opt.get_heading()); //(0,0,225)
@@ -355,7 +362,7 @@ public class A_COMPETITION_TELEOP extends OpMode {
                     newState = true;
                 }
 
-                if (currentGamepad1.square && !previousGamepad1.square) {
+                if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
                     arm.closeClaw();
                     stateTimer.reset();
                     outtakeSpec=true;
@@ -376,8 +383,8 @@ public class A_COMPETITION_TELEOP extends OpMode {
                 }
                 newState=false;
 
-                if (previousGamepad1.left_bumper && !currentGamepad1.left_bumper) {
-                    odometry.opt.setPos(40,odometry.opt.get_y());
+                if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+                    odometry.opt.setPos(odometry.opt.get_x(),40);
                     arm.openClaw();
                     stateTimer.reset();
                     releaseSpec=true;
@@ -392,7 +399,7 @@ public class A_COMPETITION_TELEOP extends OpMode {
                         stateTimer.reset();
                         newState = true;
                     }
-                    if (odometry.opt.get_x()<24) {
+                    if (odometry.opt.get_y()<24) {
                         state = State.intakeSpec;
                         stateTimer.reset();
                         newState = true;

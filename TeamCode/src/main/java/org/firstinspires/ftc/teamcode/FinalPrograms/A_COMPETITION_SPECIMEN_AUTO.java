@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.FinalPrograms;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -21,6 +22,7 @@ import org.opencv.core.Point;
 
 @Config
 @Autonomous
+@Disabled //Program not tuned, so it's disabled for Lobster Cup
 public class A_COMPETITION_SPECIMEN_AUTO extends OpMode {
     public static double sample_x = 8;
     public static double sample_y = 120;

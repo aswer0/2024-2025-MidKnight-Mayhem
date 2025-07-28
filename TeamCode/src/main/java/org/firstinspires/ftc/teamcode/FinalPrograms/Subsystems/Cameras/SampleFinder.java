@@ -133,7 +133,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
             Imgproc.drawContours(frame, coloredContours, i, new Scalar(255,0,255), 3);
             if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)){
-                nearestSampleDepth = 81188.3266 / (202.87046 - cY);  //depth_scalar /  Math.sqrt(area);
+                nearestSampleDepth = 43429.9024/(184.42072 - cY);  //depth_scalar /  Math.sqrt(area);
                 nearestDistance = (cX - centerLine) / horizontal_scalar - horizontal_offset;
             }
 
@@ -168,7 +168,7 @@ public class SampleFinder implements VisionProcessor, CameraStreamSource {
             Imgproc.drawMarker(frame, new Point(cX, cY), new Scalar(0,255,255));
             Imgproc.drawContours(frame, yellowContours, i, new Scalar(255,0,255), 3);
             if(Math.abs(nearestDistance) > Math.abs(cX - centerLine)){
-                nearestSampleDepth = 81188.3266 / (202.87046 - cY); //depth_scalar / Math.sqrt(area);
+                nearestSampleDepth = 43429.9024/(184.42072 - cY); //81188.3266 / (202.87046 - cY); //depth_scalar / Math.sqrt(area);
                 nearestDistance = (cX - centerLine) / horizontal_scalar - horizontal_offset;
             }
             Contour contour = new Contour();

@@ -97,7 +97,7 @@ public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
         timer = new ElapsedTime();
         sensors = new Sensors(hardwareMap, telemetry);
 
-        odometry = new Odometry(hardwareMap, 90, 7.25, 96+7.7, "OTOS");
+        odometry = new Odometry(hardwareMap, 90, 7.25, 96+7.7-1, "OTOS");
         wheelControl = new WheelControl(hardwareMap, odometry);
 
         vf = new VectorField(wheelControl, odometry);
@@ -198,10 +198,10 @@ public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
                 wheelControl.drive(0,0,0,0,0);
                 arm.outtakeSample();
 
-                if (timer.milliseconds() >= 575 || intakeState>4){
+                if (timer.milliseconds() >= 565 || intakeState>4){
                     arm.openClaw();
                 }
-                if (timer.milliseconds() >= 675 || (timer.milliseconds()>100 && intakeState>4)){
+                if (timer.milliseconds() >= 705 || (timer.milliseconds()>140 && intakeState>4)){
                     arm.toIdlePosition();
 
                     /* make this 5 for 5 sample and park */
@@ -277,7 +277,7 @@ public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
                 vf.move();
                 pid_max_power = 0.1;
 
-                if (sensors.isTouchBack() || vf.at_end(1.65)){
+                if (sensors.isTouchBack() || vf.at_end(1.65) || timer.milliseconds() > 1000){
                     pid_max_power = 1;
                     wheelControl.stop();
                     vision.reset();
@@ -314,6 +314,5 @@ public class A_COMPETITION_SAMPLE_AUTO extends OpMode {
     @Override
     public void stop() {
         arm.openClaw();
-        getRuntime();
     }
 }

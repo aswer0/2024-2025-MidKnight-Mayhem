@@ -120,7 +120,7 @@ public class FivePlusOneAuto extends OpMode {
         intake = new Intake(hardwareMap, sensors);
         horizontalSlides = new HorizontalSlides(hardwareMap);
         arm = new Arm(hardwareMap);
-        arm.toAutoStartPosition();
+        arm.toSpecAutoStartPosition();
         arm.closeClaw();
     }
 

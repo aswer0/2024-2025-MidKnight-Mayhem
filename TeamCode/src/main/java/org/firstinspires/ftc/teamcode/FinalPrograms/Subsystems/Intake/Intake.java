@@ -24,7 +24,7 @@ public class Intake {
     public static double spitTime=300;
 
     public static double DOWN_POS=0.73;
-    public static double UP_POS=0.963;
+    public static double UP_POS=0.94;
     public static double REVERSE_DOWN_POS=0.83;
     public static double READY_POS=UP_POS;
 

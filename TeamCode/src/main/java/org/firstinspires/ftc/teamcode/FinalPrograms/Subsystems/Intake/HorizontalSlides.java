@@ -34,7 +34,7 @@ public class HorizontalSlides {
             horizontalSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
         horizontalSlidesMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        horizontalSlidesMotor.setDirection(DcMotor.Direction.REVERSE);
+        //horizontalSlidesMotor.setDirection(DcMotor.Direction.REVERSE);
         horizontalSlidesMotor.setCurrentAlert(7, CurrentUnit.AMPS);
 
     }

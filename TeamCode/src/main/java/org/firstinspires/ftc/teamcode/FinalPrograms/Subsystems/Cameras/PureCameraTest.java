@@ -35,11 +35,13 @@ public class PureCameraTest extends OpMode {
     VisionPortal portal;
     FtcDashboard dashboard;
     HorizontalSlides slides;
+    boolean lastExtendSlides = false;
 
     List<LynxModule> allHubs;
 
 
     public static boolean filterYellow = false;
+    public static boolean extendSlides = false;
 
     @Override
     public void init() {
@@ -55,7 +57,7 @@ public class PureCameraTest extends OpMode {
                 .build();
         dashboard = FtcDashboard.getInstance();
         dashboard.startCameraStream(processor, 60);
-
+        slides = new HorizontalSlides(hardwareMap);
         allHubs = hardwareMap.getAll(LynxModule.class);
     }
 
@@ -65,5 +67,7 @@ public class PureCameraTest extends OpMode {
 
         telemetry.addData("Nearest Distance", processor.nearestSampleDistance);
         telemetry.addData("slides range", slides.horizontalSlidesMotor.getCurrentPosition());
+        if(extendSlides != lastExtendSlides) slides.setPosition(processor.nearestSampleDepth);
+        lastExtendSlides = extendSlides;
     }
 }

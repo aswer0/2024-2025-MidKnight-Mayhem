@@ -12,10 +12,11 @@ public class Arm {
     Servo pivot_right;
     Servo tClaw;
 
-    public static Preset outtakeSpecimen1 = new Preset(0.1,0.65,0.26);
-    public static Preset outtakeSpecimen2 = new Preset(0.1,0.25,0.26);
-    public static Preset outtakeSample = new Preset(0.6,0.15,0.33);
-    public static Preset intakeSpecimen = new Preset(0.85,0.56,0.735);
+    public static Preset outtakeSpecimen1 = new Preset(0.1,0.59,0.23);
+    public static Preset outtakeSpecimen2 = new Preset(0.1,0.3,0.23);
+    public static Preset outtakeSample = new Preset(0.5,0.15,0.33);
+    public static Preset outtakeSampleVertical = new Preset(0.1,0.5,0.33);
+    public static Preset intakeSpecimen = new Preset(0.85,0.56,0.7);
     /*=======================================*/
     /* This is tuned such that it pushes really down so claw does not get stuck on surgical tubing*/
     /* Warning that there may be a chance of it getting stuck as it pushes down*/
@@ -24,13 +25,14 @@ public class Arm {
     public static Preset idlePosition = new Preset(0.85,0.95,0.65);
     public static Preset specIdlePosition = new Preset(0.85,0.205,0.67);
     public static Preset autoStartPosition = new Preset(0.5,0.93,0.7);
+    public static Preset specAutoStartPosition = new Preset(0.5,0.93,0.6);
     public static Preset teleStartPosition = new Preset(0.1,0.5,0.345);
     public static Preset backOuttakeSpecimen1 = new Preset(0.1,0.49,0.62);
     public static Preset backOuttakeSpecimen2 = new Preset(0.1,0.49,0.54);
 
-    public static double clawClosePos = 0.335; //0.385
-    public static double clawHalfOpenPos = 0.34;
-    public static double clawOpenPos = 0.6; //0.15
+    public static double clawClosePos = 0.52; //0.385
+    public static double clawHalfOpenPos = 0.55;
+    public static double clawOpenPos = 0.75; //0.15
 
     public Arm(HardwareMap hardwareMap) {
         this.outtake_arm_far = hardwareMap.get(Servo.class, "oAF");
@@ -54,6 +56,9 @@ public class Arm {
     public void outtakeSample() {
         applyPreset(outtakeSample);
     }
+    public void outtakeSampleVertical() {
+        applyPreset(outtakeSampleVertical);
+    }
     public void intakeSpecimen() {
         applyPreset(intakeSpecimen);
     }
@@ -68,6 +73,9 @@ public class Arm {
     }
     public void toAutoStartPosition() {
         applyPreset(autoStartPosition);
+    }
+    public void toSpecAutoStartPosition() {
+        applyPreset(specAutoStartPosition);
     }
     public void toTeleStartPosition() {
         applyPreset(teleStartPosition);
